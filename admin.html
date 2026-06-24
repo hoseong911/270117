@@ -286,6 +286,31 @@
     <!-- 기본 정보 -->
     <div class="panel active" id="panelBasic">
       <div class="form-section">
+        <div class="form-section-title">브라우저 &amp; 공유 설정</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">브라우저 탭 제목</label>
+            <input class="form-input" id="headerTitle" placeholder="우리의 결혼식">
+          </div>
+          <div class="form-row">
+            <label class="form-label">헤더 상단 영문 문구 (예: Wedding Invitation)</label>
+            <input class="form-input" id="headerTag" placeholder="Wedding Invitation">
+          </div>
+          <div class="form-row">
+            <label class="form-label">하단 푸터 문구</label>
+            <input class="form-input" id="headerFooter" placeholder="2027. 01. 17">
+          </div>
+          <div class="form-row">
+            <label class="form-label">SNS 공유 시 설명 문구</label>
+            <input class="form-input" id="headerOgDesc" placeholder="저희의 결혼식에 초대합니다.">
+          </div>
+          <div class="form-row">
+            <label class="form-label">SNS 공유 이미지 URL (선택)</label>
+            <input class="form-input" id="headerOgImage" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
         <div class="form-section-title">신랑 · 신부</div>
         <div class="form-grid form-grid-2">
           <div class="form-row">
@@ -704,6 +729,11 @@ async function loadConfig() {
 
 function fillForms() {
   const c = currentConfig;
+  // 브라우저/헤더
+  const hd = c.header || {};
+  val('headerTitle',   hd.title);   val('headerTag',    hd.tag);
+  val('headerFooter',  hd.footer);  val('headerOgDesc', hd.ogDesc);
+  val('headerOgImage', hd.ogImage);
   // 기본 정보
   const g = c.groom || {}; const b = c.bride || {}; const w = c.wedding || {};
   val('groomName', g.name); val('brideName', b.name);
@@ -932,6 +962,11 @@ document.getElementById('saveOptionalBtn').addEventListener('click', async () =>
 // ── BASIC SAVE ────────────────────────────────────────
 document.getElementById('saveBasicBtn').addEventListener('click', async () => {
   const data = {
+    header: {
+      title:   v('headerTitle'),   tag:     v('headerTag'),
+      footer:  v('headerFooter'),  ogDesc:  v('headerOgDesc'),
+      ogImage: v('headerOgImage'),
+    },
     groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
     bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
     wedding: {

@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>우리의 결혼식 — 2027. 01. 17</title>
+  <title>우리의 결혼식</title>
   <meta property="og:title" content="우리의 결혼식">
-  <meta property="og:description" content="2027년 1월 17일, 저희의 결혼식에 초대합니다.">
+  <meta property="og:description" content="저희의 결혼식에 초대합니다.">
+  <meta property="og:image" content="">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +24,7 @@
 
 <main id="wedding"></main>
 
-<footer>2027. 01. 17</footer>
+<footer id="mainFooter">2027. 01. 17</footer>
 
 <div id="toast"></div>
 
@@ -51,6 +52,13 @@ const db  = getFirestore(app);
 
 // ─── DEFAULT CONFIG ───────────────────────────────────
 const DEFAULT = {
+  header: {
+    tag:    'Wedding Invitation',
+    title:  '우리의 결혼식',
+    ogDesc: '저희의 결혼식에 초대합니다.',
+    ogImage: '',
+    footer: '2027. 01. 17',
+  },
   groom: { name: '신랑', engName: 'GROOM', phone: '' },
   bride: { name: '신부', engName: 'BRIDE', phone: '' },
   wedding: {
@@ -139,7 +147,7 @@ function renderHeader(c) {
 <section id="sec-header">
   <div class="header-ornament top-left">✦</div>
   <div class="header-ornament bot-right">✦</div>
-  <div class="header-tag fadein">WEDDING INVITATION</div>
+  <div class="header-tag fadein">${esc(c.header?.tag || 'Wedding Invitation')}</div>
   <div class="header-names fadein">
     ${esc(c.groom.engName)}<span class="header-amp">&amp;</span>${esc(c.bride.engName)}
   </div>
@@ -756,6 +764,17 @@ async function init() {
   } catch(e) {
     console.warn('Config load failed, using defaults:', e.message);
   }
+
+  // 브라우저 제목 및 메타 태그 업데이트
+  const h = config.header || {};
+  if (h.title) {
+    document.title = h.title;
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', h.title);
+  }
+  if (h.ogDesc)  document.querySelector('meta[property="og:description"]')?.setAttribute('content', h.ogDesc);
+  if (h.ogImage) document.querySelector('meta[property="og:image"]')?.setAttribute('content', h.ogImage);
+  const footerEl = document.getElementById('mainFooter');
+  if (footerEl && h.footer) footerEl.textContent = h.footer;
 
   const sections = (config.sections || DEFAULT.sections).slice().sort((a,b) => a.order - b.order);
   const wedding  = document.getElementById('wedding');
