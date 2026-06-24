@@ -119,6 +119,24 @@
     .save-row { display:flex; justify-content:flex-end; margin-top:1.2rem; gap:.8rem; align-items:center; }
     .save-msg { font-size:.78rem; color:var(--rose); }
 
+    /* ── PHOTO UPLOAD ── */
+    .photo-row { display:flex; gap:.5rem; align-items:center; }
+    .photo-row .form-input { flex:1; min-width:0; }
+    .upload-btn {
+      flex-shrink:0; padding:.55rem .85rem;
+      background:none; border:1.5px solid var(--border);
+      border-radius:var(--radius); color:var(--ink2);
+      font-size:.75rem; cursor:pointer; white-space:nowrap;
+      transition:border-color .2s, color .2s;
+    }
+    .upload-btn:hover { border-color:var(--rose); color:var(--rose); }
+    .upload-status {
+      font-size:.72rem; color:var(--rose); white-space:nowrap;
+      min-width:3rem; text-align:right;
+    }
+    .gallery-btn-row { display:flex; gap:.5rem; margin-bottom:.8rem; }
+    .gallery-btn-row .add-btn { flex:1; }
+
     /* ── GALLERY ── */
     .gallery-url-list { display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem; }
     .gallery-url-item { display:flex; gap:.5rem; }
@@ -305,12 +323,22 @@
             <input class="form-input" id="headerOgDesc" placeholder="저희의 결혼식에 초대합니다.">
           </div>
           <div class="form-row">
-            <label class="form-label">SNS 공유 이미지 URL (선택)</label>
-            <input class="form-input" id="headerOgImage" placeholder="https://...">
+            <label class="form-label">SNS 공유 이미지</label>
+            <div class="photo-row">
+              <input class="form-input" id="headerOgImage" placeholder="URL 직접 입력 또는 파일 업로드">
+              <input type="file" id="file-headerOgImage" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-headerOgImage">파일 선택</label>
+              <span class="upload-status" id="st-headerOgImage"></span>
+            </div>
           </div>
           <div class="form-row">
-            <label class="form-label">첫 화면 커버 사진 URL (선택 — 없으면 기본 배경)</label>
-            <input class="form-input" id="headerPhoto" placeholder="https://...">
+            <label class="form-label">첫 화면 커버 사진 (없으면 기본 배경)</label>
+            <div class="photo-row">
+              <input class="form-input" id="headerPhoto" placeholder="URL 직접 입력 또는 파일 업로드">
+              <input type="file" id="file-headerPhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-headerPhoto">파일 선택</label>
+              <span class="upload-status" id="st-headerPhoto"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -453,10 +481,13 @@
     <!-- 갤러리 -->
     <div class="panel" id="panelGallery">
       <div class="form-section">
-        <div class="form-section-title">사진 URL 목록</div>
-        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">이미지 URL을 순서대로 입력해주세요. Firebase Storage나 외부 이미지 URL 모두 사용 가능합니다.</p>
+        <div class="form-section-title">갤러리 사진</div>
         <div class="gallery-url-list" id="galleryUrlList"></div>
-        <button class="add-btn" id="addGalleryUrl">URL 추가</button>
+        <div class="gallery-btn-row">
+          <input type="file" id="galleryFileInput" accept="image/*" multiple style="display:none">
+          <label class="add-btn upload-btn" for="galleryFileInput" style="text-align:center">사진 업로드 (여러 장 가능)</label>
+          <button class="add-btn" id="addGalleryUrl" style="flex:0 0 auto;width:auto;padding:.55rem 1rem">URL 직접 입력</button>
+        </div>
       </div>
       <div class="save-row">
         <span class="save-msg" id="galleryMsg"></span>
@@ -531,12 +562,22 @@
         <div class="form-section-title">신랑신부 소개 (섹션 관리에서 활성화 후 사용)</div>
         <div class="form-grid form-grid-2">
           <div class="form-row">
-            <label class="form-label">신랑 사진 URL</label>
-            <input class="form-input" id="coupleGroomPhoto" placeholder="https://...">
+            <label class="form-label">신랑 사진</label>
+            <div class="photo-row">
+              <input class="form-input" id="coupleGroomPhoto" placeholder="URL 또는 파일 업로드">
+              <input type="file" id="file-coupleGroomPhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-coupleGroomPhoto">파일 선택</label>
+              <span class="upload-status" id="st-coupleGroomPhoto"></span>
+            </div>
           </div>
           <div class="form-row">
-            <label class="form-label">신부 사진 URL</label>
-            <input class="form-input" id="coupleBridePhoto" placeholder="https://...">
+            <label class="form-label">신부 사진</label>
+            <div class="photo-row">
+              <input class="form-input" id="coupleBridePhoto" placeholder="URL 또는 파일 업로드">
+              <input type="file" id="file-coupleBridePhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-coupleBridePhoto">파일 선택</label>
+              <span class="upload-status" id="st-coupleBridePhoto"></span>
+            </div>
           </div>
           <div class="form-row">
             <label class="form-label">신랑 MBTI</label>
@@ -576,20 +617,40 @@
             <input class="form-input" id="parentsBrideMotherName" placeholder="박미숙">
           </div>
           <div class="form-row">
-            <label class="form-label">신랑 아버지 사진 URL</label>
-            <input class="form-input" id="parentsGroomFatherPhoto" placeholder="https://...">
+            <label class="form-label">신랑 아버지 사진</label>
+            <div class="photo-row">
+              <input class="form-input" id="parentsGroomFatherPhoto" placeholder="URL 또는 파일 업로드">
+              <input type="file" id="file-parentsGroomFatherPhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-parentsGroomFatherPhoto">파일 선택</label>
+              <span class="upload-status" id="st-parentsGroomFatherPhoto"></span>
+            </div>
           </div>
           <div class="form-row">
-            <label class="form-label">신랑 어머니 사진 URL</label>
-            <input class="form-input" id="parentsGroomMotherPhoto" placeholder="https://...">
+            <label class="form-label">신랑 어머니 사진</label>
+            <div class="photo-row">
+              <input class="form-input" id="parentsGroomMotherPhoto" placeholder="URL 또는 파일 업로드">
+              <input type="file" id="file-parentsGroomMotherPhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-parentsGroomMotherPhoto">파일 선택</label>
+              <span class="upload-status" id="st-parentsGroomMotherPhoto"></span>
+            </div>
           </div>
           <div class="form-row">
-            <label class="form-label">신부 아버지 사진 URL</label>
-            <input class="form-input" id="parentsBrideFatherPhoto" placeholder="https://...">
+            <label class="form-label">신부 아버지 사진</label>
+            <div class="photo-row">
+              <input class="form-input" id="parentsBrideFatherPhoto" placeholder="URL 또는 파일 업로드">
+              <input type="file" id="file-parentsBrideFatherPhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-parentsBrideFatherPhoto">파일 선택</label>
+              <span class="upload-status" id="st-parentsBrideFatherPhoto"></span>
+            </div>
           </div>
           <div class="form-row">
-            <label class="form-label">신부 어머니 사진 URL</label>
-            <input class="form-input" id="parentsBrideMotherPhoto" placeholder="https://...">
+            <label class="form-label">신부 어머니 사진</label>
+            <div class="photo-row">
+              <input class="form-input" id="parentsBrideMotherPhoto" placeholder="URL 또는 파일 업로드">
+              <input type="file" id="file-parentsBrideMotherPhoto" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-parentsBrideMotherPhoto">파일 선택</label>
+              <span class="upload-status" id="st-parentsBrideMotherPhoto"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -640,6 +701,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, orderBy, query, limit, startAfter } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBrtXBFmtWdUBf9e__ihXbuzEmesZZzV-o",
@@ -649,9 +711,10 @@ const firebaseConfig = {
   messagingSenderId: "449222114949",
   appId: "1:449222114949:web:88827ceac03ac9270873ec"
 };
-const app  = initializeApp(firebaseConfig);
-const db   = getFirestore(app);
-const auth = getAuth(app);
+const app     = initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+const auth    = getAuth(app);
+const storage = getStorage(app);
 
 // ── TOAST ──────────────────────────────────────────────
 function toast(msg, ms = 2200) {
@@ -777,6 +840,45 @@ function fillForms() {
 }
 function val(id, v) { const el = document.getElementById(id); if (el) el.value = v || ''; }
 
+// ── STORAGE 업로드 ────────────────────────────────────
+async function uploadPhoto(file, path) {
+  const snap = await uploadBytes(sref(storage, path), file);
+  return await getDownloadURL(snap.ref);
+}
+
+function bindUpload(inputId, storagePath) {
+  const fileEl = document.getElementById('file-' + inputId);
+  if (!fileEl) return;
+  fileEl.addEventListener('change', async () => {
+    const file = fileEl.files[0];
+    if (!file) return;
+    const st = document.getElementById('st-' + inputId);
+    st.textContent = '업로드 중...';
+    try {
+      const url = await uploadPhoto(file, storagePath + '/' + Date.now() + '_' + file.name);
+      document.getElementById(inputId).value = url;
+      st.textContent = '완료 ✓';
+      setTimeout(() => { st.textContent = ''; }, 3000);
+    } catch(e) {
+      st.textContent = '실패';
+      console.error(e);
+    }
+    fileEl.value = '';
+  });
+}
+
+function bindAllUploads() {
+  bindUpload('headerPhoto',             'covers');
+  bindUpload('headerOgImage',           'og');
+  bindUpload('coupleGroomPhoto',        'couple');
+  bindUpload('coupleBridePhoto',        'couple');
+  bindUpload('parentsGroomFatherPhoto', 'parents');
+  bindUpload('parentsGroomMotherPhoto', 'parents');
+  bindUpload('parentsBrideFatherPhoto', 'parents');
+  bindUpload('parentsBrideMotherPhoto', 'parents');
+}
+bindAllUploads();
+
 // ── 갤러리 ────────────────────────────────────────────
 function renderGalleryList(images) {
   const list = document.getElementById('galleryUrlList');
@@ -793,6 +895,23 @@ function addGalleryRow(url = '', _i) {
   list.appendChild(row);
 }
 document.getElementById('addGalleryUrl').addEventListener('click', () => addGalleryRow());
+document.getElementById('galleryFileInput').addEventListener('change', async () => {
+  const files = Array.from(document.getElementById('galleryFileInput').files);
+  if (!files.length) return;
+  const msg = document.getElementById('galleryMsg');
+  let done = 0;
+  msg.textContent = `업로드 중... 0/${files.length}`;
+  for (const file of files) {
+    try {
+      const url = await uploadPhoto(file, `gallery/${Date.now()}_${file.name}`);
+      addGalleryRow(url);
+      msg.textContent = `업로드 중... ${++done}/${files.length}`;
+    } catch(e) { console.error('업로드 실패:', file.name, e); }
+  }
+  msg.textContent = `${done}장 업로드 완료`;
+  setTimeout(() => { msg.textContent = ''; }, 4000);
+  document.getElementById('galleryFileInput').value = '';
+});
 document.getElementById('saveGalleryBtn').addEventListener('click', async () => {
   const images = [...document.querySelectorAll('.gallery-url-input')]
     .map(inp => inp.value.trim()).filter(Boolean);
