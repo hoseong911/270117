@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
 </head>
 <body>
@@ -153,8 +153,8 @@ function renderHeader(c) {
   </div>
   <div class="header-ko fadein">${esc(c.groom.name)} · ${esc(c.bride.name)}</div>
   <div class="header-sep fadein"></div>
-  <div class="header-date fadein">${esc(w.date)}</div>
-  <div class="header-venue fadein">${esc(w.time)}${w.venueDetail ? ' · ' + esc(w.venueDetail) : ''}<br>${esc(w.venue)}</div>
+  <div class="header-date fadein">${esc(w.date)} · ${esc(w.time)}</div>
+  <div class="header-venue fadein">${esc(w.venue)}${w.venueDetail ? ' ' + esc(w.venueDetail) : ''}</div>
   <div class="header-scroll">SCROLL</div>
 </section>`;
 }
@@ -175,11 +175,11 @@ function renderGreeting(c) {
     <div class="greeting-parents">
       <div class="greeting-family">
         <div class="greeting-family-role">신 랑 측</div>
-        <p>${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}<br>${esc(c.groom.name)}${esc(gp.relation || '')}</p>
+        <p>${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}<br>${esc(gp.relation || '')} ${esc(c.groom.name)}</p>
       </div>
       <div class="greeting-family">
         <div class="greeting-family-role">신 부 측</div>
-        <p>${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}<br>${esc(c.bride.name)}${esc(bp.relation || '')}</p>
+        <p>${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}<br>${esc(bp.relation || '')} ${esc(c.bride.name)}</p>
       </div>
     </div>` : ''}
   </div>

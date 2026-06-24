@@ -18,7 +18,7 @@
   --max:     480px;
   --font-ui:     'Pretendard', 'Noto Sans KR', sans-serif;
   --font-serif:  'Gowun Batang', 'Noto Serif KR', serif;
-  --font-script: 'Great Vibes', cursive;
+  --font-script: 'Dancing Script', cursive;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -171,9 +171,9 @@ input, textarea, select { font-family:inherit; }
 }
 .greeting-family { text-align:center; }
 .greeting-family-role {
-  font-size:.62rem; color:var(--rose2); margin-bottom:.5rem;
+  font-size:.72rem; letter-spacing:.12em; color:var(--rose2); margin-bottom:.6rem;
 }
-.greeting-family p { font-size:.8rem; color:var(--ink2); line-height:2.1; }
+.greeting-family p { font-size:1rem; color:var(--ink2); line-height:2.2; }
 
 /* ── COUPLE (optional) ── */
 .couple-grid { display:flex; flex-direction:column; gap:1.5rem; }
