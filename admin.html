@@ -559,12 +559,12 @@ document.getElementById('logoutBtn').addEventListener('click', () => signOut(aut
 onAuthStateChanged(auth, async user => {
   if (user) {
     document.getElementById('loginView').style.display  = 'none';
-    document.getElementById('adminView').style.display  = '';
+    document.getElementById('adminView').style.display  = 'block';
     await loadConfig();
     loadRsvpList();
     loadGbList();
   } else {
-    document.getElementById('loginView').style.display  = '';
+    document.getElementById('loginView').style.display  = 'flex';
     document.getElementById('adminView').style.display  = 'none';
     document.getElementById('loginBtn').disabled  = false;
     document.getElementById('loginBtn').textContent = '로그인';
