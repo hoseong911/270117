@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 웨딩 설정: 누구나 읽기, 어드민만 쓰기
+    match /wedding_config/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // 참석 여부: 누구나 제출, 어드민만 전체 열람/수정/삭제
+    match /rsvp/{doc} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+    // 방명록: 누구나 읽기/쓰기, 삭제는 어드민만
+    match /guestbook/{doc} {
+      allow read, create: if true;
+      allow delete: if request.auth != null;
+    }
+  }
+}

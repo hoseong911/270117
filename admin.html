@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>청첩장 관리자</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f7f5; --white: #fff; --border: #e2ddd8;
+      --ink: #2a2520; --ink2: #6b5e55;
+      --rose: #8c7265; --rose-h: #7a6257;
+      --gold: #c4a87e; --red: #c0392b;
+      --radius: 8px; --max: 700px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--ink); font-size:14px; }
+    input, textarea, select, button { font-family:inherit; font-size:14px; }
+    button { cursor:pointer; }
+
+    /* ── LOGIN ── */
+    #loginView {
+      min-height:100svh; display:flex; align-items:center; justify-content:center;
+      padding:1rem;
+    }
+    .login-box {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:12px; padding:2.5rem 2rem;
+      width:100%; max-width:360px;
+    }
+    .login-title { font-size:1.1rem; font-weight:500; margin-bottom:.3rem; }
+    .login-sub { font-size:.8rem; color:var(--ink2); margin-bottom:2rem; }
+    .login-field { margin-bottom:.8rem; }
+    .login-field label { display:block; font-size:.75rem; color:var(--ink2); margin-bottom:.3rem; }
+    .login-input {
+      width:100%; padding:.7rem .9rem;
+      border:1.5px solid var(--border); border-radius:var(--radius);
+      outline:none; color:var(--ink); transition:border-color .2s;
+    }
+    .login-input:focus { border-color:var(--rose); }
+    .login-btn {
+      width:100%; padding:.8rem;
+      background:var(--rose); color:#fff; border:none; border-radius:var(--radius);
+      font-weight:500; margin-top:.5rem; transition:background .2s;
+    }
+    .login-btn:hover { background:var(--rose-h); }
+    .login-err { font-size:.78rem; color:var(--red); margin-top:.6rem; text-align:center; min-height:1.2em; }
+
+    /* ── ADMIN LAYOUT ── */
+    #adminView { display:none; min-height:100svh; }
+    .admin-header {
+      position:sticky; top:0; z-index:100;
+      background:var(--white); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.85rem 1.2rem;
+    }
+    .admin-header-title { font-size:.88rem; font-weight:500; color:var(--ink); }
+    .admin-header-right { display:flex; align-items:center; gap:.8rem; }
+    .admin-preview-link {
+      font-size:.75rem; color:var(--rose); text-decoration:none;
+      border:1px solid var(--border); border-radius:100px; padding:.3rem .8rem;
+    }
+    .logout-btn {
+      font-size:.78rem; color:var(--ink2); background:none;
+      border:1px solid var(--border); border-radius:100px; padding:.3rem .8rem;
+      transition:all .2s;
+    }
+    .logout-btn:hover { border-color:var(--red); color:var(--red); }
+
+    /* ── TABS ── */
+    .admin-tabs {
+      background:var(--white); border-bottom:1px solid var(--border);
+      display:flex; overflow-x:auto; scrollbar-width:none;
+    }
+    .admin-tabs::-webkit-scrollbar { display:none; }
+    .tab-btn {
+      padding:.7rem 1rem; font-size:.76rem; font-weight:500;
+      color:var(--ink2); background:none; border:none;
+      border-bottom:2px solid transparent; white-space:nowrap;
+      transition:all .2s;
+    }
+    .tab-btn.active { color:var(--rose); border-bottom-color:var(--rose); }
+    .tab-btn:hover { color:var(--rose); }
+
+    /* ── PANELS ── */
+    .admin-content { max-width:var(--max); margin:0 auto; padding:1.5rem 1rem; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    /* ── FORM ELEMENTS ── */
+    .form-section { margin-bottom:1.5rem; }
+    .form-section-title {
+      font-size:.72rem; font-weight:500; letter-spacing:.1em;
+      color:var(--rose); border-bottom:1px solid var(--border);
+      padding-bottom:.5rem; margin-bottom:1rem;
+    }
+    .form-grid { display:grid; gap:.8rem; }
+    .form-grid-2 { grid-template-columns:1fr 1fr; }
+    @media(max-width:500px) { .form-grid-2 { grid-template-columns:1fr; } }
+    .form-row { display:flex; flex-direction:column; gap:.3rem; }
+    .form-label { font-size:.72rem; color:var(--ink2); }
+    .form-input, .form-select, .form-textarea {
+      padding:.65rem .8rem; border:1.5px solid var(--border);
+      border-radius:var(--radius); color:var(--ink); background:var(--white);
+      transition:border-color .2s; width:100%;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline:none; border-color:var(--rose);
+    }
+    .form-textarea { resize:vertical; min-height:80px; line-height:1.7; }
+    .save-btn {
+      padding:.7rem 1.6rem; background:var(--rose); color:#fff;
+      border:none; border-radius:var(--radius); font-weight:500;
+      transition:background .2s;
+    }
+    .save-btn:hover { background:var(--rose-h); }
+    .save-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .save-row { display:flex; justify-content:flex-end; margin-top:1.2rem; gap:.8rem; align-items:center; }
+    .save-msg { font-size:.78rem; color:var(--rose); }
+
+    /* ── GALLERY ── */
+    .gallery-url-list { display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem; }
+    .gallery-url-item { display:flex; gap:.5rem; }
+    .gallery-url-item .form-input { flex:1; }
+    .gallery-url-item .del-btn {
+      padding:.4rem .7rem; background:none; border:1px solid var(--border);
+      border-radius:var(--radius); color:var(--ink2); transition:all .2s;
+    }
+    .gallery-url-item .del-btn:hover { border-color:var(--red); color:var(--red); }
+    .add-btn {
+      padding:.55rem 1rem; background:none; border:1.5px dashed var(--border);
+      border-radius:var(--radius); color:var(--ink2); font-size:.78rem;
+      transition:all .2s; width:100%;
+    }
+    .add-btn:hover { border-color:var(--rose); color:var(--rose); }
+
+    /* ── ACCOUNTS ── */
+    .account-entries { display:flex; flex-direction:column; gap:1rem; margin-bottom:.8rem; }
+    .account-entry {
+      border:1px solid var(--border); border-radius:var(--radius); padding:1rem;
+      position:relative;
+    }
+    .account-entry .del-entry {
+      position:absolute; top:.6rem; right:.6rem;
+      font-size:.7rem; color:var(--ink2); background:none;
+      border:1px solid var(--border); border-radius:4px; padding:.2rem .5rem;
+    }
+    .account-entry .del-entry:hover { color:var(--red); border-color:var(--red); }
+    .account-entry-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:.3rem; }
+    @media(max-width:500px) { .account-entry-grid { grid-template-columns:1fr; } }
+
+    /* ── SECTIONS MANAGER ── */
+    .sections-list { display:flex; flex-direction:column; gap:.5rem; }
+    .section-row {
+      display:flex; align-items:center; gap:.8rem;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); padding:.8rem 1rem;
+    }
+    .section-order-btns { display:flex; flex-direction:column; gap:2px; }
+    .section-order-btn {
+      width:24px; height:24px; background:none;
+      border:1px solid var(--border); border-radius:4px;
+      font-size:.65rem; color:var(--ink2); display:flex; align-items:center; justify-content:center;
+      transition:all .2s;
+    }
+    .section-order-btn:hover { border-color:var(--rose); color:var(--rose); }
+    .section-order-btn:disabled { opacity:.3; cursor:not-allowed; }
+    .section-label { flex:1; font-size:.85rem; }
+    .section-id { font-size:.68rem; color:var(--ink2); margin-top:.1rem; }
+    .toggle-switch {
+      position:relative; width:42px; height:24px;
+      flex-shrink:0;
+    }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-slider {
+      position:absolute; inset:0; background:#ccc;
+      border-radius:100px; cursor:pointer; transition:background .2s;
+    }
+    .toggle-slider::before {
+      content:''; position:absolute; width:18px; height:18px;
+      left:3px; top:3px; background:#fff; border-radius:50%;
+      transition:transform .2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background:var(--rose); }
+    .toggle-switch input:checked + .toggle-slider::before { transform:translateX(18px); }
+
+    /* ── RSVP / GUESTBOOK LIST ── */
+    .data-list { display:flex; flex-direction:column; gap:.6rem; }
+    .data-item {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); padding:.9rem 1rem;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;
+    }
+    .data-item-body { flex:1; }
+    .data-item-name { font-size:.88rem; font-weight:500; margin-bottom:.2rem; }
+    .data-item-meta { font-size:.75rem; color:var(--ink2); line-height:1.8; }
+    .data-del-btn {
+      padding:.35rem .8rem; background:none;
+      border:1px solid var(--border); border-radius:var(--radius);
+      font-size:.72rem; color:var(--ink2); flex-shrink:0;
+      transition:all .2s;
+    }
+    .data-del-btn:hover { border-color:var(--red); color:var(--red); }
+    .data-empty { text-align:center; padding:3rem; font-size:.82rem; color:var(--ink2); }
+    .data-load-btn {
+      width:100%; padding:.75rem; margin-top:.8rem;
+      border:1.5px solid var(--border); border-radius:var(--radius);
+      background:none; font-size:.8rem; color:var(--ink2); transition:all .2s;
+    }
+    .data-load-btn:hover { border-color:var(--rose); color:var(--rose); }
+    .data-count { font-size:.75rem; color:var(--ink2); margin-bottom:1rem; }
+
+    /* ── TOAST ── */
+    #adminToast {
+      position:fixed; bottom:1.5rem; left:50%;
+      transform:translateX(-50%) translateY(60px);
+      background:var(--ink); color:#fff;
+      padding:.6rem 1.3rem; border-radius:100px;
+      font-size:.8rem; z-index:9999; white-space:nowrap;
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+      pointer-events:none;
+    }
+    #adminToast.show { transform:translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="loginView">
+  <div class="login-box">
+    <div class="login-title">청첩장 관리자</div>
+    <div class="login-sub">이메일과 비밀번호를 입력해주세요</div>
+    <form id="loginForm">
+      <div class="login-field">
+        <label>이메일</label>
+        <input class="login-input" type="email" id="loginEmail" placeholder="example@email.com" required>
+      </div>
+      <div class="login-field">
+        <label>비밀번호</label>
+        <input class="login-input" type="password" id="loginPw" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">로그인</button>
+      <div class="login-err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ── ADMIN ── -->
+<div id="adminView">
+  <header class="admin-header">
+    <div class="admin-header-title">청첩장 관리자</div>
+    <div class="admin-header-right">
+      <a href="index.html" class="admin-preview-link" target="_blank">미리보기</a>
+      <button class="logout-btn" id="logoutBtn">로그아웃</button>
+    </div>
+  </header>
+  <div class="admin-tabs" id="adminTabs">
+    <button class="tab-btn active" data-panel="panelBasic">기본 정보</button>
+    <button class="tab-btn" data-panel="panelGreeting">인사말</button>
+    <button class="tab-btn" data-panel="panelGallery">갤러리</button>
+    <button class="tab-btn" data-panel="panelSchedule">예식 안내</button>
+    <button class="tab-btn" data-panel="panelAccounts">계좌번호</button>
+    <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
+    <button class="tab-btn" data-panel="panelRsvp">참석 목록</button>
+    <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
+  </div>
+  <div class="admin-content">
+
+    <!-- 기본 정보 -->
+    <div class="panel active" id="panelBasic">
+      <div class="form-section">
+        <div class="form-section-title">신랑 · 신부</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-row">
+            <label class="form-label">신랑 이름 (한글)</label>
+            <input class="form-input" id="groomName" placeholder="김신랑">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 이름 (한글)</label>
+            <input class="form-input" id="brideName" placeholder="이신부">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 이름 (영문)</label>
+            <input class="form-input" id="groomEng" placeholder="GILDONG">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 이름 (영문)</label>
+            <input class="form-input" id="brideEng" placeholder="SUNHWA">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 연락처</label>
+            <input class="form-input" id="groomPhone" placeholder="010-0000-0000" type="tel">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 연락처</label>
+            <input class="form-input" id="bridePhone" placeholder="010-0000-0000" type="tel">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">예식 일시 · 장소</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-row">
+            <label class="form-label">날짜 (표시용)</label>
+            <input class="form-input" id="weddingDate" placeholder="2027. 01. 17 (일)">
+          </div>
+          <div class="form-row">
+            <label class="form-label">날짜 (ISO, D-day 계산용)</label>
+            <input class="form-input" id="weddingDateISO" placeholder="2027-01-17" type="date">
+          </div>
+          <div class="form-row">
+            <label class="form-label">시간</label>
+            <input class="form-input" id="weddingTime" placeholder="오후 2시">
+          </div>
+          <div class="form-row">
+            <label class="form-label">예식장 이름</label>
+            <input class="form-input" id="venueName" placeholder="그랜드볼룸">
+          </div>
+          <div class="form-row">
+            <label class="form-label">층 / 홀 정보</label>
+            <input class="form-input" id="venueDetail" placeholder="3층 크리스탈홀">
+          </div>
+          <div class="form-row">
+            <label class="form-label">주소</label>
+            <input class="form-input" id="venueAddr" placeholder="서울시 강남구 ...">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">지도 · 내비게이션</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">지도 임베드 URL (카카오맵 공유 → 삽입 코드 src값)</label>
+            <input class="form-input" id="mapEmbedUrl" placeholder="https://map.kakao.com/link/map/...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">카카오맵 링크</label>
+            <input class="form-input" id="kakaoLink" placeholder="https://kakaomap.com/...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">네이버지도 링크</label>
+            <input class="form-input" id="naverLink" placeholder="https://naver.me/...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">T맵 링크</label>
+            <input class="form-input" id="tmapLink" placeholder="https://tmapapi.sktelecom.com/...">
+          </div>
+        </div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="basicMsg"></span>
+        <button class="save-btn" id="saveBasicBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 인사말 -->
+    <div class="panel" id="panelGreeting">
+      <div class="form-section">
+        <div class="form-section-title">인사말 문구</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">제목 (예: 결혼합니다)</label>
+            <input class="form-input" id="greetTitle" placeholder="결혼합니다">
+          </div>
+          <div class="form-row">
+            <label class="form-label">본문</label>
+            <textarea class="form-textarea" id="greetMessage" rows="5" placeholder="초대 문구를 입력해주세요"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">혼주 정보 (입력하면 하단에 표시됩니다)</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-row">
+            <label class="form-label">신랑 아버지</label>
+            <input class="form-input" id="groomFather" placeholder="홍길동">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 어머니</label>
+            <input class="form-input" id="groomMother" placeholder="김영희">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 관계 (예: 의 장남)</label>
+            <input class="form-input" id="groomRelation" placeholder="의 아들">
+          </div>
+          <div></div>
+          <div class="form-row">
+            <label class="form-label">신부 아버지</label>
+            <input class="form-input" id="brideFather" placeholder="이철수">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 어머니</label>
+            <input class="form-input" id="brideMother" placeholder="박미숙">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 관계 (예: 의 장녀)</label>
+            <input class="form-input" id="brideRelation" placeholder="의 딸">
+          </div>
+        </div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="greetMsg"></span>
+        <button class="save-btn" id="saveGreetBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 갤러리 -->
+    <div class="panel" id="panelGallery">
+      <div class="form-section">
+        <div class="form-section-title">사진 URL 목록</div>
+        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">이미지 URL을 순서대로 입력해주세요. Firebase Storage나 외부 이미지 URL 모두 사용 가능합니다.</p>
+        <div class="gallery-url-list" id="galleryUrlList"></div>
+        <button class="add-btn" id="addGalleryUrl">URL 추가</button>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="galleryMsg"></span>
+        <button class="save-btn" id="saveGalleryBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 예식 안내 -->
+    <div class="panel" id="panelSchedule">
+      <div class="form-section">
+        <div class="form-section-title">예식 당일 안내</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">식사 안내</label>
+            <textarea class="form-textarea" id="scheduleMeal" rows="2" placeholder="예식 후 식사를 함께 합니다."></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">주차 안내</label>
+            <textarea class="form-textarea" id="scheduleParking" rows="2" placeholder="주차 정보를 입력해주세요."></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">셔틀버스 안내</label>
+            <textarea class="form-textarea" id="scheduleShuttle" rows="2" placeholder="셔틀버스 정보를 입력해주세요."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">화환 안내</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">화환 안내 문구</label>
+            <textarea class="form-textarea" id="flowersText" rows="2" placeholder="화환은 정중히 사양합니다."></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">화환 주문 링크 (없으면 비워두세요)</label>
+            <input class="form-input" id="flowersUrl" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">참석 여부</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">회신 마감일 (예: 2026년 12월 31일)</label>
+            <input class="form-input" id="rsvpDeadline" placeholder="2026년 12월 31일">
+          </div>
+        </div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="scheduleMsg"></span>
+        <button class="save-btn" id="saveScheduleBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 계좌번호 -->
+    <div class="panel" id="panelAccounts">
+      <div class="form-section">
+        <div class="form-section-title">계좌 목록</div>
+        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">같은 그룹명을 입력하면 하나의 아코디언으로 묶입니다. (예: 신랑 측, 신부 측)</p>
+        <div class="account-entries" id="accountEntries"></div>
+        <button class="add-btn" id="addAccountBtn">계좌 추가</button>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="accountMsg"></span>
+        <button class="save-btn" id="saveAccountBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 섹션 관리 -->
+    <div class="panel" id="panelSections">
+      <div class="form-section">
+        <div class="form-section-title">섹션 표시 및 순서</div>
+        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">토글로 섹션을 켜거나 끄고, 화살표로 순서를 바꿀 수 있습니다. header는 항상 맨 위에 표시됩니다.</p>
+        <div class="sections-list" id="sectionsList"></div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="sectionsMsg"></span>
+        <button class="save-btn" id="saveSectionsBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 참석 목록 -->
+    <div class="panel" id="panelRsvp">
+      <div class="data-count" id="rsvpCount"></div>
+      <div class="data-list" id="rsvpList"><div class="data-empty">로딩 중...</div></div>
+      <button class="data-load-btn" id="rsvpLoadMore" style="display:none">더 불러오기</button>
+    </div>
+
+    <!-- 방명록 -->
+    <div class="panel" id="panelGuestbook">
+      <div class="data-count" id="gbCount"></div>
+      <div class="data-list" id="gbList"><div class="data-empty">로딩 중...</div></div>
+      <button class="data-load-btn" id="gbLoadMore" style="display:none">더 불러오기</button>
+    </div>
+
+  </div><!-- admin-content -->
+</div><!-- adminView -->
+
+<div id="adminToast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, orderBy, query, limit, startAfter } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBrtXBFmtWdUBf9e__ihXbuzEmesZZzV-o",
+  authDomain: "project-9010060494549576974.firebaseapp.com",
+  projectId: "project-9010060494549576974",
+  storageBucket: "project-9010060494549576974.firebasestorage.app",
+  messagingSenderId: "449222114949",
+  appId: "1:449222114949:web:88827ceac03ac9270873ec"
+};
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+// ── TOAST ──────────────────────────────────────────────
+function toast(msg, ms = 2200) {
+  const t = document.getElementById('adminToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+// ── AUTH ───────────────────────────────────────────────
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  const btn   = document.getElementById('loginBtn');
+  const err   = document.getElementById('loginErr');
+  btn.disabled = true; btn.textContent = '로그인 중...'; err.textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e2) {
+    err.textContent = '이메일 또는 비밀번호가 올바르지 않습니다';
+    btn.disabled = false; btn.textContent = '로그인';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    document.getElementById('loginView').style.display  = 'none';
+    document.getElementById('adminView').style.display  = '';
+    await loadConfig();
+    loadRsvpList();
+    loadGbList();
+  } else {
+    document.getElementById('loginView').style.display  = '';
+    document.getElementById('adminView').style.display  = 'none';
+    document.getElementById('loginBtn').disabled  = false;
+    document.getElementById('loginBtn').textContent = '로그인';
+  }
+});
+
+// ── TABS ───────────────────────────────────────────────
+document.getElementById('adminTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.panel)?.classList.add('active');
+});
+
+// ── CONFIG LOAD ────────────────────────────────────────
+let currentConfig = null;
+const DEFAULT_SECTIONS = [
+  { id: 'header',    label: '메인',     enabled: true,  order: 0 },
+  { id: 'greeting',  label: '초대장',   enabled: true,  order: 1 },
+  { id: 'couple',    label: '신랑신부', enabled: false, order: 2 },
+  { id: 'parents',   label: '부모님',   enabled: false, order: 3 },
+  { id: 'lovestory', label: '스토리',   enabled: false, order: 4 },
+  { id: 'gallery',   label: '갤러리',   enabled: true,  order: 5 },
+  { id: 'dday',      label: 'D-DAY',    enabled: true,  order: 6 },
+  { id: 'schedule',  label: '예식안내', enabled: true,  order: 7 },
+  { id: 'location',  label: '오시는길', enabled: true,  order: 8 },
+  { id: 'accounts',  label: '마음전달', enabled: true,  order: 9 },
+  { id: 'rsvp',      label: '참석여부', enabled: true,  order: 10 },
+  { id: 'flowers',   label: '화환',     enabled: true,  order: 11 },
+  { id: 'guestbook', label: '방명록',   enabled: true,  order: 12 },
+];
+
+async function loadConfig() {
+  try {
+    const snap = await getDoc(doc(db,'wedding_config','main'));
+    currentConfig = snap.exists() ? snap.data() : {};
+  } catch(e) { currentConfig = {}; }
+  fillForms();
+}
+
+function fillForms() {
+  const c = currentConfig;
+  // 기본 정보
+  const g = c.groom || {}; const b = c.bride || {}; const w = c.wedding || {};
+  val('groomName', g.name); val('brideName', b.name);
+  val('groomEng',  g.engName); val('brideEng', b.engName);
+  val('groomPhone', g.phone); val('bridePhone', b.phone);
+  val('weddingDate',    w.date);    val('weddingDateISO', w.dateISO);
+  val('weddingTime',    w.time);    val('venueName', w.venue);
+  val('venueDetail',    w.venueDetail); val('venueAddr', w.venueAddr);
+  val('mapEmbedUrl',    w.mapEmbedUrl);
+  val('kakaoLink', w.kakaoLink); val('naverLink', w.naverLink); val('tmapLink', w.tmapLink);
+  // 인사말
+  const gr = c.greeting || {};
+  val('greetTitle',   gr.title);   val('greetMessage', gr.message);
+  val('groomFather',  gr.groom?.fatherName); val('groomMother', gr.groom?.motherName);
+  val('groomRelation', gr.groom?.relation);
+  val('brideFather',  gr.bride?.fatherName); val('brideMother', gr.bride?.motherName);
+  val('brideRelation', gr.bride?.relation);
+  // 예식 안내
+  const s = c.schedule || {}; const f = c.flowers || {};
+  val('scheduleMeal', s.meal); val('scheduleParking', s.parking); val('scheduleShuttle', s.shuttle);
+  val('flowersText', f.text); val('flowersUrl', f.url);
+  val('rsvpDeadline', c.rsvp?.deadline);
+  // 갤러리
+  renderGalleryList(c.gallery?.images || []);
+  // 계좌
+  renderAccountList(c.accounts || [
+    { group:'신랑 측', who:'신랑',      name:'예금주', bank:'은행', number:'계좌번호' },
+    { group:'신랑 측', who:'신랑 아버지',name:'예금주', bank:'은행', number:'계좌번호' },
+    { group:'신부 측', who:'신부',      name:'예금주', bank:'은행', number:'계좌번호' },
+    { group:'신부 측', who:'신부 아버지',name:'예금주', bank:'은행', number:'계좌번호' },
+  ]);
+  // 섹션
+  const sections = (c.sections || DEFAULT_SECTIONS).slice().sort((a,b)=>a.order-b.order);
+  renderSectionsList(sections);
+}
+function val(id, v) { const el = document.getElementById(id); if (el) el.value = v || ''; }
+
+// ── 갤러리 ────────────────────────────────────────────
+function renderGalleryList(images) {
+  const list = document.getElementById('galleryUrlList');
+  list.innerHTML = '';
+  images.forEach((url, i) => addGalleryRow(url, i));
+}
+function addGalleryRow(url = '', _i) {
+  const list = document.getElementById('galleryUrlList');
+  const row = document.createElement('div');
+  row.className = 'gallery-url-item';
+  row.innerHTML = `<input class="form-input gallery-url-input" placeholder="https://..." value="${esc(url)}">
+    <button class="del-btn">삭제</button>`;
+  row.querySelector('.del-btn').addEventListener('click', () => row.remove());
+  list.appendChild(row);
+}
+document.getElementById('addGalleryUrl').addEventListener('click', () => addGalleryRow());
+document.getElementById('saveGalleryBtn').addEventListener('click', async () => {
+  const images = [...document.querySelectorAll('.gallery-url-input')]
+    .map(inp => inp.value.trim()).filter(Boolean);
+  await savePartial({ gallery: { images } }, 'galleryMsg', '갤러리가 저장되었습니다');
+});
+
+// ── 계좌 ──────────────────────────────────────────────
+function renderAccountList(accounts) {
+  const container = document.getElementById('accountEntries');
+  container.innerHTML = '';
+  accounts.forEach(a => addAccountRow(a));
+}
+function addAccountRow(a = {}) {
+  const container = document.getElementById('accountEntries');
+  const row = document.createElement('div');
+  row.className = 'account-entry';
+  row.innerHTML = `
+    <button class="del-entry">삭제</button>
+    <div class="form-row"><label class="form-label">그룹 (예: 신랑 측)</label>
+      <input class="form-input acc-group" value="${esc(a.group||'')}"></div>
+    <div class="account-entry-grid">
+      <div class="form-row"><label class="form-label">누구</label>
+        <input class="form-input acc-who" value="${esc(a.who||'')}"></div>
+      <div class="form-row"><label class="form-label">은행</label>
+        <input class="form-input acc-bank" value="${esc(a.bank||'')}"></div>
+      <div class="form-row"><label class="form-label">계좌번호</label>
+        <input class="form-input acc-number" value="${esc(a.number||'')}"></div>
+      <div class="form-row"><label class="form-label">예금주</label>
+        <input class="form-input acc-name" value="${esc(a.name||'')}"></div>
+    </div>`;
+  row.querySelector('.del-entry').addEventListener('click', () => row.remove());
+  container.appendChild(row);
+}
+document.getElementById('addAccountBtn').addEventListener('click', () => addAccountRow());
+document.getElementById('saveAccountBtn').addEventListener('click', async () => {
+  const accounts = [...document.querySelectorAll('.account-entry')].map(row => ({
+    group:  row.querySelector('.acc-group').value.trim(),
+    who:    row.querySelector('.acc-who').value.trim(),
+    bank:   row.querySelector('.acc-bank').value.trim(),
+    number: row.querySelector('.acc-number').value.trim(),
+    name:   row.querySelector('.acc-name').value.trim(),
+  }));
+  await savePartial({ accounts }, 'accountMsg', '계좌번호가 저장되었습니다');
+});
+
+// ── 섹션 관리 ─────────────────────────────────────────
+let sectionState = [];
+function renderSectionsList(sections) {
+  sectionState = sections.map((s, i) => ({ ...s, order: i }));
+  const container = document.getElementById('sectionsList');
+  container.innerHTML = '';
+  sectionState.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'section-row';
+    row.dataset.idx = i;
+    row.innerHTML = `
+      <div class="section-order-btns">
+        <button class="section-order-btn" data-dir="up" ${i===0?'disabled':''}>▲</button>
+        <button class="section-order-btn" data-dir="down" ${i===sectionState.length-1?'disabled':''}>▼</button>
+      </div>
+      <div style="flex:1">
+        <div class="section-label">${s.label || s.id}</div>
+        <div class="section-id">${s.id}</div>
+      </div>
+      <label class="toggle-switch" title="${s.id==='header'?'항상 표시됩니다':''}">
+        <input type="checkbox" ${s.enabled?'checked':''} ${s.id==='header'?'disabled':''}>
+        <span class="toggle-slider"></span>
+      </label>`;
+    row.querySelectorAll('.section-order-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = btn.dataset.dir === 'up' ? -1 : 1;
+        const ni  = i + dir;
+        if (ni < 0 || ni >= sectionState.length) return;
+        [sectionState[i], sectionState[ni]] = [sectionState[ni], sectionState[i]];
+        sectionState.forEach((s2, j) => s2.order = j);
+        renderSectionsList(sectionState);
+      });
+    });
+    row.querySelector('input[type=checkbox]').addEventListener('change', e => {
+      sectionState[i].enabled = e.target.checked;
+    });
+    container.appendChild(row);
+  });
+}
+document.getElementById('saveSectionsBtn').addEventListener('click', async () => {
+  const sections = sectionState.map((s, i) => ({ ...s, order: i }));
+  await savePartial({ sections }, 'sectionsMsg', '섹션 설정이 저장되었습니다');
+});
+
+// ── SAVE HELPERS ──────────────────────────────────────
+async function savePartial(data, msgId, successMsg) {
+  const msgEl = document.getElementById(msgId);
+  if (msgEl) msgEl.textContent = '';
+  try {
+    await setDoc(doc(db,'wedding_config','main'), data, { merge: true });
+    currentConfig = Object.assign(currentConfig || {}, data);
+    if (msgEl) { msgEl.textContent = successMsg; setTimeout(() => msgEl.textContent='', 3000); }
+    toast(successMsg);
+  } catch(e) {
+    console.error(e);
+    toast('저장에 실패했습니다');
+  }
+}
+
+// ── BASIC SAVE ────────────────────────────────────────
+document.getElementById('saveBasicBtn').addEventListener('click', async () => {
+  const data = {
+    groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
+    bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
+    wedding: {
+      date: v('weddingDate'), dateISO: v('weddingDateISO'),
+      time: v('weddingTime'), venue: v('venueName'),
+      venueDetail: v('venueDetail'), venueAddr: v('venueAddr'),
+      mapEmbedUrl: v('mapEmbedUrl'),
+      kakaoLink: v('kakaoLink'), naverLink: v('naverLink'), tmapLink: v('tmapLink'),
+    },
+  };
+  await savePartial(data, 'basicMsg', '기본 정보가 저장되었습니다');
+});
+
+// ── GREETING SAVE ─────────────────────────────────────
+document.getElementById('saveGreetBtn').addEventListener('click', async () => {
+  const data = {
+    greeting: {
+      title: v('greetTitle'), message: v('greetMessage'),
+      groom: { fatherName: v('groomFather'), motherName: v('groomMother'), relation: v('groomRelation') },
+      bride: { fatherName: v('brideFather'), motherName: v('brideMother'), relation: v('brideRelation') },
+    },
+  };
+  await savePartial(data, 'greetMsg', '인사말이 저장되었습니다');
+});
+
+// ── SCHEDULE SAVE ─────────────────────────────────────
+document.getElementById('saveScheduleBtn').addEventListener('click', async () => {
+  const data = {
+    schedule: { meal: v('scheduleMeal'), parking: v('scheduleParking'), shuttle: v('scheduleShuttle') },
+    flowers:  { text: v('flowersText'), url: v('flowersUrl') },
+    rsvp:     { deadline: v('rsvpDeadline') },
+  };
+  await savePartial(data, 'scheduleMsg', '예식 안내가 저장되었습니다');
+});
+
+function v(id) { return document.getElementById(id)?.value.trim() || ''; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── RSVP LIST ─────────────────────────────────────────
+let rsvpLast = null;
+async function loadRsvpList(append = false) {
+  const list = document.getElementById('rsvpList');
+  const more = document.getElementById('rsvpLoadMore');
+  try {
+    let q = query(collection(db,'rsvp'), orderBy('createdAt','desc'), limit(20));
+    if (append && rsvpLast) q = query(collection(db,'rsvp'), orderBy('createdAt','desc'), startAfter(rsvpLast), limit(20));
+    const snap = await getDocs(q);
+    if (!append) { list.innerHTML = ''; }
+    if (snap.empty && !append) {
+      list.innerHTML = '<div class="data-empty">아직 참석 여부 제출이 없습니다</div>';
+      more.style.display = 'none';
+      document.getElementById('rsvpCount').textContent = '';
+      return;
+    }
+    // total count estimate
+    if (!append) {
+      document.getElementById('rsvpCount').textContent = `총 ${snap.size}건 이상`;
+    }
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const el = document.createElement('div');
+      el.className = 'data-item';
+      const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleString('ko-KR') : '';
+      el.innerHTML = `
+        <div class="data-item-body">
+          <div class="data-item-name">${esc(data.name)}</div>
+          <div class="data-item-meta">
+            ${esc(data.attendance)} · ${data.count}명 · 식사: ${esc(data.meal)}
+            ${data.memo ? ` · "${esc(data.memo)}"` : ''}
+            <br>${dateStr}
+          </div>
+        </div>
+        <button class="data-del-btn" data-id="${d.id}">삭제</button>`;
+      el.querySelector('.data-del-btn').addEventListener('click', async btn => {
+        if (!confirm('삭제하시겠습니까?')) return;
+        await deleteDoc(doc(db,'rsvp',d.id));
+        el.remove();
+        toast('삭제되었습니다');
+      });
+      list.appendChild(el);
+    });
+    rsvpLast = snap.docs[snap.docs.length - 1];
+    more.style.display = snap.docs.length < 20 ? 'none' : 'block';
+  } catch(e) { console.error(e); list.innerHTML = '<div class="data-empty">로딩에 실패했습니다</div>'; }
+}
+document.getElementById('rsvpLoadMore').addEventListener('click', () => loadRsvpList(true));
+
+// ── GUESTBOOK LIST ────────────────────────────────────
+let gbAdminLast = null;
+async function loadGbList(append = false) {
+  const list = document.getElementById('gbList');
+  const more = document.getElementById('gbLoadMore');
+  try {
+    let q = query(collection(db,'guestbook'), orderBy('createdAt','desc'), limit(20));
+    if (append && gbAdminLast) q = query(collection(db,'guestbook'), orderBy('createdAt','desc'), startAfter(gbAdminLast), limit(20));
+    const snap = await getDocs(q);
+    if (!append) list.innerHTML = '';
+    if (snap.empty && !append) {
+      list.innerHTML = '<div class="data-empty">방명록이 비어있습니다</div>';
+      more.style.display = 'none';
+      document.getElementById('gbCount').textContent = '';
+      return;
+    }
+    if (!append) document.getElementById('gbCount').textContent = `총 ${snap.size}건 이상`;
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const el = document.createElement('div');
+      el.className = 'data-item';
+      const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleString('ko-KR') : '';
+      el.innerHTML = `
+        <div class="data-item-body">
+          <div class="data-item-name">${esc(data.name)}</div>
+          <div class="data-item-meta">${esc(data.message)}<br>${dateStr}</div>
+        </div>
+        <button class="data-del-btn" data-id="${d.id}">삭제</button>`;
+      el.querySelector('.data-del-btn').addEventListener('click', async () => {
+        if (!confirm('삭제하시겠습니까?')) return;
+        await deleteDoc(doc(db,'guestbook',d.id));
+        el.remove();
+        toast('삭제되었습니다');
+      });
+      list.appendChild(el);
+    });
+    gbAdminLast = snap.docs[snap.docs.length - 1];
+    more.style.display = snap.docs.length < 20 ? 'none' : 'block';
+  } catch(e) { console.error(e); list.innerHTML = '<div class="data-empty">로딩에 실패했습니다</div>'; }
+}
+document.getElementById('gbLoadMore').addEventListener('click', () => loadGbList(true));
+</script>
+</body>
+</html>
