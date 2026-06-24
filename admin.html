@@ -211,6 +211,21 @@
     .data-load-btn:hover { border-color:var(--rose); color:var(--rose); }
     .data-count { font-size:.75rem; color:var(--ink2); margin-bottom:1rem; }
 
+    /* ── STORY ENTRIES ── */
+    .story-entries { display:flex; flex-direction:column; gap:1rem; margin-bottom:.8rem; }
+    .story-entry {
+      border:1px solid var(--border); border-radius:var(--radius);
+      padding:1rem; position:relative;
+    }
+    .story-entry .del-entry {
+      position:absolute; top:.6rem; right:.6rem;
+      font-size:.7rem; color:var(--ink2); background:none;
+      border:1px solid var(--border); border-radius:4px; padding:.2rem .5rem;
+    }
+    .story-entry .del-entry:hover { color:var(--red); border-color:var(--red); }
+    .story-entry-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:.3rem; }
+    @media(max-width:500px) { .story-entry-grid { grid-template-columns:1fr; } }
+
     /* ── TOAST ── */
     #adminToast {
       position:fixed; bottom:1.5rem; left:50%;
@@ -261,6 +276,7 @@
     <button class="tab-btn" data-panel="panelGallery">갤러리</button>
     <button class="tab-btn" data-panel="panelSchedule">예식 안내</button>
     <button class="tab-btn" data-panel="panelAccounts">계좌번호</button>
+    <button class="tab-btn" data-panel="panelOptional">선택 섹션</button>
     <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
     <button class="tab-btn" data-panel="panelRsvp">참석 목록</button>
     <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
@@ -480,6 +496,85 @@
       </div>
     </div>
 
+    <!-- 선택 섹션 -->
+    <div class="panel" id="panelOptional">
+      <div class="form-section">
+        <div class="form-section-title">신랑신부 소개 (섹션 관리에서 활성화 후 사용)</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-row">
+            <label class="form-label">신랑 사진 URL</label>
+            <input class="form-input" id="coupleGroomPhoto" placeholder="https://...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 사진 URL</label>
+            <input class="form-input" id="coupleBridePhoto" placeholder="https://...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 MBTI</label>
+            <input class="form-input" id="coupleGroomMbti" placeholder="INFJ">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 MBTI</label>
+            <input class="form-input" id="coupleBrideMbti" placeholder="ENFP">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 소개 문구</label>
+            <textarea class="form-textarea" id="coupleGroomIntro" rows="2"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 소개 문구</label>
+            <textarea class="form-textarea" id="coupleBrideIntro" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">부모님 (섹션 관리에서 활성화 후 사용)</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-row">
+            <label class="form-label">신랑 아버지 성함</label>
+            <input class="form-input" id="parentsGroomFatherName" placeholder="홍길동">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 어머니 성함</label>
+            <input class="form-input" id="parentsGroomMotherName" placeholder="김영희">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 아버지 성함</label>
+            <input class="form-input" id="parentsBrideFatherName" placeholder="이철수">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 어머니 성함</label>
+            <input class="form-input" id="parentsBrideMotherName" placeholder="박미숙">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 아버지 사진 URL</label>
+            <input class="form-input" id="parentsGroomFatherPhoto" placeholder="https://...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 어머니 사진 URL</label>
+            <input class="form-input" id="parentsGroomMotherPhoto" placeholder="https://...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 아버지 사진 URL</label>
+            <input class="form-input" id="parentsBrideFatherPhoto" placeholder="https://...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 어머니 사진 URL</label>
+            <input class="form-input" id="parentsBrideMotherPhoto" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">스토리 타임라인 (섹션 관리에서 활성화 후 사용)</div>
+        <div class="story-entries" id="storyEntries"></div>
+        <button class="add-btn" id="addStoryBtn">항목 추가</button>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="optionalMsg"></span>
+        <button class="save-btn" id="saveOptionalBtn">저장</button>
+      </div>
+    </div>
+
     <!-- 섹션 관리 -->
     <div class="panel" id="panelSections">
       <div class="form-section">
@@ -640,6 +735,8 @@ function fillForms() {
     { group:'신부 측', who:'신부',      name:'예금주', bank:'은행', number:'계좌번호' },
     { group:'신부 측', who:'신부 아버지',name:'예금주', bank:'은행', number:'계좌번호' },
   ]);
+  // 선택 섹션
+  fillOptional(c);
   // 섹션
   const sections = (c.sections || DEFAULT_SECTIONS).slice().sort((a,b)=>a.order-b.order);
   renderSectionsList(sections);
@@ -765,6 +862,72 @@ async function savePartial(data, msgId, successMsg) {
     toast('저장에 실패했습니다');
   }
 }
+
+// ── 선택 섹션 ─────────────────────────────────────────
+function fillOptional(c) {
+  const cp = c.couple || {};
+  const g = cp.groom || {}; const b = cp.bride || {};
+  val('coupleGroomPhoto', g.photo); val('coupleBridePhoto', b.photo);
+  val('coupleGroomMbti',  g.mbti);  val('coupleBrideMbti',  b.mbti);
+  val('coupleGroomIntro', g.intro); val('coupleBrideIntro', b.intro);
+  const pr = c.parents || {};
+  const pg = pr.groom || {}; const pb = pr.bride || {};
+  val('parentsGroomFatherName',  pg.father?.name);  val('parentsGroomMotherName',  pg.mother?.name);
+  val('parentsBrideFatherName',  pb.father?.name);  val('parentsBrideMotherName',  pb.mother?.name);
+  val('parentsGroomFatherPhoto', pg.father?.photo); val('parentsGroomMotherPhoto', pg.mother?.photo);
+  val('parentsBrideFatherPhoto', pb.father?.photo); val('parentsBrideMotherPhoto', pb.mother?.photo);
+  renderStoryEntries((c.lovestory?.items) || []);
+}
+
+function renderStoryEntries(items) {
+  const c = document.getElementById('storyEntries');
+  c.innerHTML = '';
+  items.forEach(it => addStoryRow(it));
+}
+function addStoryRow(it = {}) {
+  const c = document.getElementById('storyEntries');
+  const row = document.createElement('div');
+  row.className = 'story-entry';
+  row.innerHTML = `
+    <button class="del-entry">삭제</button>
+    <div class="story-entry-grid">
+      <div class="form-row"><label class="form-label">날짜 (예: 2024. 03)</label>
+        <input class="form-input story-date" value="${esc(it.date||'')}"></div>
+      <div class="form-row"><label class="form-label">제목</label>
+        <input class="form-input story-title" value="${esc(it.title||'')}"></div>
+    </div>
+    <div class="form-row" style="margin-top:.6rem"><label class="form-label">내용</label>
+      <textarea class="form-textarea story-desc" rows="2">${esc(it.desc||'')}</textarea></div>`;
+  row.querySelector('.del-entry').addEventListener('click', () => row.remove());
+  c.appendChild(row);
+}
+document.getElementById('addStoryBtn').addEventListener('click', () => addStoryRow());
+
+document.getElementById('saveOptionalBtn').addEventListener('click', async () => {
+  const storyItems = [...document.querySelectorAll('.story-entry')].map(row => ({
+    date:  row.querySelector('.story-date').value.trim(),
+    title: row.querySelector('.story-title').value.trim(),
+    desc:  row.querySelector('.story-desc').value.trim(),
+  }));
+  const data = {
+    couple: {
+      groom: { photo: v('coupleGroomPhoto'), mbti: v('coupleGroomMbti'), intro: v('coupleGroomIntro') },
+      bride: { photo: v('coupleBridePhoto'), mbti: v('coupleBrideMbti'), intro: v('coupleBrideIntro') },
+    },
+    parents: {
+      groom: {
+        father: { name: v('parentsGroomFatherName'), photo: v('parentsGroomFatherPhoto') },
+        mother: { name: v('parentsGroomMotherName'), photo: v('parentsGroomMotherPhoto') },
+      },
+      bride: {
+        father: { name: v('parentsBrideFatherName'), photo: v('parentsBrideFatherPhoto') },
+        mother: { name: v('parentsBrideMotherName'), photo: v('parentsBrideMotherPhoto') },
+      },
+    },
+    lovestory: { items: storyItems },
+  };
+  await savePartial(data, 'optionalMsg', '선택 섹션이 저장되었습니다');
+});
 
 // ── BASIC SAVE ────────────────────────────────────────
 document.getElementById('saveBasicBtn').addEventListener('click', async () => {
