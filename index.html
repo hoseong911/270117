@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
 </head>
 <body>
@@ -20,7 +21,14 @@
   <div class="loading-text">준 비 중</div>
 </div>
 
-<nav id="mainNav"><div id="navInner"></div></nav>
+<nav id="mainNav">
+  <button id="menuBtn" aria-label="메뉴">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuDrawer">
+    <div id="navInner"></div>
+  </div>
+</nav>
 
 <main id="wedding"></main>
 
@@ -58,6 +66,7 @@ const DEFAULT = {
     ogDesc: '저희의 결혼식에 초대합니다.',
     ogImage: '',
     footer: '2027. 01. 17',
+    photo:  '',
   },
   groom: { name: '신랑', engName: 'GROOM', phone: '' },
   bride: { name: '신부', engName: 'BRIDE', phone: '' },
@@ -143,18 +152,40 @@ const SECTION_NAV = {
 
 function renderHeader(c) {
   const w = c.wedding;
+  const photo = c.header?.photo;
+  const tag   = esc(c.header?.tag || 'Wedding Invitation');
+  const names = `${esc(c.groom.engName)}<span class="header-amp">&amp;</span>${esc(c.bride.engName)}`;
+  const ko    = `${esc(c.groom.name)} · ${esc(c.bride.name)}`;
+  const date  = `${esc(w.date)} · ${esc(w.time)}`;
+  const venue = `${esc(w.venue)}${w.venueDetail ? ' ' + esc(w.venueDetail) : ''}`;
+
+  if (photo) {
+    return `
+<section id="sec-header" class="has-photo">
+  <div class="header-photo" style="background-image:url('${esc(photo)}')">
+    <div class="header-photo-overlay">
+      <div class="header-tag fadein">${tag}</div>
+      <div class="header-names fadein">${names}</div>
+      <div class="header-ko fadein">${ko}</div>
+    </div>
+  </div>
+  <div class="header-info">
+    <div class="header-sep fadein"></div>
+    <div class="header-date fadein">${date}</div>
+    <div class="header-venue fadein">${venue}</div>
+  </div>
+  <div class="header-scroll">SCROLL</div>
+</section>`;
+  }
+
   return `
 <section id="sec-header">
-  <div class="header-ornament top-left">✦</div>
-  <div class="header-ornament bot-right">✦</div>
-  <div class="header-tag fadein">${esc(c.header?.tag || 'Wedding Invitation')}</div>
-  <div class="header-names fadein">
-    ${esc(c.groom.engName)}<span class="header-amp">&amp;</span>${esc(c.bride.engName)}
-  </div>
-  <div class="header-ko fadein">${esc(c.groom.name)} · ${esc(c.bride.name)}</div>
+  <div class="header-tag fadein">${tag}</div>
+  <div class="header-names fadein">${names}</div>
+  <div class="header-ko fadein">${ko}</div>
   <div class="header-sep fadein"></div>
-  <div class="header-date fadein">${esc(w.date)} · ${esc(w.time)}</div>
-  <div class="header-venue fadein">${esc(w.venue)}${w.venueDetail ? ' ' + esc(w.venueDetail) : ''}</div>
+  <div class="header-date fadein">${date}</div>
+  <div class="header-venue fadein">${venue}</div>
   <div class="header-scroll">SCROLL</div>
 </section>`;
 }
@@ -524,18 +555,30 @@ function deepMerge(target, source) {
 // ─── INIT FUNCTIONS ───────────────────────────────────
 
 function initNav(sections) {
-  const inner = document.getElementById('navInner');
+  const inner  = document.getElementById('navInner');
+  const menuBtn = document.getElementById('menuBtn');
+  const drawer  = document.getElementById('menuDrawer');
+
   inner.innerHTML = sections
     .filter(s => s.enabled && SECTION_NAV[s.id])
     .sort((a,b) => a.order - b.order)
     .map(s => `<button class="nav-item" data-target="sec-${s.id}">${SECTION_NAV[s.id]}</button>`)
     .join('');
+
+  menuBtn.addEventListener('click', () => {
+    menuBtn.classList.toggle('open');
+    drawer.classList.toggle('open');
+  });
+
   inner.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const el = document.getElementById(btn.dataset.target);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      menuBtn.classList.remove('open');
+      drawer.classList.remove('open');
     });
   });
+
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {

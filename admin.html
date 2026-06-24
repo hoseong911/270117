@@ -308,6 +308,10 @@
             <label class="form-label">SNS 공유 이미지 URL (선택)</label>
             <input class="form-input" id="headerOgImage" placeholder="https://...">
           </div>
+          <div class="form-row">
+            <label class="form-label">첫 화면 커버 사진 URL (선택 — 없으면 기본 배경)</label>
+            <input class="form-input" id="headerPhoto" placeholder="https://...">
+          </div>
         </div>
       </div>
       <div class="form-section">
@@ -733,7 +737,7 @@ function fillForms() {
   const hd = c.header || {};
   val('headerTitle',   hd.title);   val('headerTag',    hd.tag);
   val('headerFooter',  hd.footer);  val('headerOgDesc', hd.ogDesc);
-  val('headerOgImage', hd.ogImage);
+  val('headerOgImage', hd.ogImage); val('headerPhoto', hd.photo);
   // 기본 정보
   const g = c.groom || {}; const b = c.bride || {}; const w = c.wedding || {};
   val('groomName', g.name); val('brideName', b.name);
@@ -965,7 +969,7 @@ document.getElementById('saveBasicBtn').addEventListener('click', async () => {
     header: {
       title:   v('headerTitle'),   tag:     v('headerTag'),
       footer:  v('headerFooter'),  ogDesc:  v('headerOgDesc'),
-      ogImage: v('headerOgImage'),
+      ogImage: v('headerOgImage'), photo:   v('headerPhoto'),
     },
     groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
     bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
