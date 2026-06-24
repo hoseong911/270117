@@ -835,6 +835,17 @@ async function init() {
   initRsvp();
   initGuestbook();
 
+  if (config.header?.photo) {
+    document.body.classList.add('has-cover');
+    const headerEl = document.getElementById('sec-header');
+    if (headerEl) {
+      new IntersectionObserver(([e]) =>
+        document.body.classList.toggle('nav-opaque', !e.isIntersecting),
+        { threshold: 0.05 }
+      ).observe(headerEl);
+    }
+  }
+
   const loading = document.getElementById('loadingScreen');
   loading.classList.add('hidden');
   setTimeout(() => loading.remove(), 700);
