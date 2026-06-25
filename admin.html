@@ -370,21 +370,26 @@
     </div>
   </header>
   <div class="admin-tabs" id="adminTabs">
-    <button class="tab-btn active" data-panel="panelBasic">기본 정보</button>
-    <button class="tab-btn" data-panel="panelGreeting">인사말</button>
+    <button class="tab-btn active" data-panel="panelMeta">기본 설정</button>
+    <button class="tab-btn" data-panel="panelHeader">메인 헤더</button>
+    <button class="tab-btn" data-panel="panelGreeting">초대장</button>
+    <button class="tab-btn" data-panel="panelCouple">신랑신부</button>
+    <button class="tab-btn" data-panel="panelParents">부모님</button>
+    <button class="tab-btn" data-panel="panelStory">스토리</button>
     <button class="tab-btn" data-panel="panelGallery">갤러리</button>
-    <button class="tab-btn" data-panel="panelSchedule">예식 안내</button>
-    <button class="tab-btn" data-panel="panelAccounts">계좌번호</button>
-    <button class="tab-btn" data-panel="panelOptional">선택 섹션</button>
-    <button class="tab-btn" data-panel="panelHeaderDesign">헤더 꾸미기</button>
-    <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
-    <button class="tab-btn" data-panel="panelRsvp">참석 목록</button>
+    <button class="tab-btn" data-panel="panelDday">D-DAY</button>
+    <button class="tab-btn" data-panel="panelSchedule">예식안내</button>
+    <button class="tab-btn" data-panel="panelLocation">오시는길</button>
+    <button class="tab-btn" data-panel="panelAccounts">마음전달</button>
+    <button class="tab-btn" data-panel="panelRsvp">참석여부</button>
+    <button class="tab-btn" data-panel="panelFlowers">화환</button>
     <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
+    <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
   </div>
   <div class="admin-content">
 
-    <!-- 기본 정보 -->
-    <div class="panel active" id="panelBasic">
+    <!-- 기본 설정 -->
+    <div class="panel active" id="panelMeta">
       <div class="form-section">
         <div class="form-section-title">브라우저 &amp; 공유 설정</div>
         <div class="form-grid">
@@ -413,67 +418,7 @@
               <span class="upload-status" id="st-headerOgImage"></span>
             </div>
           </div>
-          <div class="form-row">
-            <label class="form-label">첫 화면 커버 사진 (없으면 기본 배경)</label>
-            <div class="photo-row">
-              <input class="form-input" id="headerPhoto" placeholder="URL 직접 입력 또는 파일 업로드">
-              <input type="file" id="file-headerPhoto" accept="image/*" style="display:none">
-              <label class="upload-btn" for="file-headerPhoto">파일 선택</label>
-              <span class="upload-status" id="st-headerPhoto"></span>
-            </div>
-          </div>
         </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">헤더 글자 스타일</div>
-        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">각 요소의 글씨 크기·색상·폰트·정렬을 조정할 수 있습니다. 비워두면 기본값이 적용됩니다.</p>
-        <table class="hs-table">
-          <thead>
-            <tr><th>요소</th><th>글씨 크기</th><th>색상</th><th>폰트</th><th>정렬</th><th>위치 (↑↓)</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="hs-label">상단 영문</td>
-              <td><input class="form-input hs-input" id="hs-tag-fontSize" placeholder="1.4rem"></td>
-              <td><input class="hs-color-input" id="hs-tag-color" type="color" value="#c4a87e"></td>
-              <td><select class="form-select hs-input" id="hs-tag-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
-              <td><select class="form-select hs-input" id="hs-tag-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
-              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('tag',-4)">↑</button><input class="form-input hs-pos-input" id="hs-tag-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('tag',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
-            </tr>
-            <tr>
-              <td class="hs-label">이름 (영문)</td>
-              <td><input class="form-input hs-input" id="hs-names-fontSize" placeholder="4rem"></td>
-              <td><input class="hs-color-input" id="hs-names-color" type="color" value="#2a2520"></td>
-              <td><select class="form-select hs-input" id="hs-names-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
-              <td><select class="form-select hs-input" id="hs-names-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
-              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('names',-4)">↑</button><input class="form-input hs-pos-input" id="hs-names-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('names',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
-            </tr>
-            <tr>
-              <td class="hs-label">이름 (한글)</td>
-              <td><input class="form-input hs-input" id="hs-ko-fontSize" placeholder=".82rem"></td>
-              <td><input class="hs-color-input" id="hs-ko-color" type="color" value="#6b5e55"></td>
-              <td><select class="form-select hs-input" id="hs-ko-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
-              <td><select class="form-select hs-input" id="hs-ko-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
-              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('ko',-4)">↑</button><input class="form-input hs-pos-input" id="hs-ko-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('ko',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
-            </tr>
-            <tr>
-              <td class="hs-label">날짜 · 시간</td>
-              <td><input class="form-input hs-input" id="hs-date-fontSize" placeholder="1.1rem"></td>
-              <td><input class="hs-color-input" id="hs-date-color" type="color" value="#8c7265"></td>
-              <td><select class="form-select hs-input" id="hs-date-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
-              <td><select class="form-select hs-input" id="hs-date-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
-              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('date',-4)">↑</button><input class="form-input hs-pos-input" id="hs-date-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('date',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
-            </tr>
-            <tr>
-              <td class="hs-label">장소</td>
-              <td><input class="form-input hs-input" id="hs-venue-fontSize" placeholder=".75rem"></td>
-              <td><input class="hs-color-input" id="hs-venue-color" type="color" value="#6b5e55"></td>
-              <td><select class="form-select hs-input" id="hs-venue-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
-              <td><select class="form-select hs-input" id="hs-venue-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
-              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('venue',-4)">↑</button><input class="form-input hs-pos-input" id="hs-venue-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('venue',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
-            </tr>
-          </tbody>
-        </table>
       </div>
       <div class="form-section">
         <div class="form-section-title">신랑 · 신부</div>
@@ -504,59 +449,9 @@
           </div>
         </div>
       </div>
-      <div class="form-section">
-        <div class="form-section-title">예식 일시 · 장소</div>
-        <div class="form-grid form-grid-2">
-          <div class="form-row">
-            <label class="form-label">날짜 (표시용)</label>
-            <input class="form-input" id="weddingDate" placeholder="2027. 01. 17 (일)">
-          </div>
-          <div class="form-row">
-            <label class="form-label">날짜 (ISO, D-day 계산용)</label>
-            <input class="form-input" id="weddingDateISO" placeholder="2027-01-17" type="date">
-          </div>
-          <div class="form-row">
-            <label class="form-label">시간</label>
-            <input class="form-input" id="weddingTime" placeholder="오후 2시">
-          </div>
-          <div class="form-row">
-            <label class="form-label">예식장 이름</label>
-            <input class="form-input" id="venueName" placeholder="그랜드볼룸">
-          </div>
-          <div class="form-row">
-            <label class="form-label">층 / 홀 정보</label>
-            <input class="form-input" id="venueDetail" placeholder="3층 크리스탈홀">
-          </div>
-          <div class="form-row">
-            <label class="form-label">주소</label>
-            <input class="form-input" id="venueAddr" placeholder="서울시 강남구 ...">
-          </div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">지도 · 내비게이션</div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">지도 임베드 URL (카카오맵 공유 → 삽입 코드 src값)</label>
-            <input class="form-input" id="mapEmbedUrl" placeholder="https://map.kakao.com/link/map/...">
-          </div>
-          <div class="form-row">
-            <label class="form-label">카카오맵 링크</label>
-            <input class="form-input" id="kakaoLink" placeholder="https://kakaomap.com/...">
-          </div>
-          <div class="form-row">
-            <label class="form-label">네이버지도 링크</label>
-            <input class="form-input" id="naverLink" placeholder="https://naver.me/...">
-          </div>
-          <div class="form-row">
-            <label class="form-label">T맵 링크</label>
-            <input class="form-input" id="tmapLink" placeholder="https://tmapapi.sktelecom.com/...">
-          </div>
-        </div>
-      </div>
       <div class="save-row">
-        <span class="save-msg" id="basicMsg"></span>
-        <button class="save-btn" id="saveBasicBtn">저장</button>
+        <span class="save-msg" id="metaMsg"></span>
+        <button class="save-btn" id="saveMetaBtn">저장</button>
       </div>
     </div>
 
@@ -628,6 +523,40 @@
       </div>
     </div>
 
+    <!-- D-DAY -->
+    <div class="panel" id="panelDday">
+      <div class="form-section">
+        <div class="form-section-title">예식 일시 · 장소명</div>
+        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">D-DAY 카운트다운과 헤더 미리보기에 사용됩니다.</p>
+        <div class="form-grid form-grid-2">
+          <div class="form-row">
+            <label class="form-label">날짜 (표시용)</label>
+            <input class="form-input" id="weddingDate" placeholder="2027. 01. 17 (일)">
+          </div>
+          <div class="form-row">
+            <label class="form-label">날짜 (ISO, D-day 계산용)</label>
+            <input class="form-input" id="weddingDateISO" placeholder="2027-01-17" type="date">
+          </div>
+          <div class="form-row">
+            <label class="form-label">시간</label>
+            <input class="form-input" id="weddingTime" placeholder="오후 2시">
+          </div>
+          <div class="form-row">
+            <label class="form-label">예식장 이름</label>
+            <input class="form-input" id="venueName" placeholder="그랜드볼룸">
+          </div>
+          <div class="form-row">
+            <label class="form-label">층 / 홀 정보</label>
+            <input class="form-input" id="venueDetail" placeholder="3층 크리스탈홀">
+          </div>
+        </div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="ddayMsg"></span>
+        <button class="save-btn" id="saveDdayBtn">저장</button>
+      </div>
+    </div>
+
     <!-- 예식 안내 -->
     <div class="panel" id="panelSchedule">
       <div class="form-section">
@@ -647,35 +576,46 @@
           </div>
         </div>
       </div>
-      <div class="form-section">
-        <div class="form-section-title">화환 안내</div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">화환 안내 문구</label>
-            <textarea class="form-textarea" id="flowersText" rows="2" placeholder="화환은 정중히 사양합니다."></textarea>
-          </div>
-          <div class="form-row">
-            <label class="form-label">화환 주문 링크 (없으면 비워두세요)</label>
-            <input class="form-input" id="flowersUrl" placeholder="https://...">
-          </div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">참석 여부</div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">회신 마감일 (예: 2026년 12월 31일)</label>
-            <input class="form-input" id="rsvpDeadline" placeholder="2026년 12월 31일">
-          </div>
-        </div>
-      </div>
       <div class="save-row">
         <span class="save-msg" id="scheduleMsg"></span>
         <button class="save-btn" id="saveScheduleBtn">저장</button>
       </div>
     </div>
 
-    <!-- 계좌번호 -->
+    <!-- 오시는길 -->
+    <div class="panel" id="panelLocation">
+      <div class="form-section">
+        <div class="form-section-title">장소 주소 및 지도</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">주소</label>
+            <input class="form-input" id="venueAddr" placeholder="서울시 강남구 ...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">지도 임베드 URL (카카오맵 공유 → 삽입 코드 src값)</label>
+            <input class="form-input" id="mapEmbedUrl" placeholder="https://map.kakao.com/link/map/...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">카카오맵 링크</label>
+            <input class="form-input" id="kakaoLink" placeholder="https://kakaomap.com/...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">네이버지도 링크</label>
+            <input class="form-input" id="naverLink" placeholder="https://naver.me/...">
+          </div>
+          <div class="form-row">
+            <label class="form-label">T맵 링크</label>
+            <input class="form-input" id="tmapLink" placeholder="https://tmapapi.sktelecom.com/...">
+          </div>
+        </div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="locationMsg"></span>
+        <button class="save-btn" id="saveLocationBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 마음전달 (계좌번호) -->
     <div class="panel" id="panelAccounts">
       <div class="form-section">
         <div class="form-section-title">계좌 목록</div>
@@ -689,10 +629,31 @@
       </div>
     </div>
 
-    <!-- 선택 섹션 -->
-    <div class="panel" id="panelOptional">
+    <!-- 화환 -->
+    <div class="panel" id="panelFlowers">
       <div class="form-section">
-        <div class="form-section-title">신랑신부 소개 (섹션 관리에서 활성화 후 사용)</div>
+        <div class="form-section-title">화환 안내</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">화환 안내 문구</label>
+            <textarea class="form-textarea" id="flowersText" rows="2" placeholder="화환은 정중히 사양합니다."></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">화환 주문 링크 (없으면 비워두세요)</label>
+            <input class="form-input" id="flowersUrl" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+      <div class="save-row">
+        <span class="save-msg" id="flowersMsg"></span>
+        <button class="save-btn" id="saveFlowersBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 신랑신부 소개 -->
+    <div class="panel" id="panelCouple">
+      <div class="form-section">
+        <div class="form-section-title">신랑신부 소개 <span style="font-size:.72rem;font-weight:400;color:var(--ink2)">(섹션 관리에서 활성화 후 사용)</span></div>
         <div class="form-grid form-grid-2">
           <div class="form-row">
             <label class="form-label">신랑 사진</label>
@@ -730,8 +691,16 @@
           </div>
         </div>
       </div>
+      <div class="save-row">
+        <span class="save-msg" id="coupleMsg"></span>
+        <button class="save-btn" id="saveCoupleBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 부모님 -->
+    <div class="panel" id="panelParents">
       <div class="form-section">
-        <div class="form-section-title">부모님 (섹션 관리에서 활성화 후 사용)</div>
+        <div class="form-section-title">부모님 <span style="font-size:.72rem;font-weight:400;color:var(--ink2)">(섹션 관리에서 활성화 후 사용)</span></div>
         <div class="form-grid form-grid-2">
           <div class="form-row">
             <label class="form-label">신랑 아버지 성함</label>
@@ -787,19 +756,27 @@
           </div>
         </div>
       </div>
+      <div class="save-row">
+        <span class="save-msg" id="parentsMsg"></span>
+        <button class="save-btn" id="saveParentsBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 스토리 -->
+    <div class="panel" id="panelStory">
       <div class="form-section">
-        <div class="form-section-title">스토리 타임라인 (섹션 관리에서 활성화 후 사용)</div>
+        <div class="form-section-title">스토리 타임라인 <span style="font-size:.72rem;font-weight:400;color:var(--ink2)">(섹션 관리에서 활성화 후 사용)</span></div>
         <div class="story-entries" id="storyEntries"></div>
         <button class="add-btn" id="addStoryBtn">항목 추가</button>
       </div>
       <div class="save-row">
-        <span class="save-msg" id="optionalMsg"></span>
-        <button class="save-btn" id="saveOptionalBtn">저장</button>
+        <span class="save-msg" id="storyMsg"></span>
+        <button class="save-btn" id="saveStoryBtn">저장</button>
       </div>
     </div>
 
-    <!-- 헤더 꾸미기 -->
-    <div class="panel" id="panelHeaderDesign">
+    <!-- 메인 헤더 -->
+    <div class="panel" id="panelHeader">
       <div class="hd-layout">
         <!-- 컨트롤 -->
         <div class="hd-controls">
@@ -912,8 +889,22 @@
       </div>
     </div>
 
-    <!-- 참석 목록 -->
+    <!-- 참석여부 -->
     <div class="panel" id="panelRsvp">
+      <div class="form-section">
+        <div class="form-section-title">설정</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">회신 마감일 (예: 2026년 12월 31일)</label>
+            <input class="form-input" id="rsvpDeadline" placeholder="2026년 12월 31일">
+          </div>
+        </div>
+      </div>
+      <div class="save-row" style="margin-bottom:1.5rem">
+        <span class="save-msg" id="rsvpSettingMsg"></span>
+        <button class="save-btn" id="saveRsvpSettingBtn">저장</button>
+      </div>
+      <div class="form-section-title" style="font-size:.72rem;font-weight:500;letter-spacing:.1em;color:var(--rose);border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:1rem">제출 목록</div>
       <div class="data-count" id="rsvpCount"></div>
       <div class="data-list" id="rsvpList"><div class="data-empty">로딩 중...</div></div>
       <button class="data-load-btn" id="rsvpLoadMore" style="display:none">더 불러오기</button>
@@ -1005,7 +996,7 @@ document.getElementById('adminTabs').addEventListener('click', e => {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(btn.dataset.panel)?.classList.add('active');
-  if (btn.dataset.panel === 'panelHeaderDesign') {
+  if (btn.dataset.panel === 'panelHeader') {
     syncHdPanel();
     updateHdpPreview();
   }
@@ -1385,17 +1376,17 @@ function addStoryRow(it = {}) {
 }
 document.getElementById('addStoryBtn').addEventListener('click', () => addStoryRow());
 
-document.getElementById('saveOptionalBtn').addEventListener('click', async () => {
-  const storyItems = [...document.querySelectorAll('.story-entry')].map(row => ({
-    date:  row.querySelector('.story-date').value.trim(),
-    title: row.querySelector('.story-title').value.trim(),
-    desc:  row.querySelector('.story-desc').value.trim(),
-  }));
-  const data = {
+document.getElementById('saveCoupleBtn').addEventListener('click', async () => {
+  await savePartial({
     couple: {
       groom: { photo: v('coupleGroomPhoto'), mbti: v('coupleGroomMbti'), intro: v('coupleGroomIntro') },
       bride: { photo: v('coupleBridePhoto'), mbti: v('coupleBrideMbti'), intro: v('coupleBrideIntro') },
     },
+  }, 'coupleMsg', '신랑신부 소개가 저장되었습니다');
+});
+
+document.getElementById('saveParentsBtn').addEventListener('click', async () => {
+  await savePartial({
     parents: {
       groom: {
         father: { name: v('parentsGroomFatherName'), photo: v('parentsGroomFatherPhoto') },
@@ -1406,9 +1397,16 @@ document.getElementById('saveOptionalBtn').addEventListener('click', async () =>
         mother: { name: v('parentsBrideMotherName'), photo: v('parentsBrideMotherPhoto') },
       },
     },
-    lovestory: { items: storyItems },
-  };
-  await savePartial(data, 'optionalMsg', '선택 섹션이 저장되었습니다');
+  }, 'parentsMsg', '부모님 정보가 저장되었습니다');
+});
+
+document.getElementById('saveStoryBtn').addEventListener('click', async () => {
+  const storyItems = [...document.querySelectorAll('.story-entry')].map(row => ({
+    date:  row.querySelector('.story-date').value.trim(),
+    title: row.querySelector('.story-title').value.trim(),
+    desc:  row.querySelector('.story-desc').value.trim(),
+  }));
+  await savePartial({ lovestory: { items: storyItems } }, 'storyMsg', '스토리가 저장되었습니다');
 });
 
 // ── HEADER STYLE POSITION NUDGE ───────────────────────
@@ -1418,39 +1416,45 @@ function adjPos(key, delta) {
   el.value = (parseInt(el.value) || 0) + delta;
 }
 
-// ── BASIC SAVE ────────────────────────────────────────
-document.getElementById('saveBasicBtn').addEventListener('click', async () => {
-  const hsVal = k => {
-    const mt = parseInt(document.getElementById(`hs-${k}-marginTop`)?.value) || 0;
-    return {
-      fontSize:   v(`hs-${k}-fontSize`),
-      color:      document.getElementById(`hs-${k}-color`)?.value || '',
-      fontFamily: v(`hs-${k}-fontFamily`),
-      textAlign:  v(`hs-${k}-textAlign`) || 'center',
-      marginTop:  mt !== 0 ? `${mt}px` : '0',
-    };
-  };
+// ── META SAVE (기본 설정) ─────────────────────────────
+document.getElementById('saveMetaBtn').addEventListener('click', async () => {
   const data = {
     header: {
-      title:   v('headerTitle'),   tag:     v('headerTag'),
-      footer:  v('headerFooter'),  ogDesc:  v('headerOgDesc'),
-      ogImage: v('headerOgImage'), photo:   v('headerPhoto'),
-    },
-    headerStyle: {
-      tag: hsVal('tag'), names: hsVal('names'), ko: hsVal('ko'),
-      date: hsVal('date'), venue: hsVal('venue'),
+      ...(currentConfig.header || {}),
+      title:   v('headerTitle'),   tag:    v('headerTag'),
+      footer:  v('headerFooter'),  ogDesc: v('headerOgDesc'),
+      ogImage: v('headerOgImage'),
     },
     groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
     bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
+  };
+  await savePartial(data, 'metaMsg', '기본 설정이 저장되었습니다');
+});
+
+// ── DDAY SAVE ─────────────────────────────────────────
+document.getElementById('saveDdayBtn').addEventListener('click', async () => {
+  const data = {
     wedding: {
+      ...(currentConfig.wedding || {}),
       date: v('weddingDate'), dateISO: v('weddingDateISO'),
-      time: v('weddingTime'), venue: v('venueName'),
-      venueDetail: v('venueDetail'), venueAddr: v('venueAddr'),
-      mapEmbedUrl: v('mapEmbedUrl'),
-      kakaoLink: v('kakaoLink'), naverLink: v('naverLink'), tmapLink: v('tmapLink'),
+      time: v('weddingTime'), venue:   v('venueName'),
+      venueDetail: v('venueDetail'),
     },
   };
-  await savePartial(data, 'basicMsg', '기본 정보가 저장되었습니다');
+  await savePartial(data, 'ddayMsg', 'D-DAY 설정이 저장되었습니다');
+});
+
+// ── LOCATION SAVE ─────────────────────────────────────
+document.getElementById('saveLocationBtn').addEventListener('click', async () => {
+  const data = {
+    wedding: {
+      ...(currentConfig.wedding || {}),
+      venueAddr:   v('venueAddr'),   mapEmbedUrl: v('mapEmbedUrl'),
+      kakaoLink:   v('kakaoLink'),   naverLink:   v('naverLink'),
+      tmapLink:    v('tmapLink'),
+    },
+  };
+  await savePartial(data, 'locationMsg', '오시는길이 저장되었습니다');
 });
 
 // ── GREETING SAVE ─────────────────────────────────────
@@ -1467,12 +1471,26 @@ document.getElementById('saveGreetBtn').addEventListener('click', async () => {
 
 // ── SCHEDULE SAVE ─────────────────────────────────────
 document.getElementById('saveScheduleBtn').addEventListener('click', async () => {
-  const data = {
-    schedule: { meal: v('scheduleMeal'), parking: v('scheduleParking'), shuttle: v('scheduleShuttle') },
-    flowers:  { text: v('flowersText'), url: v('flowersUrl') },
-    rsvp:     { deadline: v('rsvpDeadline') },
-  };
-  await savePartial(data, 'scheduleMsg', '예식 안내가 저장되었습니다');
+  await savePartial(
+    { schedule: { meal: v('scheduleMeal'), parking: v('scheduleParking'), shuttle: v('scheduleShuttle') } },
+    'scheduleMsg', '예식 안내가 저장되었습니다'
+  );
+});
+
+// ── FLOWERS SAVE ──────────────────────────────────────
+document.getElementById('saveFlowersBtn').addEventListener('click', async () => {
+  await savePartial(
+    { flowers: { text: v('flowersText'), url: v('flowersUrl') } },
+    'flowersMsg', '화환 안내가 저장되었습니다'
+  );
+});
+
+// ── RSVP SETTING SAVE ─────────────────────────────────
+document.getElementById('saveRsvpSettingBtn').addEventListener('click', async () => {
+  await savePartial(
+    { rsvp: { ...(currentConfig.rsvp || {}), deadline: v('rsvpDeadline') } },
+    'rsvpSettingMsg', '참석여부 설정이 저장되었습니다'
+  );
 });
 
 function v(id) { return document.getElementById(id)?.value.trim() || ''; }
