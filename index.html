@@ -548,10 +548,11 @@ function esc(s) {
 function buildStyle(s) {
   if (!s) return '';
   const p = [];
-  if (s.fontSize)                          p.push(`font-size:${s.fontSize}`);
-  if (s.color)                             p.push(`color:${s.color}`);
-  if (s.fontFamily)                        p.push(`font-family:${s.fontFamily}`);
+  if (s.fontSize)                              p.push(`font-size:${s.fontSize}`);
+  if (s.color)                                 p.push(`color:${s.color}`);
+  if (s.fontFamily)                            p.push(`font-family:${s.fontFamily}`);
   if (s.textAlign && s.textAlign !== 'center') p.push(`text-align:${s.textAlign}`);
+  if (s.marginTop && s.marginTop !== '0')      p.push(`margin-top:${s.marginTop}`);
   return p.length ? ` style="${p.join(';')}"` : '';
 }
 function showToast(msg, ms = 2400) {

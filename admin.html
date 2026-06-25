@@ -251,6 +251,11 @@
     .hs-label { font-size:.78rem; color:var(--ink); white-space:nowrap; padding-right:.8rem; }
     .hs-input { padding:.45rem .6rem; font-size:.78rem; }
     .hs-color-input { width:40px; height:32px; padding:2px; border:1.5px solid var(--border); border-radius:var(--radius); cursor:pointer; }
+    .hs-pos-row { display:flex; align-items:center; gap:4px; }
+    .hs-pos-btn { width:26px; height:26px; border:1.5px solid var(--border); border-radius:var(--radius); background:var(--bg); cursor:pointer; font-size:.85rem; line-height:1; }
+    .hs-pos-btn:hover { background:var(--border); }
+    .hs-pos-input { width:48px; text-align:center; padding:4px 2px; }
+    .hs-pos-unit { font-size:.75rem; color:#888; }
     @media(max-width:500px) {
       .hs-table th:nth-child(4), .hs-table td:nth-child(4) { display:none; }
     }
@@ -381,7 +386,7 @@
         <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">각 요소의 글씨 크기·색상·폰트·정렬을 조정할 수 있습니다. 비워두면 기본값이 적용됩니다.</p>
         <table class="hs-table">
           <thead>
-            <tr><th>요소</th><th>글씨 크기</th><th>색상</th><th>폰트</th><th>정렬</th></tr>
+            <tr><th>요소</th><th>글씨 크기</th><th>색상</th><th>폰트</th><th>정렬</th><th>위치 (↑↓)</th></tr>
           </thead>
           <tbody>
             <tr>
@@ -390,6 +395,7 @@
               <td><input class="hs-color-input" id="hs-tag-color" type="color" value="#c4a87e"></td>
               <td><select class="form-select hs-input" id="hs-tag-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
               <td><select class="form-select hs-input" id="hs-tag-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('tag',-4)">↑</button><input class="form-input hs-pos-input" id="hs-tag-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('tag',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
             </tr>
             <tr>
               <td class="hs-label">이름 (영문)</td>
@@ -397,6 +403,7 @@
               <td><input class="hs-color-input" id="hs-names-color" type="color" value="#2a2520"></td>
               <td><select class="form-select hs-input" id="hs-names-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
               <td><select class="form-select hs-input" id="hs-names-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('names',-4)">↑</button><input class="form-input hs-pos-input" id="hs-names-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('names',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
             </tr>
             <tr>
               <td class="hs-label">이름 (한글)</td>
@@ -404,6 +411,7 @@
               <td><input class="hs-color-input" id="hs-ko-color" type="color" value="#6b5e55"></td>
               <td><select class="form-select hs-input" id="hs-ko-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
               <td><select class="form-select hs-input" id="hs-ko-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('ko',-4)">↑</button><input class="form-input hs-pos-input" id="hs-ko-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('ko',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
             </tr>
             <tr>
               <td class="hs-label">날짜 · 시간</td>
@@ -411,6 +419,7 @@
               <td><input class="hs-color-input" id="hs-date-color" type="color" value="#8c7265"></td>
               <td><select class="form-select hs-input" id="hs-date-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
               <td><select class="form-select hs-input" id="hs-date-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('date',-4)">↑</button><input class="form-input hs-pos-input" id="hs-date-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('date',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
             </tr>
             <tr>
               <td class="hs-label">장소</td>
@@ -418,6 +427,7 @@
               <td><input class="hs-color-input" id="hs-venue-color" type="color" value="#6b5e55"></td>
               <td><select class="form-select hs-input" id="hs-venue-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
               <td><select class="form-select hs-input" id="hs-venue-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+              <td><div class="hs-pos-row"><button class="hs-pos-btn" onclick="adjPos('venue',-4)">↑</button><input class="form-input hs-pos-input" id="hs-venue-marginTop" type="number" value="0"><button class="hs-pos-btn" onclick="adjPos('venue',4)">↓</button><span class="hs-pos-unit">px</span></div></td>
             </tr>
           </tbody>
         </table>
@@ -897,6 +907,8 @@ function fillForms() {
     if (ffEl && s.fontFamily) ffEl.value = s.fontFamily;
     const taEl = document.getElementById(`hs-${k}-textAlign`);
     if (taEl) taEl.value = s.textAlign || 'center';
+    const mtEl = document.getElementById(`hs-${k}-marginTop`);
+    if (mtEl) mtEl.value = parseInt(s.marginTop) || 0;
   });
   // 기본 정보
   const g = c.groom || {}; const b = c.bride || {}; const w = c.wedding || {};
@@ -1220,14 +1232,25 @@ document.getElementById('saveOptionalBtn').addEventListener('click', async () =>
   await savePartial(data, 'optionalMsg', '선택 섹션이 저장되었습니다');
 });
 
+// ── HEADER STYLE POSITION NUDGE ───────────────────────
+function adjPos(key, delta) {
+  const el = document.getElementById(`hs-${key}-marginTop`);
+  if (!el) return;
+  el.value = (parseInt(el.value) || 0) + delta;
+}
+
 // ── BASIC SAVE ────────────────────────────────────────
 document.getElementById('saveBasicBtn').addEventListener('click', async () => {
-  const hsVal = k => ({
-    fontSize:   v(`hs-${k}-fontSize`),
-    color:      document.getElementById(`hs-${k}-color`)?.value || '',
-    fontFamily: v(`hs-${k}-fontFamily`),
-    textAlign:  v(`hs-${k}-textAlign`) || 'center',
-  });
+  const hsVal = k => {
+    const mt = parseInt(document.getElementById(`hs-${k}-marginTop`)?.value) || 0;
+    return {
+      fontSize:   v(`hs-${k}-fontSize`),
+      color:      document.getElementById(`hs-${k}-color`)?.value || '',
+      fontFamily: v(`hs-${k}-fontFamily`),
+      textAlign:  v(`hs-${k}-textAlign`) || 'center',
+      marginTop:  mt !== 0 ? `${mt}px` : '0',
+    };
+  };
   const data = {
     header: {
       title:   v('headerTitle'),   tag:     v('headerTag'),
