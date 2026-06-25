@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>청첩장 관리자</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Dancing+Script:wght@400;500&family=Gowun+Batang&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f7f7f5; --white: #fff; --border: #e2ddd8;
@@ -283,6 +283,48 @@
     }
     .gb-approve-btn:hover { background:var(--rose-h); }
 
+    /* ── DRAG AND DROP ── */
+    .section-drag-handle { color:var(--ink2); font-size:1.1rem; padding:0 2px; cursor:grab; flex-shrink:0; user-select:none; }
+    .section-row[draggable="true"] { cursor:default; }
+    .section-row.dragging { opacity:.35; }
+    .section-row.drag-over { outline:2px solid var(--rose); outline-offset:-2px; background:rgba(140,114,101,.06); }
+
+    /* ── HEADER DESIGN PANEL ── */
+    .hd-layout { display:flex; gap:1.5rem; align-items:flex-start; }
+    @media(max-width:720px) {
+      .hd-layout { flex-direction:column; }
+      .hd-preview-wrap { order:-1; align-self:center; }
+    }
+    .hd-controls { flex:1; min-width:0; }
+    .hd-preview-wrap { flex-shrink:0; position:sticky; top:72px; }
+    .hd-preview-label { font-size:.72rem; color:var(--ink2); text-align:center; margin-bottom:.4rem; }
+    .hd-phone-frame {
+      width:270px; height:480px; border-radius:18px; overflow:hidden;
+      position:relative; box-shadow:0 8px 32px rgba(0,0,0,.22);
+      border:6px solid #2a2520; background:#faf9f7;
+    }
+    .hd-phone-frame iframe {
+      width:375px; height:667px; border:none;
+      transform:scale(.72); transform-origin:top left; pointer-events:none;
+    }
+    .hdp-elem { border:1px solid var(--border); border-radius:var(--radius); margin-bottom:.45rem; overflow:hidden; }
+    .hdp-elem-toggle {
+      width:100%; display:flex; justify-content:space-between; align-items:center;
+      padding:.65rem 1rem; background:var(--white); border:none;
+      font-size:.82rem; color:var(--ink); cursor:pointer; transition:background .15s;
+    }
+    .hdp-elem-toggle:hover { background:var(--bg); }
+    .hdp-elem-toggle.open { border-bottom:1px solid var(--border); }
+    .hdp-elem-body { display:none; padding:.8rem 1rem; background:var(--white); }
+    .hdp-elem-body.open { display:block; }
+    .hdp-ctrl-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+    @media(max-width:500px) { .hdp-ctrl-grid { grid-template-columns:1fr; } }
+    .hdp-nudge-row { display:flex; align-items:center; gap:4px; }
+    .hdp-nudge-btn { width:26px; height:26px; border:1.5px solid var(--border); border-radius:var(--radius); background:var(--bg); cursor:pointer; font-size:.85rem; line-height:1; }
+    .hdp-nudge-btn:hover { background:var(--border); }
+    .hdp-nudge-input { width:52px; text-align:center; padding:4px 2px; }
+    .hdp-nudge-unit { font-size:.75rem; color:#888; }
+
     /* ── TOAST ── */
     #adminToast {
       position:fixed; bottom:1.5rem; left:50%;
@@ -334,6 +376,7 @@
     <button class="tab-btn" data-panel="panelSchedule">예식 안내</button>
     <button class="tab-btn" data-panel="panelAccounts">계좌번호</button>
     <button class="tab-btn" data-panel="panelOptional">선택 섹션</button>
+    <button class="tab-btn" data-panel="panelHeaderDesign">헤더 꾸미기</button>
     <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
     <button class="tab-btn" data-panel="panelRsvp">참석 목록</button>
     <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
@@ -755,6 +798,107 @@
       </div>
     </div>
 
+    <!-- 헤더 꾸미기 -->
+    <div class="panel" id="panelHeaderDesign">
+      <div class="hd-layout">
+        <!-- 컨트롤 -->
+        <div class="hd-controls">
+          <div class="form-section">
+            <div class="form-section-title">커버 사진</div>
+            <div class="photo-row">
+              <input class="form-input" id="hdp-photo" placeholder="URL 직접 입력 또는 파일 업로드">
+              <input type="file" id="file-hdp-photo" accept="image/*" style="display:none">
+              <label class="upload-btn" for="file-hdp-photo">파일</label>
+              <span class="upload-status" id="st-hdp-photo"></span>
+            </div>
+            <button class="add-btn" id="hdpRemovePhotoBtn" style="margin-top:.5rem">사진 없이 기본 배경 사용</button>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">요소별 스타일</div>
+            <p style="font-size:.78rem;color:var(--ink2);margin-bottom:.8rem">항목을 클릭해 펼치면 스타일을 조정할 수 있습니다. 변경 즉시 미리보기에 반영됩니다.</p>
+            <div id="hdpElemList">
+              <!-- tag -->
+              <div class="hdp-elem" data-key="tag">
+                <button class="hdp-elem-toggle">상단 영문 (예: Wedding Invitation) <span>▾</span></button>
+                <div class="hdp-elem-body">
+                  <div class="hdp-ctrl-grid">
+                    <div class="form-row"><label class="form-label">글씨 크기</label><input class="form-input" id="hdp-tag-fontSize" placeholder="1.4rem"></div>
+                    <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hdp-tag-color" type="color" value="#c4a87e"></div>
+                    <div class="form-row"><label class="form-label">폰트</label><select class="form-select" id="hdp-tag-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></div>
+                    <div class="form-row"><label class="form-label">정렬</label><select class="form-select" id="hdp-tag-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+                  </div>
+                  <div class="form-row" style="margin-top:.6rem"><label class="form-label">위치 (↑ 올리기 / ↓ 내리기)</label><div class="hdp-nudge-row"><button class="hdp-nudge-btn" data-key="tag" data-delta="-4">↑</button><input class="form-input hdp-nudge-input" id="hdp-tag-marginTop" type="number" value="0"><button class="hdp-nudge-btn" data-key="tag" data-delta="4">↓</button><span class="hdp-nudge-unit">px</span></div></div>
+                </div>
+              </div>
+              <!-- names -->
+              <div class="hdp-elem" data-key="names">
+                <button class="hdp-elem-toggle">신랑신부 영문 이름 <span>▾</span></button>
+                <div class="hdp-elem-body">
+                  <div class="hdp-ctrl-grid">
+                    <div class="form-row"><label class="form-label">글씨 크기</label><input class="form-input" id="hdp-names-fontSize" placeholder="4rem"></div>
+                    <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hdp-names-color" type="color" value="#2a2520"></div>
+                    <div class="form-row"><label class="form-label">폰트</label><select class="form-select" id="hdp-names-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></div>
+                    <div class="form-row"><label class="form-label">정렬</label><select class="form-select" id="hdp-names-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+                  </div>
+                  <div class="form-row" style="margin-top:.6rem"><label class="form-label">위치 (↑ 올리기 / ↓ 내리기)</label><div class="hdp-nudge-row"><button class="hdp-nudge-btn" data-key="names" data-delta="-4">↑</button><input class="form-input hdp-nudge-input" id="hdp-names-marginTop" type="number" value="0"><button class="hdp-nudge-btn" data-key="names" data-delta="4">↓</button><span class="hdp-nudge-unit">px</span></div></div>
+                </div>
+              </div>
+              <!-- ko -->
+              <div class="hdp-elem" data-key="ko">
+                <button class="hdp-elem-toggle">신랑신부 한글 이름 <span>▾</span></button>
+                <div class="hdp-elem-body">
+                  <div class="hdp-ctrl-grid">
+                    <div class="form-row"><label class="form-label">글씨 크기</label><input class="form-input" id="hdp-ko-fontSize" placeholder=".82rem"></div>
+                    <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hdp-ko-color" type="color" value="#6b5e55"></div>
+                    <div class="form-row"><label class="form-label">폰트</label><select class="form-select" id="hdp-ko-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></div>
+                    <div class="form-row"><label class="form-label">정렬</label><select class="form-select" id="hdp-ko-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+                  </div>
+                  <div class="form-row" style="margin-top:.6rem"><label class="form-label">위치 (↑ 올리기 / ↓ 내리기)</label><div class="hdp-nudge-row"><button class="hdp-nudge-btn" data-key="ko" data-delta="-4">↑</button><input class="form-input hdp-nudge-input" id="hdp-ko-marginTop" type="number" value="0"><button class="hdp-nudge-btn" data-key="ko" data-delta="4">↓</button><span class="hdp-nudge-unit">px</span></div></div>
+                </div>
+              </div>
+              <!-- date -->
+              <div class="hdp-elem" data-key="date">
+                <button class="hdp-elem-toggle">날짜 · 시간 <span>▾</span></button>
+                <div class="hdp-elem-body">
+                  <div class="hdp-ctrl-grid">
+                    <div class="form-row"><label class="form-label">글씨 크기</label><input class="form-input" id="hdp-date-fontSize" placeholder="1.1rem"></div>
+                    <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hdp-date-color" type="color" value="#8c7265"></div>
+                    <div class="form-row"><label class="form-label">폰트</label><select class="form-select" id="hdp-date-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></div>
+                    <div class="form-row"><label class="form-label">정렬</label><select class="form-select" id="hdp-date-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+                  </div>
+                  <div class="form-row" style="margin-top:.6rem"><label class="form-label">위치 (↑ 올리기 / ↓ 내리기)</label><div class="hdp-nudge-row"><button class="hdp-nudge-btn" data-key="date" data-delta="-4">↑</button><input class="form-input hdp-nudge-input" id="hdp-date-marginTop" type="number" value="0"><button class="hdp-nudge-btn" data-key="date" data-delta="4">↓</button><span class="hdp-nudge-unit">px</span></div></div>
+                </div>
+              </div>
+              <!-- venue -->
+              <div class="hdp-elem" data-key="venue">
+                <button class="hdp-elem-toggle">장소 <span>▾</span></button>
+                <div class="hdp-elem-body">
+                  <div class="hdp-ctrl-grid">
+                    <div class="form-row"><label class="form-label">글씨 크기</label><input class="form-input" id="hdp-venue-fontSize" placeholder=".75rem"></div>
+                    <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hdp-venue-color" type="color" value="#6b5e55"></div>
+                    <div class="form-row"><label class="form-label">폰트</label><select class="form-select" id="hdp-venue-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></div>
+                    <div class="form-row"><label class="form-label">정렬</label><select class="form-select" id="hdp-venue-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+                  </div>
+                  <div class="form-row" style="margin-top:.6rem"><label class="form-label">위치 (↑ 올리기 / ↓ 내리기)</label><div class="hdp-nudge-row"><button class="hdp-nudge-btn" data-key="venue" data-delta="-4">↑</button><input class="form-input hdp-nudge-input" id="hdp-venue-marginTop" type="number" value="0"><button class="hdp-nudge-btn" data-key="venue" data-delta="4">↓</button><span class="hdp-nudge-unit">px</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="save-row">
+            <span class="save-msg" id="hdpMsg"></span>
+            <button class="save-btn" id="saveHdpBtn">저장</button>
+          </div>
+        </div>
+        <!-- 미리보기 -->
+        <div class="hd-preview-wrap">
+          <div class="hd-preview-label">실시간 미리보기</div>
+          <div class="hd-phone-frame">
+            <iframe id="hdpPreviewFrame" title="헤더 미리보기"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 섹션 관리 -->
     <div class="panel" id="panelSections">
       <div class="form-section">
@@ -861,6 +1005,10 @@ document.getElementById('adminTabs').addEventListener('click', e => {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(btn.dataset.panel)?.classList.add('active');
+  if (btn.dataset.panel === 'panelHeaderDesign') {
+    syncHdPanel();
+    updateHdpPreview();
+  }
 });
 
 // ── CONFIG LOAD ────────────────────────────────────────
@@ -1016,6 +1164,7 @@ function bindUpload(inputId, storagePath) {
 }
 
 function bindAllUploads() {
+  bindUpload('hdp-photo',               'covers');
   bindUpload('headerPhoto',             'covers');
   bindUpload('headerOgImage',           'og');
   bindUpload('coupleGroomPhoto',        'couple');
@@ -1109,6 +1258,7 @@ document.getElementById('saveAccountBtn').addEventListener('click', async () => 
 
 // ── 섹션 관리 ─────────────────────────────────────────
 let sectionState = [];
+let dragSrcIdx = null;
 function renderSectionsList(sections) {
   sectionState = sections.map((s, i) => ({ ...s, order: i }));
   const container = document.getElementById('sectionsList');
@@ -1116,8 +1266,10 @@ function renderSectionsList(sections) {
   sectionState.forEach((s, i) => {
     const row = document.createElement('div');
     row.className = 'section-row';
+    row.draggable = true;
     row.dataset.idx = i;
     row.innerHTML = `
+      <span class="section-drag-handle" title="드래그로 순서 변경">⠿</span>
       <div class="section-order-btns">
         <button class="section-order-btn" data-dir="up" ${i===0?'disabled':''}>▲</button>
         <button class="section-order-btn" data-dir="down" ${i===sectionState.length-1?'disabled':''}>▼</button>
@@ -1142,6 +1294,33 @@ function renderSectionsList(sections) {
     });
     row.querySelector('input[type=checkbox]').addEventListener('change', e => {
       sectionState[i].enabled = e.target.checked;
+    });
+    // ── 드래그 & 드롭 ──
+    row.addEventListener('dragstart', e => {
+      if (['INPUT','LABEL','BUTTON'].includes(e.target.tagName)) { e.preventDefault(); return; }
+      dragSrcIdx = i;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => row.classList.add('dragging'), 0);
+    });
+    row.addEventListener('dragend', () => {
+      container.querySelectorAll('.section-row').forEach(r => r.classList.remove('dragging','drag-over'));
+      dragSrcIdx = null;
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (dragSrcIdx === null || dragSrcIdx === i) return;
+      container.querySelectorAll('.section-row').forEach(r => r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragSrcIdx === null || dragSrcIdx === i) return;
+      const item = sectionState.splice(dragSrcIdx, 1)[0];
+      sectionState.splice(i, 0, item);
+      sectionState.forEach((s2, j) => s2.order = j);
+      renderSectionsList(sectionState);
     });
     container.appendChild(row);
   });
@@ -1427,6 +1606,195 @@ document.querySelectorAll('.gb-tab-btn').forEach(btn => {
     gbCurrentStatus = btn.dataset.status;
     gbAdminLast = null;
     loadGbList();
+  });
+});
+
+// ── HEADER DESIGN PANEL ───────────────────────────────
+function buildStyle(s) {
+  if (!s) return '';
+  const p = [];
+  if (s.fontSize)                              p.push(`font-size:${s.fontSize}`);
+  if (s.color)                                 p.push(`color:${s.color}`);
+  if (s.fontFamily)                            p.push(`font-family:${s.fontFamily}`);
+  if (s.textAlign && s.textAlign !== 'center') p.push(`text-align:${s.textAlign}`);
+  if (s.marginTop && s.marginTop !== '0')      p.push(`margin-top:${s.marginTop}`);
+  return p.length ? ` style="${p.join(';')}"` : '';
+}
+
+function syncHdPanel() {
+  if (!currentConfig) return;
+  const photoEl = document.getElementById('hdp-photo');
+  if (photoEl) photoEl.value = currentConfig.header?.photo || '';
+  const hs = currentConfig.headerStyle || {};
+  ['tag','names','ko','date','venue'].forEach(k => {
+    const s = hs[k] || {};
+    const fsEl = document.getElementById(`hdp-${k}-fontSize`);
+    if (fsEl) fsEl.value = s.fontSize || '';
+    const colEl = document.getElementById(`hdp-${k}-color`);
+    if (colEl && s.color) colEl.value = s.color;
+    const ffEl = document.getElementById(`hdp-${k}-fontFamily`);
+    if (ffEl) ffEl.value = s.fontFamily || '';
+    const taEl = document.getElementById(`hdp-${k}-textAlign`);
+    if (taEl) taEl.value = s.textAlign || 'center';
+    const mtEl = document.getElementById(`hdp-${k}-marginTop`);
+    if (mtEl) mtEl.value = parseInt(s.marginTop) || 0;
+  });
+}
+
+function buildHdpSrcdoc() {
+  const photo      = document.getElementById('hdp-photo')?.value || '';
+  const tag        = v('headerTag')     || 'Wedding Invitation';
+  const groomEng   = v('groomEng')     || 'GILDONG';
+  const brideEng   = v('brideEng')     || 'SUNHWA';
+  const groomKo    = v('groomName')    || '신랑';
+  const brideKo    = v('brideName')    || '신부';
+  const dateStr    = v('weddingDate')  || '2027. 01. 17 (일)';
+  const timeStr    = v('weddingTime')  || '오후 2시';
+  const venueName  = v('venueName')    || '';
+  const venueDetail= v('venueDetail')  || '';
+
+  const hs = {};
+  ['tag','names','ko','date','venue'].forEach(k => {
+    const mt = parseInt(document.getElementById(`hdp-${k}-marginTop`)?.value) || 0;
+    hs[k] = {
+      fontSize:   document.getElementById(`hdp-${k}-fontSize`)?.value  || '',
+      color:      document.getElementById(`hdp-${k}-color`)?.value     || '',
+      fontFamily: document.getElementById(`hdp-${k}-fontFamily`)?.value|| '',
+      textAlign:  document.getElementById(`hdp-${k}-textAlign`)?.value || 'center',
+      marginTop:  mt !== 0 ? `${mt}px` : '0',
+    };
+  });
+
+  const names   = `${esc(groomEng)}<span class="header-amp">&amp;</span>${esc(brideEng)}`;
+  const koLine  = `${esc(groomKo)} · ${esc(brideKo)}`;
+  const dateLine= `${esc(dateStr)} · ${esc(timeStr)}`;
+  const venueLine= venueName ? esc(venueName) + (venueDetail ? ' ' + esc(venueDetail) : '') : '';
+
+  const inner = `
+    <div class="header-tag"${buildStyle(hs.tag)}>${esc(tag)}</div>
+    <div class="header-names"${buildStyle(hs.names)}>${names}</div>
+    <div class="header-ko"${buildStyle(hs.ko)}>${koLine}</div>
+    <div class="header-sep"></div>
+    <div class="header-date"${buildStyle(hs.date)}>${dateLine}</div>
+    <div class="header-venue"${buildStyle(hs.venue)}>${venueLine}</div>`;
+
+  const headerHtml = photo
+    ? `<section id="sec-header" class="has-photo"><div class="header-photo" style="background-image:url('${photo.replace(/'/g,"\\'")}')" ><div class="header-photo-overlay">${inner}</div></div></section>`
+    : `<section id="sec-header">${inner}</section>`;
+
+  return `<!DOCTYPE html><html lang="ko"><head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500&family=Gowun+Batang&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf9f7;--bg2:#f2ede7;--bg3:#ede6dc;--ink:#2a2520;--ink2:#6b5e55;--rose:#8c7265;--rose2:#b89b8e;--gold:#c4a87e;--gold2:#e0cca8;--font-script:'Dancing Script',cursive;--font-serif:'Gowun Batang','Noto Serif KR',serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);overflow:hidden;}
+#sec-header{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 1.5rem;background:linear-gradient(170deg,var(--bg) 0%,var(--bg2) 60%,var(--bg3) 100%);position:relative;}
+#sec-header.has-photo{min-height:100vh;display:flex;flex-direction:column;padding:0;background:var(--bg2);justify-content:flex-start;}
+.header-photo{height:100vh;width:100%;background-size:cover;background-position:center center;display:flex;align-items:flex-end;position:relative;}
+.header-photo-overlay{width:100%;padding:5rem 1.5rem 5rem;background:linear-gradient(to top,var(--bg) 0%,rgba(250,249,247,.6) 25%,transparent 72%);text-align:center;}
+.header-photo-overlay .header-tag,.header-photo-overlay .header-names,.header-photo-overlay .header-ko,.header-photo-overlay .header-date,.header-photo-overlay .header-venue{text-shadow:0 1px 10px rgba(0,0,0,.45),0 0 3px rgba(0,0,0,.3);}
+.header-photo-overlay .header-tag{color:rgba(255,255,255,.82);}
+.header-photo-overlay .header-names{color:#fff;}
+.header-photo-overlay .header-ko{color:rgba(255,255,255,.75);margin-bottom:0;}
+.header-photo-overlay .header-amp{color:rgba(255,255,255,.68);}
+.header-photo-overlay .header-sep{background:rgba(255,255,255,.4);margin:1.2rem auto;}
+.header-photo-overlay .header-date{color:#fff;}
+.header-photo-overlay .header-venue{color:rgba(255,255,255,.9);}
+.header-tag{font-family:var(--font-script);font-size:1.4rem;color:var(--gold);margin-bottom:1.8rem;opacity:.8;}
+.header-names{font-family:var(--font-script);font-size:4rem;font-weight:400;line-height:1.1;color:var(--ink);margin-bottom:.6rem;}
+.header-amp{display:block;font-size:2.4rem;color:var(--rose2);margin:.2rem 0;}
+.header-ko{font-family:var(--font-serif);font-size:.82rem;color:var(--ink2);margin-bottom:2.2rem;}
+.header-sep{width:1px;height:40px;background:var(--gold2);margin:0 auto 2rem;}
+.header-date{font-family:var(--font-serif);font-size:1.1rem;font-weight:400;color:var(--rose);margin-bottom:.5rem;}
+.header-venue{font-size:.75rem;color:var(--ink2);line-height:2;}
+</style></head><body>${headerHtml}</body></html>`;
+}
+
+let hdpPreviewTimer = null;
+function updateHdpPreview() {
+  clearTimeout(hdpPreviewTimer);
+  hdpPreviewTimer = setTimeout(() => {
+    const iframe = document.getElementById('hdpPreviewFrame');
+    if (!iframe) return;
+    iframe.srcdoc = buildHdpSrcdoc();
+  }, 180);
+}
+
+// 아코디언 토글
+document.querySelectorAll('.hdp-elem-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const isOpen = btn.classList.contains('open');
+    // 다른 패널 닫기 (선택사항 - accordion mode off: 모두 독립 토글)
+    btn.classList.toggle('open', !isOpen);
+    btn.nextElementSibling.classList.toggle('open', !isOpen);
+  });
+});
+
+// 모든 hdp-* input/select 변경 시 즉시 미리보기 갱신
+document.getElementById('hdpElemList').addEventListener('input', updateHdpPreview);
+document.getElementById('hdpElemList').addEventListener('change', updateHdpPreview);
+document.getElementById('hdp-photo').addEventListener('input', updateHdpPreview);
+
+// 위치 nudge 버튼
+document.querySelectorAll('.hdp-nudge-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key   = btn.dataset.key;
+    const delta = parseInt(btn.dataset.delta);
+    const inp   = document.getElementById(`hdp-${key}-marginTop`);
+    if (!inp) return;
+    inp.value = (parseInt(inp.value) || 0) + delta;
+    updateHdpPreview();
+  });
+});
+
+// 사진 제거
+document.getElementById('hdpRemovePhotoBtn').addEventListener('click', () => {
+  document.getElementById('hdp-photo').value = '';
+  updateHdpPreview();
+});
+
+// hdp-photo 업로드 완료 시 미리보기 갱신
+document.getElementById('file-hdp-photo').addEventListener('change', () => {
+  setTimeout(updateHdpPreview, 500);
+});
+
+// 헤더 디자인 저장
+document.getElementById('saveHdpBtn').addEventListener('click', async () => {
+  const hdpVal = k => {
+    const mt = parseInt(document.getElementById(`hdp-${k}-marginTop`)?.value) || 0;
+    return {
+      fontSize:   document.getElementById(`hdp-${k}-fontSize`)?.value   || '',
+      color:      document.getElementById(`hdp-${k}-color`)?.value      || '',
+      fontFamily: document.getElementById(`hdp-${k}-fontFamily`)?.value || '',
+      textAlign:  document.getElementById(`hdp-${k}-textAlign`)?.value  || 'center',
+      marginTop:  mt !== 0 ? `${mt}px` : '0',
+    };
+  };
+  const newPhoto = document.getElementById('hdp-photo')?.value || '';
+  const data = {
+    header: { ...(currentConfig.header || {}), photo: newPhoto },
+    headerStyle: {
+      tag: hdpVal('tag'), names: hdpVal('names'), ko: hdpVal('ko'),
+      date: hdpVal('date'), venue: hdpVal('venue'),
+    },
+  };
+  await savePartial(data, 'hdpMsg', '헤더가 저장되었습니다');
+  // 기본 정보 탭 hs-* inputs 도 동기화
+  val('headerPhoto', newPhoto);
+  const hs = data.headerStyle;
+  ['tag','names','ko','date','venue'].forEach(k => {
+    const s = hs[k] || {};
+    val(`hs-${k}-fontSize`, s.fontSize || '');
+    const colEl = document.getElementById(`hs-${k}-color`);
+    if (colEl && s.color) colEl.value = s.color;
+    const ffEl = document.getElementById(`hs-${k}-fontFamily`);
+    if (ffEl) ffEl.value = s.fontFamily || '';
+    const taEl = document.getElementById(`hs-${k}-textAlign`);
+    if (taEl) taEl.value = s.textAlign || 'center';
+    const mtEl = document.getElementById(`hs-${k}-marginTop`);
+    if (mtEl) mtEl.value = parseInt(s.marginTop) || 0;
   });
 });
 </script>
