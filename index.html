@@ -43,9 +43,51 @@
   <button class="modal-next" id="modalNext">›</button>
 </div>
 
+<!-- 참석여부 모달 -->
+<div id="rsvpModal" class="wedding-modal">
+  <div class="wedding-modal-box">
+    <button class="wedding-modal-close" id="rsvpModalClose">✕</button>
+    <div class="wedding-modal-title">참 석 여 부</div>
+    <form class="rsvp-form" id="rsvpForm">
+      <div class="rsvp-field">
+        <div class="rsvp-label">이 름</div>
+        <input class="rsvp-input" id="rsvpName" placeholder="성함을 입력해주세요" maxlength="20">
+      </div>
+      <div class="rsvp-field">
+        <div class="rsvp-label">참 석</div>
+        <div class="rsvp-radio-row">
+          <label class="rsvp-radio-opt selected" id="rsvpAttYes">
+            <input type="radio" name="attendance" value="참석" checked> 참석
+          </label>
+        </div>
+      </div>
+      <div class="rsvp-field">
+        <div class="rsvp-label">메 모 (선택)</div>
+        <textarea class="rsvp-textarea" id="rsvpMemo" placeholder="전달하실 말씀이 있으면 입력해주세요" rows="3" maxlength="300"></textarea>
+      </div>
+      <button type="submit" class="rsvp-submit" id="rsvpSubmit">참석 의사 전달하기</button>
+    </form>
+  </div>
+</div>
+
+<!-- 방명록 모달 -->
+<div id="gbModal" class="wedding-modal">
+  <div class="wedding-modal-box">
+    <button class="wedding-modal-close" id="gbModalClose">✕</button>
+    <div class="wedding-modal-title">방 명 록</div>
+    <div style="display:flex;flex-direction:column;gap:.8rem;">
+      <input class="rsvp-input" id="gbName" placeholder="이름" maxlength="20">
+      <textarea class="rsvp-input rsvp-textarea" id="gbMsg"
+        placeholder="축하 메시지를 남겨주세요" rows="4" maxlength="200"
+        style="resize:vertical"></textarea>
+      <button class="gb-submit" id="gbSubmit">방명록 남기기</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, getDoc, collection, addDoc, getDocs, orderBy, query, limit, startAfter } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, collection, addDoc, getDocs, orderBy, query, limit, startAfter, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBrtXBFmtWdUBf9e__ihXbuzEmesZZzV-o",
@@ -67,6 +109,13 @@ const DEFAULT = {
     ogImage: '',
     footer: '2027. 01. 17',
     photo:  '',
+  },
+  headerStyle: {
+    tag:   { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
+    names: { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
+    ko:    { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
+    date:  { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
+    venue: { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
   },
   groom: { name: '신랑', engName: 'GROOM', phone: '' },
   bride: { name: '신부', engName: 'BRIDE', phone: '' },
@@ -151,7 +200,8 @@ const SECTION_NAV = {
 // ─── RENDERERS ────────────────────────────────────────
 
 function renderHeader(c) {
-  const w = c.wedding;
+  const w  = c.wedding;
+  const hs = c.headerStyle || {};
   const photo = c.header?.photo;
   const tag   = esc(c.header?.tag || 'Wedding Invitation');
   const names = `${esc(c.groom.engName)}<span class="header-amp">&amp;</span>${esc(c.bride.engName)}`;
@@ -159,17 +209,19 @@ function renderHeader(c) {
   const date  = `${esc(w.date)} · ${esc(w.time)}`;
   const venue = `${esc(w.venue)}${w.venueDetail ? ' ' + esc(w.venueDetail) : ''}`;
 
+  const inner = `
+      <div class="header-tag fadein"${buildStyle(hs.tag)}>${tag}</div>
+      <div class="header-names fadein"${buildStyle(hs.names)}>${names}</div>
+      <div class="header-ko fadein"${buildStyle(hs.ko)}>${ko}</div>
+      <div class="header-sep fadein"></div>
+      <div class="header-date fadein"${buildStyle(hs.date)}>${date}</div>
+      <div class="header-venue fadein"${buildStyle(hs.venue)}>${venue}</div>`;
+
   if (photo) {
     return `
 <section id="sec-header" class="has-photo">
   <div class="header-photo" style="background-image:url('${esc(photo)}')">
-    <div class="header-photo-overlay">
-      <div class="header-tag fadein">${tag}</div>
-      <div class="header-names fadein">${names}</div>
-      <div class="header-ko fadein">${ko}</div>
-      <div class="header-sep fadein"></div>
-      <div class="header-date fadein">${date}</div>
-      <div class="header-venue fadein">${venue}</div>
+    <div class="header-photo-overlay">${inner}
     </div>
   </div>
   <div class="header-scroll">SCROLL</div>
@@ -178,12 +230,7 @@ function renderHeader(c) {
 
   return `
 <section id="sec-header">
-  <div class="header-tag fadein">${tag}</div>
-  <div class="header-names fadein">${names}</div>
-  <div class="header-ko fadein">${ko}</div>
-  <div class="header-sep fadein"></div>
-  <div class="header-date fadein">${date}</div>
-  <div class="header-venue fadein">${venue}</div>
+  ${inner}
   <div class="header-scroll">SCROLL</div>
 </section>`;
 }
@@ -204,11 +251,13 @@ function renderGreeting(c) {
     <div class="greeting-parents">
       <div class="greeting-family">
         <div class="greeting-family-role">신 랑 측</div>
-        <p>${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}<br>${esc(gp.relation || '')} ${esc(c.groom.name)}</p>
+        <p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>
+        <p class="greeting-person-name">${esc(c.groom.name)}</p>
       </div>
       <div class="greeting-family">
         <div class="greeting-family-role">신 부 측</div>
-        <p>${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}<br>${esc(bp.relation || '')} ${esc(c.bride.name)}</p>
+        <p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>
+        <p class="greeting-person-name">${esc(c.bride.name)}</p>
       </div>
     </div>` : ''}
   </div>
@@ -334,7 +383,7 @@ function renderDday(c) {
         <div class="dday-unit"><span class="dday-num" id="ddayM">··</span><span class="dday-unit-lbl">MIN</span></div>
         <div class="dday-unit"><span class="dday-num" id="ddayS">··</span><span class="dday-unit-lbl">SEC</span></div>
       </div>
-      <div class="dday-wedding-date">${esc(w.date)}<br>${esc(w.time)} · ${esc(w.venue)}</div>
+      <div class="dday-wedding-date">${esc(w.date)}<br>${esc(w.time)}</div>
     </div>
   </div>
 </section>`;
@@ -412,8 +461,7 @@ function renderAccounts(c) {
       <div class="account-item">
         <div class="account-info">
           <div class="account-who">${esc(a.who)}</div>
-          <div class="account-number">${esc(a.bank)} ${esc(a.number)}</div>
-          <div class="account-bank-name">${esc(a.name)}</div>
+          <div class="account-holder-name">${esc(a.name)}</div>
         </div>
         <button class="account-copy-btn"
           data-number="${esc(a.number)}"
@@ -441,38 +489,8 @@ function renderRsvp(c) {
     <div class="sec-label">RSVP</div>
     <div class="sec-title">참 석 여 부</div>
     <div class="sec-divider"></div>
-    <form class="rsvp-form" id="rsvpForm">
-      <div class="rsvp-field">
-        <div class="rsvp-label">이 름</div>
-        <input class="rsvp-input" id="rsvpName" placeholder="성함을 입력해주세요" maxlength="20">
-      </div>
-      <div class="rsvp-field">
-        <div class="rsvp-label">참 석 여 부</div>
-        <div class="rsvp-radio-row">
-          <label class="rsvp-radio-opt" id="rsvpAttYes"><input type="radio" name="attendance" value="참석"> 참석</label>
-          <label class="rsvp-radio-opt" id="rsvpAttNo"><input type="radio" name="attendance" value="불참"> 불참</label>
-        </div>
-      </div>
-      <div class="rsvp-field">
-        <div class="rsvp-label">인 원 수</div>
-        <select class="rsvp-select" id="rsvpCount">
-          ${[1,2,3,4,5,6].map(n=>`<option value="${n}">${n}명</option>`).join('')}
-        </select>
-      </div>
-      <div class="rsvp-field">
-        <div class="rsvp-label">식 사 여 부</div>
-        <div class="rsvp-radio-row">
-          <label class="rsvp-radio-opt" id="rsvpMealY"><input type="radio" name="meal" value="예"> 예</label>
-          <label class="rsvp-radio-opt" id="rsvpMealN"><input type="radio" name="meal" value="아니오"> 아니오</label>
-        </div>
-      </div>
-      <div class="rsvp-field">
-        <div class="rsvp-label">메 모 (선택)</div>
-        <textarea class="rsvp-textarea" id="rsvpMemo" placeholder="전달하실 말씀이 있으면 입력해주세요" rows="3" maxlength="300"></textarea>
-      </div>
-      <button type="submit" class="rsvp-submit" id="rsvpSubmit">참석 여부 전달하기</button>
-    </form>
-    ${deadline ? `<div class="rsvp-deadline">※ 참석 여부는 ${esc(deadline)}까지 부탁드립니다</div>` : ''}
+    ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
+    <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
   </div>
 </section>`;
 }
@@ -498,13 +516,7 @@ function renderGuestbook() {
     <div class="sec-label">Guestbook</div>
     <div class="sec-title">방 명 록</div>
     <div class="sec-divider"></div>
-    <div class="gb-write">
-      <input class="rsvp-input" id="gbName" placeholder="이름" maxlength="20">
-      <textarea class="rsvp-input rsvp-textarea" id="gbMsg"
-        placeholder="축하 메시지를 남겨주세요" rows="3" maxlength="200"
-        style="margin-top:.6rem;resize:vertical"></textarea>
-      <button class="gb-submit" id="gbSubmit">방명록 남기기</button>
-    </div>
+    <button class="gb-open-btn" id="gbOpenBtn">방명록 남기기</button>
     <div class="gb-list" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
     <button class="gb-more" id="gbMore" style="display:none">더 보기</button>
   </div>
@@ -530,6 +542,15 @@ const RENDERERS = {
 // ─── UTILITIES ────────────────────────────────────────
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function buildStyle(s) {
+  if (!s) return '';
+  const p = [];
+  if (s.fontSize)                          p.push(`font-size:${s.fontSize}`);
+  if (s.color)                             p.push(`color:${s.color}`);
+  if (s.fontFamily)                        p.push(`font-family:${s.fontFamily}`);
+  if (s.textAlign && s.textAlign !== 'center') p.push(`text-align:${s.textAlign}`);
+  return p.length ? ` style="${p.join(';')}"` : '';
 }
 function showToast(msg, ms = 2400) {
   const t = document.getElementById('toast');
@@ -690,46 +711,40 @@ function initAccounts() {
 }
 
 function initRsvp() {
-  const form = document.getElementById('rsvpForm');
-  if (!form) return;
-  const attYes = document.getElementById('rsvpAttYes');
-  const attNo  = document.getElementById('rsvpAttNo');
-  const mealY  = document.getElementById('rsvpMealY');
-  const mealN  = document.getElementById('rsvpMealN');
+  const modal   = document.getElementById('rsvpModal');
+  const openBtn = document.getElementById('rsvpOpenBtn');
+  const closeBtn = document.getElementById('rsvpModalClose');
+  const form    = document.getElementById('rsvpForm');
+  if (!modal || !openBtn) return;
 
-  [[attYes,attNo],[mealY,mealN]].forEach(pair => {
-    pair.forEach(lbl => {
-      lbl.addEventListener('click', () => {
-        pair.forEach(l => l.classList.remove('selected'));
-        lbl.classList.add('selected');
-        lbl.querySelector('input').checked = true;
-      });
-    });
-  });
+  const openModal  = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
+  const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; };
 
-  form.addEventListener('submit', async e => {
+  openBtn.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+  form?.addEventListener('submit', async e => {
     e.preventDefault();
     const name = document.getElementById('rsvpName').value.trim();
-    const att  = form.querySelector('input[name="attendance"]:checked')?.value;
-    const meal = form.querySelector('input[name="meal"]:checked')?.value;
     if (!name) { showToast('이름을 입력해주세요'); return; }
-    if (!att)  { showToast('참석 여부를 선택해주세요'); return; }
     const btn = document.getElementById('rsvpSubmit');
     btn.disabled = true; btn.textContent = '전송 중...';
     try {
       await addDoc(collection(db,'rsvp'), {
-        name, attendance: att,
-        count: +document.getElementById('rsvpCount').value,
-        meal: meal || '미선택',
+        name,
+        attendance: '참석',
         memo: document.getElementById('rsvpMemo').value.trim(),
         createdAt: new Date().toISOString(),
       });
-      form.closest('.sec').innerHTML = `<div class="rsvp-done">소중한 마음 감사합니다.<br>${esc(name)}님의 참석 여부가 전달되었습니다.</div>`;
+      closeModal();
+      form.reset();
+      showToast(`${name}님의 참석 의사가 전달되었습니다`);
     } catch(err) {
-      btn.disabled = false; btn.textContent = '참석 여부 전달하기';
       showToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
       console.error(err);
     }
+    btn.disabled = false; btn.textContent = '참석 의사 전달하기';
   });
 }
 
@@ -741,8 +756,8 @@ async function loadGuestbook(append = false) {
   const more = document.getElementById('gbMore');
   if (!list) return;
   try {
-    let q = query(collection(db,'guestbook'), orderBy('createdAt','desc'), limit(GB_PER_PAGE));
-    if (append && gbLastDoc) q = query(collection(db,'guestbook'), orderBy('createdAt','desc'), startAfter(gbLastDoc), limit(GB_PER_PAGE));
+    let q = query(collection(db,'guestbook'), where('status','==','approved'), orderBy('createdAt','desc'), limit(GB_PER_PAGE));
+    if (append && gbLastDoc) q = query(collection(db,'guestbook'), where('status','==','approved'), orderBy('createdAt','desc'), startAfter(gbLastDoc), limit(GB_PER_PAGE));
     const snap = await getDocs(q);
     if (!append) list.innerHTML = '';
     if (snap.empty && !append) {
@@ -769,6 +784,19 @@ async function loadGuestbook(append = false) {
 function initGuestbook() {
   loadGuestbook();
   document.getElementById('gbMore')?.addEventListener('click', () => loadGuestbook(true));
+
+  const modal   = document.getElementById('gbModal');
+  const openBtn = document.getElementById('gbOpenBtn');
+  const closeBtn = document.getElementById('gbModalClose');
+
+  if (modal && openBtn) {
+    const openModal  = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
+    const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; };
+    openBtn.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  }
+
   document.getElementById('gbSubmit')?.addEventListener('click', async () => {
     const name = document.getElementById('gbName').value.trim();
     const msg  = document.getElementById('gbMsg').value.trim();
@@ -778,13 +806,15 @@ function initGuestbook() {
     btn.disabled = true; btn.textContent = '전송 중...';
     try {
       await addDoc(collection(db,'guestbook'), {
-        name, message: msg, createdAt: new Date().toISOString()
+        name, message: msg,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
       });
       document.getElementById('gbName').value = '';
       document.getElementById('gbMsg').value  = '';
-      gbLastDoc = null;
-      await loadGuestbook();
-      showToast('방명록이 등록되었습니다');
+      document.getElementById('gbModal')?.classList.remove('show');
+      document.body.style.overflow = '';
+      showToast('등록되었습니다. 검토 후 게시됩니다.');
     } catch(err) {
       showToast('등록에 실패했습니다');
       console.error(err);
