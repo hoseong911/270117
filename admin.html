@@ -244,6 +244,17 @@
     .story-entry-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:.3rem; }
     @media(max-width:500px) { .story-entry-grid { grid-template-columns:1fr; } }
 
+    /* ── HEADER STYLE TABLE ── */
+    .hs-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+    .hs-table th { text-align:left; padding:.4rem .5rem; color:var(--ink2); font-weight:500; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .hs-table td { padding:.4rem .5rem; vertical-align:middle; }
+    .hs-label { font-size:.78rem; color:var(--ink); white-space:nowrap; padding-right:.8rem; }
+    .hs-input { padding:.45rem .6rem; font-size:.78rem; }
+    .hs-color-input { width:40px; height:32px; padding:2px; border:1.5px solid var(--border); border-radius:var(--radius); cursor:pointer; }
+    @media(max-width:500px) {
+      .hs-table th:nth-child(4), .hs-table td:nth-child(4) { display:none; }
+    }
+
     /* ── GUESTBOOK ADMIN ── */
     .gb-admin-tabs {
       display:flex; gap:.4rem; margin-bottom:1rem;
@@ -364,6 +375,52 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">헤더 글자 스타일</div>
+        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:1rem">각 요소의 글씨 크기·색상·폰트·정렬을 조정할 수 있습니다. 비워두면 기본값이 적용됩니다.</p>
+        <table class="hs-table">
+          <thead>
+            <tr><th>요소</th><th>글씨 크기</th><th>색상</th><th>폰트</th><th>정렬</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="hs-label">상단 영문</td>
+              <td><input class="form-input hs-input" id="hs-tag-fontSize" placeholder="1.4rem"></td>
+              <td><input class="hs-color-input" id="hs-tag-color" type="color" value="#c4a87e"></td>
+              <td><select class="form-select hs-input" id="hs-tag-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
+              <td><select class="form-select hs-input" id="hs-tag-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+            </tr>
+            <tr>
+              <td class="hs-label">이름 (영문)</td>
+              <td><input class="form-input hs-input" id="hs-names-fontSize" placeholder="4rem"></td>
+              <td><input class="hs-color-input" id="hs-names-color" type="color" value="#2a2520"></td>
+              <td><select class="form-select hs-input" id="hs-names-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
+              <td><select class="form-select hs-input" id="hs-names-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+            </tr>
+            <tr>
+              <td class="hs-label">이름 (한글)</td>
+              <td><input class="form-input hs-input" id="hs-ko-fontSize" placeholder=".82rem"></td>
+              <td><input class="hs-color-input" id="hs-ko-color" type="color" value="#6b5e55"></td>
+              <td><select class="form-select hs-input" id="hs-ko-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
+              <td><select class="form-select hs-input" id="hs-ko-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+            </tr>
+            <tr>
+              <td class="hs-label">날짜 · 시간</td>
+              <td><input class="form-input hs-input" id="hs-date-fontSize" placeholder="1.1rem"></td>
+              <td><input class="hs-color-input" id="hs-date-color" type="color" value="#8c7265"></td>
+              <td><select class="form-select hs-input" id="hs-date-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
+              <td><select class="form-select hs-input" id="hs-date-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+            </tr>
+            <tr>
+              <td class="hs-label">장소</td>
+              <td><input class="form-input hs-input" id="hs-venue-fontSize" placeholder=".75rem"></td>
+              <td><input class="hs-color-input" id="hs-venue-color" type="color" value="#6b5e55"></td>
+              <td><select class="form-select hs-input" id="hs-venue-fontFamily"><option value="">기본</option><option value="'Dancing Script',cursive">Dancing Script</option><option value="'Gowun Batang',serif">Gowun Batang</option><option value="'Noto Serif KR',serif">Noto Serif KR</option><option value="'Pretendard',sans-serif">Pretendard</option></select></td>
+              <td><select class="form-select hs-input" id="hs-venue-textAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div class="form-section">
         <div class="form-section-title">신랑 · 신부</div>
@@ -829,6 +886,18 @@ function fillForms() {
   val('headerTitle',   hd.title);   val('headerTag',    hd.tag);
   val('headerFooter',  hd.footer);  val('headerOgDesc', hd.ogDesc);
   val('headerOgImage', hd.ogImage); val('headerPhoto', hd.photo);
+  // 헤더 스타일
+  const hs = c.headerStyle || {};
+  ['tag','names','ko','date','venue'].forEach(k => {
+    const s = hs[k] || {};
+    val(`hs-${k}-fontSize`,   s.fontSize || '');
+    const colorEl = document.getElementById(`hs-${k}-color`);
+    if (colorEl && s.color) colorEl.value = s.color;
+    const ffEl = document.getElementById(`hs-${k}-fontFamily`);
+    if (ffEl && s.fontFamily) ffEl.value = s.fontFamily;
+    const taEl = document.getElementById(`hs-${k}-textAlign`);
+    if (taEl) taEl.value = s.textAlign || 'center';
+  });
   // 기본 정보
   const g = c.groom || {}; const b = c.bride || {}; const w = c.wedding || {};
   val('groomName', g.name); val('brideName', b.name);
@@ -1153,11 +1222,21 @@ document.getElementById('saveOptionalBtn').addEventListener('click', async () =>
 
 // ── BASIC SAVE ────────────────────────────────────────
 document.getElementById('saveBasicBtn').addEventListener('click', async () => {
+  const hsVal = k => ({
+    fontSize:   v(`hs-${k}-fontSize`),
+    color:      document.getElementById(`hs-${k}-color`)?.value || '',
+    fontFamily: v(`hs-${k}-fontFamily`),
+    textAlign:  v(`hs-${k}-textAlign`) || 'center',
+  });
   const data = {
     header: {
       title:   v('headerTitle'),   tag:     v('headerTag'),
       footer:  v('headerFooter'),  ogDesc:  v('headerOgDesc'),
       ogImage: v('headerOgImage'), photo:   v('headerPhoto'),
+    },
+    headerStyle: {
+      tag: hsVal('tag'), names: hsVal('names'), ko: hsVal('ko'),
+      date: hsVal('date'), venue: hsVal('venue'),
     },
     groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
     bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },

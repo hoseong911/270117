@@ -73,11 +73,14 @@ body.has-cover.nav-opaque #mainNav {
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
 }
 body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
+#navBar {
+  display:flex; justify-content:flex-end;
+}
 #menuBtn {
   display:flex; flex-direction:column;
-  justify-content:center; align-items:flex-start;
+  justify-content:center; align-items:center;
   gap:5px; width:48px; height:48px;
-  padding:0 0 0 1.1rem;
+  padding:0 .8rem 0 0;
   background:none; border:none; cursor:pointer;
 }
 #menuBtn span {
@@ -399,19 +402,20 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {
   position:fixed; inset:0; background:rgba(42,37,32,.5);
-  display:none; align-items:flex-end; justify-content:center;
+  display:none; align-items:center; justify-content:center;
   z-index:8000; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  padding:1rem;
 }
 .wedding-modal.show { display:flex; }
 .wedding-modal-box {
-  width:100%; max-width:var(--max);
-  background:var(--bg); border-radius:var(--radius) var(--radius) 0 0;
-  padding:1.8rem 1.4rem 2.5rem;
-  position:relative; animation:slideUp .3s ease;
+  width:100%; max-width:420px;
+  background:var(--bg); border-radius:var(--radius);
+  padding:1.8rem 1.4rem 2rem;
+  position:relative; animation:fadeScaleIn .25s ease;
   max-height:90svh; overflow-y:auto;
 }
 .wedding-modal-close {
-  position:absolute; top:1rem; right:1rem;
+  position:absolute; top:.8rem; right:.8rem;
   background:none; border:none; font-size:1.1rem;
   color:var(--ink2); width:44px; height:44px;
   display:flex; align-items:center; justify-content:center;
@@ -421,9 +425,9 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   font-size:1.2rem; text-align:center;
   margin-bottom:1.6rem; color:var(--ink);
 }
-@keyframes slideUp {
-  from { transform:translateY(30px); opacity:0; }
-  to   { transform:translateY(0); opacity:1; }
+@keyframes fadeScaleIn {
+  from { transform:scale(.95); opacity:0; }
+  to   { transform:scale(1); opacity:1; }
 }
 
 /* ── RSVP SECTION ── */

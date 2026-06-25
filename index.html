@@ -22,9 +22,11 @@
 </div>
 
 <nav id="mainNav">
-  <button id="menuBtn" aria-label="메뉴">
-    <span></span><span></span><span></span>
-  </button>
+  <div id="navBar">
+    <button id="menuBtn" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
   <div id="menuDrawer">
     <div id="navInner"></div>
   </div>
@@ -592,7 +594,11 @@ function initNav(sections) {
   inner.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const el = document.getElementById(btn.dataset.target);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (el) {
+        const navH = document.getElementById('mainNav').offsetHeight;
+        const y = el.getBoundingClientRect().top + window.scrollY - navH;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
       menuBtn.classList.remove('open');
       drawer.classList.remove('open');
     });
