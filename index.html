@@ -205,25 +205,31 @@ function renderHeader(c) {
   const w  = c.wedding;
   const hs = c.headerStyle || {};
   const photo = c.header?.photo;
-  const tag   = esc(c.header?.tag || 'Wedding Invitation');
-  const names = `${esc(c.groom.engName)}<span class="header-amp">&amp;</span>${esc(c.bride.engName)}`;
-  const ko    = `${esc(c.groom.name)} · ${esc(c.bride.name)}`;
-  const date  = `${esc(w.date)} · ${esc(w.time)}`;
-  const venue = `${esc(w.venue)}${w.venueDetail ? ' ' + esc(w.venueDetail) : ''}`;
+
+  const hasDrag = ['tag','names','ko','date','venue'].some(k => hs[k]?.x != null && hs[k]?.y != null);
+
+  const tag   = esc(hs.tag?.text   || c.header?.tag || 'Wedding Invitation');
+  const names = hs.names?.text
+    ? esc(hs.names.text)
+    : `${esc(c.groom.engName)}<span class="header-amp">&amp;</span>${esc(c.bride.engName)}`;
+  const ko    = esc(hs.ko?.text    || `${c.groom.name} · ${c.bride.name}`);
+  const date  = esc(hs.date?.text  || `${w.date} · ${w.time}`);
+  const venue = esc(hs.venue?.text || `${w.venue}${w.venueDetail ? ' ' + w.venueDetail : ''}`);
 
   const inner = `
       <div class="header-tag fadein"${buildStyle(hs.tag)}>${tag}</div>
       <div class="header-names fadein"${buildStyle(hs.names)}>${names}</div>
       <div class="header-ko fadein"${buildStyle(hs.ko)}>${ko}</div>
-      <div class="header-sep fadein"></div>
+      ${hasDrag ? '' : '<div class="header-sep fadein"></div>'}
       <div class="header-date fadein"${buildStyle(hs.date)}>${date}</div>
       <div class="header-venue fadein"${buildStyle(hs.venue)}>${venue}</div>`;
 
   if (photo) {
+    const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';
     return `
-<section id="sec-header" class="has-photo">
+<section id="sec-header" class="has-photo${hasDrag?' drag-mode':''}">
   <div class="header-photo" style="background-image:url('${esc(photo)}')">
-    <div class="header-photo-overlay">${inner}
+    <div class="header-photo-overlay"${overlayStyle}>${inner}
     </div>
   </div>
   <div class="header-scroll">SCROLL</div>
@@ -231,7 +237,7 @@ function renderHeader(c) {
   }
 
   return `
-<section id="sec-header">
+<section id="sec-header"${hasDrag?' class="drag-mode"':''}>
   ${inner}
   <div class="header-scroll">SCROLL</div>
 </section>`;
@@ -552,7 +558,11 @@ function buildStyle(s) {
   if (s.color)                                 p.push(`color:${s.color}`);
   if (s.fontFamily)                            p.push(`font-family:${s.fontFamily}`);
   if (s.textAlign && s.textAlign !== 'center') p.push(`text-align:${s.textAlign}`);
-  if (s.marginTop && s.marginTop !== '0')      p.push(`margin-top:${s.marginTop}`);
+  if (s.x != null && s.y != null) {
+    p.push(`position:absolute;left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%);white-space:nowrap;max-width:92%;margin:0`);
+  } else if (s.marginTop && s.marginTop !== '0') {
+    p.push(`margin-top:${s.marginTop}`);
+  }
   return p.length ? ` style="${p.join(';')}"` : '';
 }
 function showToast(msg, ms = 2400) {
