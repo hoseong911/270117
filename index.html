@@ -206,7 +206,8 @@ function renderHeader(c) {
   const hs = c.headerStyle || {};
   const photo = c.header?.photo;
 
-  const hasDrag = ['tag','names','ko','date','venue'].some(k => hs[k]?.x != null && hs[k]?.y != null);
+  const hasDrag = ['tag','names','ko','date','venue'].some(k => hs[k]?.x != null && hs[k]?.y != null)
+                  || (hs.custom?.length > 0);
 
   const tag   = esc(hs.tag?.text   || c.header?.tag || 'Wedding Invitation');
   const names = hs.names?.text
@@ -216,13 +217,18 @@ function renderHeader(c) {
   const date  = esc(hs.date?.text  || `${w.date} · ${w.time}`);
   const venue = esc(hs.venue?.text || `${w.venue}${w.venueDetail ? ' ' + w.venueDetail : ''}`);
 
+  const customEls = (hs.custom || []).map(cu =>
+    `<div class="fadein"${buildStyle(cu)}>${esc(cu.text || '')}</div>`
+  ).join('');
+
   const inner = `
       <div class="header-tag fadein"${buildStyle(hs.tag)}>${tag}</div>
       <div class="header-names fadein"${buildStyle(hs.names)}>${names}</div>
       <div class="header-ko fadein"${buildStyle(hs.ko)}>${ko}</div>
       ${hasDrag ? '' : '<div class="header-sep fadein"></div>'}
       <div class="header-date fadein"${buildStyle(hs.date)}>${date}</div>
-      <div class="header-venue fadein"${buildStyle(hs.venue)}>${venue}</div>`;
+      <div class="header-venue fadein"${buildStyle(hs.venue)}>${venue}</div>
+      ${customEls}`;
 
   if (photo) {
     const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';

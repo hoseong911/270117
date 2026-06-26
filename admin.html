@@ -327,6 +327,11 @@
     .hd-nudge-wrap { display:flex; gap:.3rem; margin-top:.3rem; flex-wrap:wrap; }
     .hd-nudge-btn { padding:.3rem .65rem; border:1.5px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer; font-size:.75rem; }
     .hd-nudge-btn:hover { background:var(--border); }
+    .hd-elem-btn-del { padding:0 .15rem .05rem .2rem; margin-left:.2rem; background:none; border:none; cursor:pointer; font-size:.65rem; color:rgba(100,80,70,.45); line-height:1; vertical-align:middle; }
+    .hd-elem-btn.sel .hd-elem-btn-del { color:rgba(255,255,255,.7); }
+    .hd-elem-btn-del:hover { color:var(--rose) !important; }
+    .hd-add-btn { padding:.32rem .65rem; border:1.5px dashed var(--border); border-radius:6px; background:transparent; color:var(--ink2); font-size:.76rem; cursor:pointer; transition:all .12s; }
+    .hd-add-btn:hover { border-color:var(--rose); color:var(--rose); }
     .hdp-ctrl-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
 
     /* ── TOAST ── */
@@ -1378,8 +1383,10 @@ const HD_ELEMS = [
   { key:'venue', label:'장소',        defaultX:50, defaultY:74, defaultColor:'#6b5e55', defaultSize:'.75rem' },
 ];
 let hdWys = {};
+let hdCustom = [];
 let hdSelKey = null;
 let _hdDragKey = null, _hdDragStart = null;
+let _hdCustomIdSeq = 0;
 
 function hdAutoText() {
   const gEng = v('groomEng') || 'GROOM', bEng = v('brideEng') || 'BRIDE';
@@ -1393,6 +1400,15 @@ function hdAutoText() {
     date:  `${date} · ${time}`,
     venue: venue + (vd ? ' ' + vd : ''),
   };
+}
+
+function getHdEl(key) {
+  return hdWys[key] || hdCustom.find(c => c.id === key) || null;
+}
+
+function setHdElField(key, field, value) {
+  if (hdWys[key]) { hdWys[key][field] = value; }
+  else { const c = hdCustom.find(c => c.id === key); if (c) c[field] = value; }
 }
 
 function loadHdState() {
@@ -1409,6 +1425,11 @@ function loadHdState() {
       textAlign:  s.textAlign  || 'center',
     };
   });
+  hdCustom = (hs.custom || []).map(c => ({ ...c }));
+  _hdCustomIdSeq = hdCustom.reduce((m, c) => {
+    const n = parseInt((c.id || '').replace('hdc_', '')) || 0;
+    return Math.max(m, n);
+  }, 0);
 }
 
 function renderHdCanvas() {
@@ -1421,6 +1442,7 @@ function renderHdCanvas() {
   const auto = hdAutoText();
   const canvas = document.getElementById('hdCanvas');
   if (!canvas) return;
+
   HD_ELEMS.forEach(({ key }) => {
     let el = document.getElementById(`hd-el-${key}`);
     if (!el) {
@@ -1436,20 +1458,41 @@ function renderHdCanvas() {
     el.style.cssText = `left:${s.x}%;top:${s.y}%;font-size:${s.fontSize||''};color:${s.color||''};font-family:${s.fontFamily||''};text-align:${s.textAlign||'center'};`;
     el.classList.toggle('sel', key === hdSelKey);
   });
+
+  // 커스텀 요소: 삭제된 항목 제거
+  canvas.querySelectorAll('.hd-el[data-custom]').forEach(el => {
+    if (!hdCustom.find(c => c.id === el.dataset.key)) el.remove();
+  });
+  // 커스텀 요소 렌더
+  hdCustom.forEach(cu => {
+    let el = document.getElementById(`hd-el-${cu.id}`);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'hd-el'; el.id = `hd-el-${cu.id}`; el.dataset.key = cu.id; el.dataset.custom = '1';
+      el.addEventListener('mousedown', _hdMouseDown);
+      el.addEventListener('touchstart', _hdTouchStart, { passive: false });
+      el.addEventListener('click', e => { e.stopPropagation(); selectHdEl(cu.id); });
+      canvas.appendChild(el);
+    }
+    el.textContent = cu.text || '텍스트';
+    el.style.cssText = `left:${cu.x}%;top:${cu.y}%;font-size:${cu.fontSize||'1rem'};color:${cu.color||'#2a2520'};font-family:${cu.fontFamily||''};text-align:${cu.textAlign||'center'};`;
+    el.classList.toggle('sel', cu.id === hdSelKey);
+  });
 }
 
 function selectHdEl(key) {
   hdSelKey = key;
+  document.querySelectorAll('.hd-el').forEach(el => el.classList.toggle('sel', el.dataset.key === key));
   document.querySelectorAll('.hd-elem-btn').forEach(b => b.classList.toggle('sel', b.dataset.key === key));
-  HD_ELEMS.forEach(({ key: k }) => document.getElementById(`hd-el-${k}`)?.classList.toggle('sel', k === key));
   const ctrl = document.getElementById('hdElemCtrl');
   if (!ctrl) return;
   ctrl.style.display = 'block';
-  const s = hdWys[key];
+  const s = getHdEl(key);
+  if (!s) return;
   const def = HD_ELEMS.find(d => d.key === key);
-  document.getElementById('hdCtrlLbl').textContent = `문구 내용 (${def.label})`;
+  document.getElementById('hdCtrlLbl').textContent = def ? `문구 내용 (${def.label})` : '문구 내용';
   document.getElementById('hd-ctrl-text').value = s.text || '';
-  document.getElementById('hd-ctrl-text').placeholder = hdAutoText()[key] || '비워두면 자동';
+  document.getElementById('hd-ctrl-text').placeholder = def ? (hdAutoText()[key] || '비워두면 자동') : '텍스트 입력';
   document.getElementById('hd-ctrl-fontSize').value = s.fontSize || '';
   document.getElementById('hd-ctrl-color').value = s.color || '#000000';
   document.getElementById('hd-ctrl-fontFamily').value = s.fontFamily || '';
@@ -1461,8 +1504,9 @@ function _hdMouseDown(e) {
   const key = e.currentTarget.dataset.key;
   selectHdEl(key);
   const rect = document.getElementById('hdCanvas').getBoundingClientRect();
+  const s = getHdEl(key);
   _hdDragKey = key;
-  _hdDragStart = { cx: e.clientX, cy: e.clientY, sx: hdWys[key].x, sy: hdWys[key].y, w: rect.width, h: rect.height };
+  _hdDragStart = { cx: e.clientX, cy: e.clientY, sx: s.x, sy: s.y, w: rect.width, h: rect.height };
   document.addEventListener('mousemove', _hdMouseMove);
   document.addEventListener('mouseup', _hdMouseUp);
   e.preventDefault();
@@ -1470,10 +1514,11 @@ function _hdMouseDown(e) {
 function _hdMouseMove(e) {
   if (!_hdDragKey) return;
   const dx = e.clientX - _hdDragStart.cx, dy = e.clientY - _hdDragStart.cy;
-  hdWys[_hdDragKey].x = Math.round(Math.min(99, Math.max(1, _hdDragStart.sx + (dx / _hdDragStart.w) * 100)) * 10) / 10;
-  hdWys[_hdDragKey].y = Math.round(Math.min(99, Math.max(1, _hdDragStart.sy + (dy / _hdDragStart.h) * 100)) * 10) / 10;
+  const nx = Math.round(Math.min(99, Math.max(1, _hdDragStart.sx + (dx / _hdDragStart.w) * 100)) * 10) / 10;
+  const ny = Math.round(Math.min(99, Math.max(1, _hdDragStart.sy + (dy / _hdDragStart.h) * 100)) * 10) / 10;
+  setHdElField(_hdDragKey, 'x', nx); setHdElField(_hdDragKey, 'y', ny);
   const el = document.getElementById(`hd-el-${_hdDragKey}`);
-  if (el) { el.style.left = `${hdWys[_hdDragKey].x}%`; el.style.top = `${hdWys[_hdDragKey].y}%`; }
+  if (el) { el.style.left = `${nx}%`; el.style.top = `${ny}%`; }
 }
 function _hdMouseUp() { _hdDragKey = null; document.removeEventListener('mousemove', _hdMouseMove); document.removeEventListener('mouseup', _hdMouseUp); }
 
@@ -1481,8 +1526,9 @@ function _hdTouchStart(e) {
   const t = e.touches[0], key = e.currentTarget.dataset.key;
   selectHdEl(key);
   const rect = document.getElementById('hdCanvas').getBoundingClientRect();
+  const s = getHdEl(key);
   _hdDragKey = key;
-  _hdDragStart = { cx: t.clientX, cy: t.clientY, sx: hdWys[key].x, sy: hdWys[key].y, w: rect.width, h: rect.height };
+  _hdDragStart = { cx: t.clientX, cy: t.clientY, sx: s.x, sy: s.y, w: rect.width, h: rect.height };
   document.addEventListener('touchmove', _hdTouchMove, { passive: false });
   document.addEventListener('touchend', _hdTouchEnd);
   e.preventDefault();
@@ -1491,33 +1537,77 @@ function _hdTouchMove(e) {
   if (!_hdDragKey) return;
   const t = e.touches[0];
   const dx = t.clientX - _hdDragStart.cx, dy = t.clientY - _hdDragStart.cy;
-  hdWys[_hdDragKey].x = Math.round(Math.min(99, Math.max(1, _hdDragStart.sx + (dx / _hdDragStart.w) * 100)) * 10) / 10;
-  hdWys[_hdDragKey].y = Math.round(Math.min(99, Math.max(1, _hdDragStart.sy + (dy / _hdDragStart.h) * 100)) * 10) / 10;
+  const nx = Math.round(Math.min(99, Math.max(1, _hdDragStart.sx + (dx / _hdDragStart.w) * 100)) * 10) / 10;
+  const ny = Math.round(Math.min(99, Math.max(1, _hdDragStart.sy + (dy / _hdDragStart.h) * 100)) * 10) / 10;
+  setHdElField(_hdDragKey, 'x', nx); setHdElField(_hdDragKey, 'y', ny);
   const el = document.getElementById(`hd-el-${_hdDragKey}`);
-  if (el) { el.style.left = `${hdWys[_hdDragKey].x}%`; el.style.top = `${hdWys[_hdDragKey].y}%`; }
+  if (el) { el.style.left = `${nx}%`; el.style.top = `${ny}%`; }
   e.preventDefault();
 }
 function _hdTouchEnd() { _hdDragKey = null; document.removeEventListener('touchmove', _hdTouchMove); document.removeEventListener('touchend', _hdTouchEnd); }
 
 function hdNudge(dx, dy) {
   if (!hdSelKey) return;
-  hdWys[hdSelKey].x = Math.round(Math.min(99, Math.max(1, hdWys[hdSelKey].x + dx)) * 10) / 10;
-  hdWys[hdSelKey].y = Math.round(Math.min(99, Math.max(1, hdWys[hdSelKey].y + dy)) * 10) / 10;
+  const s = getHdEl(hdSelKey);
+  if (!s) return;
+  setHdElField(hdSelKey, 'x', Math.round(Math.min(99, Math.max(1, s.x + dx)) * 10) / 10);
+  setHdElField(hdSelKey, 'y', Math.round(Math.min(99, Math.max(1, s.y + dy)) * 10) / 10);
   renderHdCanvas();
+}
+
+function addHdCustom() {
+  _hdCustomIdSeq++;
+  const id = `hdc_${_hdCustomIdSeq}`;
+  hdCustom.push({ id, text: '새 텍스트', x: 50, y: 50, fontSize: '1rem', color: '#2a2520', fontFamily: '', textAlign: 'center' });
+  buildHdElemBtns();
+  renderHdCanvas();
+  selectHdEl(id);
+}
+
+function deleteHdCustom(id) {
+  hdCustom = hdCustom.filter(c => c.id !== id);
+  document.getElementById(`hd-el-${id}`)?.remove();
+  if (hdSelKey === id) {
+    hdSelKey = null;
+    const ctrl = document.getElementById('hdElemCtrl');
+    if (ctrl) ctrl.style.display = 'none';
+  }
+  buildHdElemBtns();
 }
 
 function buildHdElemBtns() {
   const c = document.getElementById('hdElemBtns');
-  if (!c || c.children.length) return;
+  if (!c) return;
+  c.innerHTML = '';
   HD_ELEMS.forEach(({ key, label }) => {
     const btn = document.createElement('button');
     btn.className = 'hd-elem-btn'; btn.dataset.key = key; btn.textContent = label;
+    if (key === hdSelKey) btn.classList.add('sel');
     btn.addEventListener('click', () => selectHdEl(key));
     c.appendChild(btn);
   });
+  hdCustom.forEach(cu => {
+    const btn = document.createElement('button');
+    btn.className = 'hd-elem-btn'; btn.dataset.key = cu.id; btn.style.paddingRight = '.35rem';
+    if (cu.id === hdSelKey) btn.classList.add('sel');
+    const span = document.createElement('span');
+    const t = cu.text || '새 텍스트';
+    span.textContent = t.length > 8 ? t.slice(0, 8) + '…' : t;
+    const del = document.createElement('button');
+    del.className = 'hd-elem-btn-del'; del.textContent = '✕'; del.title = '삭제';
+    del.addEventListener('click', e => { e.stopPropagation(); deleteHdCustom(cu.id); });
+    btn.appendChild(span); btn.appendChild(del);
+    btn.addEventListener('click', () => selectHdEl(cu.id));
+    c.appendChild(btn);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'hd-add-btn'; addBtn.textContent = '+ 텍스트 추가';
+  addBtn.addEventListener('click', addHdCustom);
+  c.appendChild(addBtn);
 }
 
 function initHdPanel() {
+  hdCustom = [];
   loadHdState();
   buildHdElemBtns();
   renderHdCanvas();
@@ -1529,10 +1619,14 @@ function initHdPanel() {
   if (!el) return;
   el.addEventListener(field === 'color' || el.tagName === 'SELECT' ? 'change' : 'input', () => {
     if (!hdSelKey) return;
-    hdWys[hdSelKey][field] = el.value;
+    setHdElField(hdSelKey, field, el.value);
+    if (field === 'text') {
+      const btn = document.querySelector(`.hd-elem-btn[data-key="${hdSelKey}"] span`);
+      if (btn) { const t = el.value || '새 텍스트'; btn.textContent = t.length > 8 ? t.slice(0,8)+'…' : t; }
+    }
     renderHdCanvas();
   });
-  if (field === 'color') el.addEventListener('input', () => { if (hdSelKey) { hdWys[hdSelKey].color = el.value; renderHdCanvas(); } });
+  if (field === 'color') el.addEventListener('input', () => { if (hdSelKey) { setHdElField(hdSelKey, 'color', el.value); renderHdCanvas(); } });
 });
 document.getElementById('hd-nudge-up')?.addEventListener('click', () => hdNudge(0, -.5));
 document.getElementById('hd-nudge-dn')?.addEventListener('click', () => hdNudge(0,  .5));
@@ -1758,6 +1852,7 @@ document.getElementById('saveHdpBtn').addEventListener('click', async () => {
   const newPhoto = document.getElementById('hdp-photo')?.value || '';
   const headerStyle = {};
   HD_ELEMS.forEach(({ key }) => { headerStyle[key] = { ...hdWys[key] }; });
+  headerStyle.custom = hdCustom.map(c => ({ ...c }));
   const data = {
     header: { ...(currentConfig.header || {}), photo: newPhoto },
     headerStyle,
