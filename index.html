@@ -675,24 +675,9 @@ function initMapEmbed(config) {
   const initEl   = scripts.find(s => !s.src && s.textContent.includes('Lander'));
   const initCode = initEl?.textContent?.trim() || '';
 
-  function scaleMap() {
-    const inner = slot.querySelector('[id^="daumRoughmapContainer"]');
-    if (!inner || !inner.offsetWidth) { setTimeout(scaleMap, 300); return; }
-    const mapW = inner.offsetWidth;
-    const mapH = inner.offsetHeight;
-    if (!mapW || !mapH) { setTimeout(scaleMap, 300); return; }
-    const slotW = slot.offsetWidth;
-    const scale = slotW / mapW;
-    slot.style.cssText = `display:flex;justify-content:center;overflow:hidden;height:${Math.round(mapH * scale)}px`;
-    inner.style.transformOrigin = 'top center';
-    inner.style.transform = `scale(${scale})`;
-    const locMap = slot.closest('.location-map');
-    if (locMap) { locMap.style.aspectRatio = 'unset'; locMap.style.height = slot.style.height; }
-  }
-
   function runInit() {
     if (initCode) try { (new Function(initCode))(); } catch(e) { console.error('roughmap init:', e); }
-    setTimeout(scaleMap, 800);
+    slot.style.cssText = 'width:100%;height:100%;display:flex;justify-content:center;overflow:hidden;';
   }
 
   if (window.daum?.roughmap?.Lander) {
