@@ -57,9 +57,7 @@ input, textarea, select { font-family:inherit; }
 /* ── NAV (햄버거) ── */
 #mainNav {
   position:sticky; top:0; z-index:100;
-  background:rgba(247,249,251,.96);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:transparent;
   transition: background .35s ease;
 }
 /* cover photo 모드 — nav 투명 오버레이 */
