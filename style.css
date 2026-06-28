@@ -373,9 +373,9 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 
 /* ── ACCOUNTS ── */
 .accounts-list { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
-.account-group { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.account-group { border-radius:var(--radius); overflow:hidden; }
 .account-group-head {
-  padding:.75rem 1.2rem; background:var(--bg2);
+  padding:.75rem 1.2rem; background:transparent;
   display:flex; align-items:center; justify-content:space-between;
   cursor:pointer; user-select:none;
 }
@@ -385,7 +385,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-body { display:none; }
 .account-body.open { display:block; }
 .account-item {
-  padding:1rem 1rem; border-top:1px solid var(--border);
+  padding:1rem; border-top:none;
   text-align:left;
 }
 .account-info { flex:1; }
@@ -393,7 +393,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-number { font-size:.92rem; }
 .account-bank-name { font-size:.68rem; color:var(--ink2); margin-top:.1rem; }
 .account-number-display { font-size:.75rem; color:var(--ink2); margin-top:.4rem; line-height:1.7; }
-.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:1rem; text-align:center; }
+.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
 .account-copy-btn { cursor:pointer; transition:background .15s; }
 .account-copy-btn:active { background:rgba(0,40,65,.06); }
 .account-copy-btn.copied { background:rgba(0,40,65,.06); }
