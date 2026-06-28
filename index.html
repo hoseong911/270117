@@ -412,9 +412,7 @@ function renderSchedule(c) {
 
 function renderLocation(c) {
   const w = c.wedding;
-  const mapContent = w.mapEmbedUrl
-    ? `<iframe src="${esc(w.mapEmbedUrl)}" allowfullscreen loading="lazy"></iframe>`
-    : `<div class="location-map-placeholder">지도 준비 중</div>`;
+  const mapContent = `<div id="mapEmbedSlot">${w.mapEmbedUrl ? '' : '<div class="location-map-placeholder">지도 준비 중</div>'}</div>`;
   const navBtns = [
     w.kakaoLink && `<a href="${esc(w.kakaoLink)}" class="location-btn" target="_blank" rel="noopener">카카오맵</a>`,
     w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn" target="_blank" rel="noopener">네이버지도</a>`,
@@ -651,6 +649,28 @@ function initDday(c) {
   setInterval(update, 1000);
 }
 
+function initMapEmbed(config) {
+  const slot = document.getElementById('mapEmbedSlot');
+  if (!slot) return;
+  const embed = (config.wedding?.mapEmbedUrl || '').trim();
+  if (!embed) return;
+  if (embed.startsWith('http')) {
+    const iframe = document.createElement('iframe');
+    iframe.src = embed;
+    iframe.allowFullscreen = true;
+    iframe.loading = 'lazy';
+    slot.appendChild(iframe);
+  } else {
+    slot.innerHTML = embed;
+    slot.querySelectorAll('script').forEach(old => {
+      const s = document.createElement('script');
+      Array.from(old.attributes).forEach(a => s.setAttribute(a.name, a.value));
+      s.textContent = old.textContent;
+      old.parentNode.replaceChild(s, old);
+    });
+  }
+}
+
 function initGallery(c) {
   const images = c.gallery?.images || [];
   if (!images.length) return;
@@ -863,6 +883,7 @@ async function init() {
   initNav(sections);
   initFadeIn();
   initDday(config);
+  initMapEmbed(config);
   initGallery(config);
   initAccounts();
   initRsvp();
