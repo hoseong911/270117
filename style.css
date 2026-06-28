@@ -3,17 +3,17 @@
    ======================== */
 
 :root {
-  --bg:      #faf9f7;
-  --bg2:     #f2ede7;
-  --bg3:     #ede6dc;
-  --ink:     #2a2520;
-  --ink2:    #6b5e55;
+  --bg:      #f7f9fb;
+  --bg2:     #edf1f7;
+  --bg3:     #e2e9f2;
+  --ink:     #1c2535;
+  --ink2:    #5a6a7e;
   --rose:    #002841;
   --rose2:   #1a5276;
-  --gold:    #c4a87e;
-  --gold2:   #e0cca8;
-  --border:  rgba(0,40,65,.18);
-  --shadow:  0 2px 24px rgba(42,37,32,.07);
+  --gold:    #8aafc8;
+  --gold2:   #bdd0e2;
+  --border:  rgba(0,40,65,.15);
+  --shadow:  0 2px 24px rgba(0,28,56,.07);
   --radius:  12px;
   --max:     480px;
   --font-ui:     'Pretendard', 'Noto Sans KR', sans-serif;
@@ -56,7 +56,7 @@ input, textarea, select { font-family:inherit; }
 /* ── NAV (햄버거) ── */
 #mainNav {
   position:sticky; top:0; z-index:100;
-  background:rgba(250,249,247,.96);
+  background:rgba(247,249,251,.96);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
   transition: background .35s ease;
@@ -69,7 +69,7 @@ body.has-cover #mainNav {
 }
 body.has-cover #menuBtn span { background:rgba(255,255,255,.9); }
 body.has-cover.nav-opaque #mainNav {
-  background:rgba(250,249,247,.96);
+  background:rgba(247,249,251,.96);
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
 }
 body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
@@ -94,7 +94,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 #menuDrawer {
   max-height:0; overflow:hidden;
   transition:max-height .3s ease;
-  background:rgba(250,249,247,.98);
+  background:rgba(247,249,251,.98);
 }
 #menuDrawer.open {
   max-height:70vh; overflow-y:auto;
@@ -156,7 +156,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   width:100%; padding:5rem 1.5rem 5rem;
   background:linear-gradient(to top,
     var(--bg) 0%,
-    rgba(250,249,247,.6) 25%,
+    rgba(247,249,251,.6) 25%,
     transparent 72%
   );
   text-align:center;
@@ -403,7 +403,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {
-  position:fixed; inset:0; background:rgba(42,37,32,.5);
+  position:fixed; inset:0; background:rgba(0,28,56,.5);
   display:none; align-items:center; justify-content:center;
   z-index:8000; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
   padding:1rem;
