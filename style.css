@@ -330,14 +330,14 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .dday-wrapper { text-align:center; }
 .dday-count {
   font-size:clamp(3.5rem,16vw,5.5rem);
-  font-weight:300; color:var(--rose); line-height:1;
+  font-weight:500; color:var(--rose); line-height:1;
 }
 .dday-tag { font-size:.65rem; color:var(--ink2); margin-bottom:2rem; }
 .dday-clock { display:flex; justify-content:center; gap:2rem; margin-top:2rem; }
 .dday-unit { text-align:center; }
 .dday-num { font-size:1.8rem; font-weight:300; display:block; color:var(--ink); }
 .dday-unit-lbl { font-size:.58rem; color:var(--ink2); }
-.dday-wedding-date { margin-top:1.8rem; font-size:.75rem; color:var(--ink2); line-height:2; }
+.dday-wedding-date { margin-top:1.8rem; font-size:.75rem; color:var(--ink2); line-height:2; white-space:nowrap; }
 
 /* ── SCHEDULE ── */
 .schedule-list { display:flex; flex-direction:column; gap:.9rem; }
