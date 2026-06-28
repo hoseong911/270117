@@ -809,7 +809,7 @@
                 <input class="form-input" id="hd-ctrl-text" placeholder="비워두면 자동 입력">
               </div>
               <div class="hd-ctrl-grid">
-                <div class="form-row"><label class="form-label">글씨 크기</label><input class="form-input" id="hd-ctrl-fontSize" placeholder="기본"></div>
+                <div class="form-row"><label class="form-label">글씨 크기</label><div style="display:flex;align-items:center;gap:.4rem"><input class="form-input" id="hd-ctrl-fontSize" type="number" min="8" max="300" placeholder="16" style="width:80px"><span style="font-size:.78rem;color:var(--ink2)">px</span></div></div>
                 <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hd-ctrl-color" type="color"></div>
                 <div class="form-row"><label class="form-label">폰트</label>
                   <select class="form-select" id="hd-ctrl-fontFamily">
@@ -1386,6 +1386,13 @@ let hdSelKey = null;
 let _hdDragKey = null, _hdDragStart = null;
 let _hdCustomIdSeq = 0;
 
+function fontSizeToPx(val) {
+  if (!val) return '';
+  if (val.endsWith('px')) return parseInt(val) || '';
+  if (val.endsWith('rem')) return Math.round(parseFloat(val) * 16) || '';
+  return '';
+}
+
 function getHdEl(key) {
   return hdCustom.find(c => c.id === key) || null;
 }
@@ -1428,7 +1435,7 @@ function renderHdCanvas() {
       canvas.appendChild(el);
     }
     el.textContent = cu.text || '텍스트';
-    el.style.cssText = `left:${cu.x}%;top:${cu.y}%;font-size:${cu.fontSize||'1rem'};color:${cu.color||'#2a2520'};font-family:${cu.fontFamily||''};text-align:${cu.textAlign||'center'};`;
+    el.style.cssText = `left:${cu.x}%;top:${cu.y}%;font-size:${cu.fontSize||'16px'};color:${cu.color||'#2a2520'};font-family:${cu.fontFamily||''};text-align:${cu.textAlign||'center'};`;
     el.classList.toggle('sel', cu.id === hdSelKey);
   });
 }
@@ -1445,7 +1452,7 @@ function selectHdEl(key) {
   document.getElementById('hdCtrlLbl').textContent = '문구 내용';
   document.getElementById('hd-ctrl-text').value = s.text || '';
   document.getElementById('hd-ctrl-text').placeholder = '텍스트 입력';
-  document.getElementById('hd-ctrl-fontSize').value = s.fontSize || '';
+  document.getElementById('hd-ctrl-fontSize').value = fontSizeToPx(s.fontSize);
   document.getElementById('hd-ctrl-color').value = s.color || '#000000';
   document.getElementById('hd-ctrl-fontFamily').value = s.fontFamily || '';
   document.getElementById('hd-ctrl-textAlign').value = s.textAlign || 'center';
@@ -1510,7 +1517,7 @@ function hdNudge(dx, dy) {
 function addHdCustom() {
   _hdCustomIdSeq++;
   const id = `hdc_${_hdCustomIdSeq}`;
-  hdCustom.push({ id, text: '새 텍스트', x: 50, y: 50, fontSize: '1rem', color: '#2a2520', fontFamily: '', textAlign: 'center' });
+  hdCustom.push({ id, text: '새 텍스트', x: 50, y: 50, fontSize: '16px', color: '#2a2520', fontFamily: '', textAlign: 'center' });
   buildHdElemBtns();
   renderHdCanvas();
   selectHdEl(id);
@@ -1564,7 +1571,8 @@ function initHdPanel() {
   if (!el) return;
   el.addEventListener(field === 'color' || el.tagName === 'SELECT' ? 'change' : 'input', () => {
     if (!hdSelKey) return;
-    setHdElField(hdSelKey, field, el.value);
+    const val = field === 'fontSize' ? (el.value ? el.value + 'px' : '') : el.value;
+    setHdElField(hdSelKey, field, val);
     if (field === 'text') {
       const btn = document.querySelector(`.hd-elem-btn[data-key="${hdSelKey}"] span`);
       if (btn) { const t = el.value || '새 텍스트'; btn.textContent = t.length > 8 ? t.slice(0,8)+'…' : t; }
