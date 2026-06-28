@@ -394,6 +394,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-number { font-size:.92rem; }
 .account-bank-name { font-size:.68rem; color:var(--ink2); margin-top:.1rem; }
 .account-number-display { font-size:.78rem; color:var(--ink2); margin-top:.15rem; }
+.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:1rem; text-align:center; }
 .account-copy-btn {
   font-size:.88rem; color:var(--ink); cursor:pointer;
   background:none; border:none; padding:0;
