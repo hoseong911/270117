@@ -313,7 +313,7 @@ function renderParents(c) {
 <section id="sec-parents">
   <div class="sec">
     <div class="sec-label">Family</div>
-    <div class="sec-title">부 모 님</div>
+    <div class="sec-title">부모님</div>
     <div class="sec-divider"></div>
     <div class="parents-grid">
       ${side('신랑 측', gp)}
@@ -329,7 +329,7 @@ function renderLovestory(c) {
 <section id="sec-lovestory">
   <div class="sec">
     <div class="sec-label">Our Story</div>
-    <div class="sec-title">스 토 리</div>
+    <div class="sec-title">스토리</div>
     <div class="sec-divider"></div>
     <div class="timeline">
       ${items.map(it => `
@@ -353,7 +353,7 @@ function renderGallery(c) {
 <section id="sec-gallery" class="fadein">
   <div class="sec" style="padding-bottom:0">
     <div class="sec-label">Gallery</div>
-    <div class="sec-title">갤 러 리</div>
+    <div class="sec-title">갤러리</div>
     <div class="sec-divider"></div>
   </div>
   <div class="gallery-grid" id="galleryGrid">${content}</div>
@@ -367,7 +367,7 @@ function renderDday(c) {
 <section id="sec-dday" class="fadein">
   <div class="sec">
     <div class="sec-label">Countdown</div>
-    <div class="sec-title">D - D A Y</div>
+    <div class="sec-title">D-DAY</div>
     <div class="sec-divider"></div>
     <div class="dday-wrapper">
       <div class="dday-count" id="ddayCount">···</div>
@@ -394,7 +394,7 @@ function renderSchedule(c) {
 <section id="sec-schedule" class="fadein">
   <div class="sec">
     <div class="sec-label">Schedule</div>
-    <div class="sec-title">예 식 안 내</div>
+    <div class="sec-title">예식 안내</div>
     <div class="sec-divider"></div>
     <div class="schedule-list">
       ${items.map(it => `
@@ -422,7 +422,7 @@ function renderLocation(c) {
 <section id="sec-location" class="fadein">
   <div class="sec">
     <div class="sec-label">Location</div>
-    <div class="sec-title">오 시 는 길</div>
+    <div class="sec-title">오시는 길</div>
     <div class="sec-divider"></div>
     <div class="location-map">${mapContent}</div>
     <div class="location-info">
@@ -466,7 +466,7 @@ function renderAccounts(c) {
 <section id="sec-accounts" class="fadein">
   <div class="sec">
     <div class="sec-label">Gift</div>
-    <div class="sec-title">마 음 전 달</div>
+    <div class="sec-title">마음 전달</div>
     <div class="sec-divider"></div>
     <div class="accounts-list">${html}</div>
   </div>
@@ -479,7 +479,7 @@ function renderRsvp(c) {
 <section id="sec-rsvp" class="fadein">
   <div class="sec">
     <div class="sec-label">RSVP</div>
-    <div class="sec-title">참 석 여 부</div>
+    <div class="sec-title">참석 여부</div>
     <div class="sec-divider"></div>
     ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
     <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
@@ -493,7 +493,7 @@ function renderFlowers(c) {
 <section id="sec-flowers" class="fadein">
   <div class="sec">
     <div class="sec-label">Flowers</div>
-    <div class="sec-title">화 환 안 내</div>
+    <div class="sec-title">화환 안내</div>
     <div class="sec-divider"></div>
     <p class="flowers-text">${esc(f.text || '').replace(/\n/g,'<br>')}</p>
     ${f.url ? `<div class="flowers-link"><a href="${esc(f.url)}" target="_blank" rel="noopener" class="flowers-btn">화환 보내기</a></div>` : ''}
@@ -506,7 +506,7 @@ function renderGuestbook() {
 <section id="sec-guestbook" class="fadein">
   <div class="sec">
     <div class="sec-label">Guestbook</div>
-    <div class="sec-title">방 명 록</div>
+    <div class="sec-title">방명록</div>
     <div class="sec-divider"></div>
     <button class="gb-open-btn" id="gbOpenBtn">방명록 남기기</button>
     <div class="gb-list" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
