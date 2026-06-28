@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>청첩장 관리자</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Dancing+Script:wght@400;500&family=Gowun+Batang&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Dancing+Script:wght@400;500;700&family=Gowun+Batang&family=Noto+Serif+KR:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Great+Vibes&family=Alex+Brush&family=Nanum+Myeongjo&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f7f7f5; --white: #fff; --border: #e2ddd8;
       --ink: #2a2520; --ink2: #6b5e55;
-      --rose: #8c7265; --rose-h: #7a6257;
+      --rose: #002841; --rose-h: #001d30;
       --gold: #c4a87e; --red: #c0392b;
       --radius: 8px; --max: 700px;
     }
@@ -813,10 +813,16 @@
                 <div class="form-row"><label class="form-label">색상</label><input class="hs-color-input" id="hd-ctrl-color" type="color"></div>
                 <div class="form-row"><label class="form-label">폰트</label>
                   <select class="form-select" id="hd-ctrl-fontFamily">
-                    <option value="">기본</option>
+                    <option value="">기본 (Noto Sans KR)</option>
                     <option value="'Dancing Script',cursive">Dancing Script</option>
-                    <option value="'Gowun Batang',serif">Gowun Batang</option>
+                    <option value="'Great Vibes',cursive">Great Vibes</option>
+                    <option value="'Alex Brush',cursive">Alex Brush</option>
+                    <option value="'Gowun Batang',serif">고운바탕 (Gowun Batang)</option>
+                    <option value="'Nanum Myeongjo',serif">나눔명조 (Nanum Myeongjo)</option>
+                    <option value="'Nanum Pen Script',cursive">나눔손글씨 (Nanum Pen Script)</option>
                     <option value="'Noto Serif KR',serif">Noto Serif KR</option>
+                    <option value="'Playfair Display',serif">Playfair Display</option>
+                    <option value="'Cormorant Garamond',serif">Cormorant Garamond</option>
                     <option value="'Pretendard',sans-serif">Pretendard</option>
                   </select>
                 </div>
@@ -1375,56 +1381,22 @@ document.getElementById('saveStoryBtn').addEventListener('click', async () => {
 });
 
 // ── WYSIWYG HEADER EDITOR ─────────────────────────────
-const HD_ELEMS = [
-  { key:'tag',   label:'상단 영문',   defaultX:50, defaultY:14, defaultColor:'#c4a87e', defaultSize:'1.4rem' },
-  { key:'names', label:'이름 (영문)', defaultX:50, defaultY:44, defaultColor:'#2a2520', defaultSize:'3.5rem' },
-  { key:'ko',    label:'이름 (한글)', defaultX:50, defaultY:57, defaultColor:'#6b5e55', defaultSize:'.85rem' },
-  { key:'date',  label:'날짜·시간',  defaultX:50, defaultY:67, defaultColor:'#8c7265', defaultSize:'1.1rem' },
-  { key:'venue', label:'장소',        defaultX:50, defaultY:74, defaultColor:'#6b5e55', defaultSize:'.75rem' },
-];
-let hdWys = {};
 let hdCustom = [];
 let hdSelKey = null;
 let _hdDragKey = null, _hdDragStart = null;
 let _hdCustomIdSeq = 0;
 
-function hdAutoText() {
-  const gEng = v('groomEng') || 'GROOM', bEng = v('brideEng') || 'BRIDE';
-  const gKo  = v('groomName') || '신랑', bKo  = v('brideName') || '신부';
-  const date = v('weddingDate') || '2027. 01. 17 (일)', time = v('weddingTime') || '오후 2시';
-  const venue = v('venueName') || '', vd = v('venueDetail') || '';
-  return {
-    tag:   v('headerTag') || 'Wedding Invitation',
-    names: `${gEng} & ${bEng}`,
-    ko:    `${gKo} · ${bKo}`,
-    date:  `${date} · ${time}`,
-    venue: venue + (vd ? ' ' + vd : ''),
-  };
-}
-
 function getHdEl(key) {
-  return hdWys[key] || hdCustom.find(c => c.id === key) || null;
+  return hdCustom.find(c => c.id === key) || null;
 }
 
 function setHdElField(key, field, value) {
-  if (hdWys[key]) { hdWys[key][field] = value; }
-  else { const c = hdCustom.find(c => c.id === key); if (c) c[field] = value; }
+  const c = hdCustom.find(c => c.id === key);
+  if (c) c[field] = value;
 }
 
 function loadHdState() {
   const hs = currentConfig?.headerStyle || {};
-  HD_ELEMS.forEach(({ key, defaultX, defaultY, defaultColor, defaultSize }) => {
-    const s = hs[key] || {};
-    hdWys[key] = {
-      text:       s.text       || '',
-      x:          s.x          != null ? s.x : defaultX,
-      y:          s.y          != null ? s.y : defaultY,
-      fontSize:   s.fontSize   || defaultSize,
-      color:      s.color      || defaultColor,
-      fontFamily: s.fontFamily || '',
-      textAlign:  s.textAlign  || 'center',
-    };
-  });
   hdCustom = (hs.custom || []).map(c => ({ ...c }));
   _hdCustomIdSeq = hdCustom.reduce((m, c) => {
     const n = parseInt((c.id || '').replace('hdc_', '')) || 0;
@@ -1439,31 +1411,12 @@ function renderHdCanvas() {
   if (bg) bg.style.backgroundImage = photo ? `url('${photo.replace(/'/g,"\\'")}')` : '';
   if (overlay) overlay.style.display = photo ? 'block' : 'none';
 
-  const auto = hdAutoText();
   const canvas = document.getElementById('hdCanvas');
   if (!canvas) return;
 
-  HD_ELEMS.forEach(({ key }) => {
-    let el = document.getElementById(`hd-el-${key}`);
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'hd-el'; el.id = `hd-el-${key}`; el.dataset.key = key;
-      el.addEventListener('mousedown', _hdMouseDown);
-      el.addEventListener('touchstart', _hdTouchStart, { passive: false });
-      el.addEventListener('click', e => { e.stopPropagation(); selectHdEl(key); });
-      canvas.appendChild(el);
-    }
-    const s = hdWys[key];
-    el.textContent = s.text || auto[key] || '';
-    el.style.cssText = `left:${s.x}%;top:${s.y}%;font-size:${s.fontSize||''};color:${s.color||''};font-family:${s.fontFamily||''};text-align:${s.textAlign||'center'};`;
-    el.classList.toggle('sel', key === hdSelKey);
-  });
-
-  // 커스텀 요소: 삭제된 항목 제거
   canvas.querySelectorAll('.hd-el[data-custom]').forEach(el => {
     if (!hdCustom.find(c => c.id === el.dataset.key)) el.remove();
   });
-  // 커스텀 요소 렌더
   hdCustom.forEach(cu => {
     let el = document.getElementById(`hd-el-${cu.id}`);
     if (!el) {
@@ -1489,10 +1442,9 @@ function selectHdEl(key) {
   ctrl.style.display = 'block';
   const s = getHdEl(key);
   if (!s) return;
-  const def = HD_ELEMS.find(d => d.key === key);
-  document.getElementById('hdCtrlLbl').textContent = def ? `문구 내용 (${def.label})` : '문구 내용';
+  document.getElementById('hdCtrlLbl').textContent = '문구 내용';
   document.getElementById('hd-ctrl-text').value = s.text || '';
-  document.getElementById('hd-ctrl-text').placeholder = def ? (hdAutoText()[key] || '비워두면 자동') : '텍스트 입력';
+  document.getElementById('hd-ctrl-text').placeholder = '텍스트 입력';
   document.getElementById('hd-ctrl-fontSize').value = s.fontSize || '';
   document.getElementById('hd-ctrl-color').value = s.color || '#000000';
   document.getElementById('hd-ctrl-fontFamily').value = s.fontFamily || '';
@@ -1579,13 +1531,6 @@ function buildHdElemBtns() {
   const c = document.getElementById('hdElemBtns');
   if (!c) return;
   c.innerHTML = '';
-  HD_ELEMS.forEach(({ key, label }) => {
-    const btn = document.createElement('button');
-    btn.className = 'hd-elem-btn'; btn.dataset.key = key; btn.textContent = label;
-    if (key === hdSelKey) btn.classList.add('sel');
-    btn.addEventListener('click', () => selectHdEl(key));
-    c.appendChild(btn);
-  });
   hdCustom.forEach(cu => {
     const btn = document.createElement('button');
     btn.className = 'hd-elem-btn'; btn.dataset.key = cu.id; btn.style.paddingRight = '.35rem';
@@ -1850,9 +1795,7 @@ document.querySelectorAll('.gb-tab-btn').forEach(btn => {
 // 헤더 디자인 저장
 document.getElementById('saveHdpBtn').addEventListener('click', async () => {
   const newPhoto = document.getElementById('hdp-photo')?.value || '';
-  const headerStyle = {};
-  HD_ELEMS.forEach(({ key }) => { headerStyle[key] = { ...hdWys[key] }; });
-  headerStyle.custom = hdCustom.map(c => ({ ...c }));
+  const headerStyle = { custom: hdCustom.map(c => ({ ...c })) };
   const data = {
     header: { ...(currentConfig.header || {}), photo: newPhoto },
     headerStyle,

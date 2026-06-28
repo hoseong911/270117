@@ -8,11 +8,11 @@
   --bg3:     #ede6dc;
   --ink:     #2a2520;
   --ink2:    #6b5e55;
-  --rose:    #8c7265;
-  --rose2:   #b89b8e;
+  --rose:    #002841;
+  --rose2:   #1a5276;
   --gold:    #c4a87e;
   --gold2:   #e0cca8;
-  --border:  rgba(140,114,101,.18);
+  --border:  rgba(0,40,65,.18);
   --shadow:  0 2px 24px rgba(42,37,32,.07);
   --radius:  12px;
   --max:     480px;
@@ -399,7 +399,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   transition:all .2s; flex-shrink:0;
 }
 .account-copy-btn:hover { border-color:var(--rose); color:var(--rose); }
-.account-copy-btn.copied { border-color:var(--rose); color:var(--rose); background:rgba(140,114,101,.05); }
+.account-copy-btn.copied { border-color:var(--rose); color:var(--rose); background:rgba(0,40,65,.05); }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {
@@ -438,7 +438,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   background:var(--rose); color:#fff; border:none; border-radius:8px;
   font-size:.88rem; transition:background .2s;
 }
-.rsvp-open-btn:hover { background:#7a6257; }
+.rsvp-open-btn:hover { background:#001d30; }
 .rsvp-deadline-note { font-size:.72rem; color:var(--ink2); margin-bottom:1rem; }
 
 /* ── GUESTBOOK SECTION ── */
@@ -474,14 +474,14 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .rsvp-radio-opt input[type=radio] { display:none; }
 .rsvp-radio-opt.selected {
   border-color:var(--rose); color:var(--rose);
-  background:rgba(140,114,101,.05);
+  background:rgba(0,40,65,.05);
 }
 .rsvp-submit {
   width:100%; padding:1rem;
   background:var(--rose); color:#fff; border:none; border-radius:8px;
   font-size:.88rem; transition:background .2s; margin-top:.3rem;
 }
-.rsvp-submit:hover:not(:disabled) { background:#7a6257; }
+.rsvp-submit:hover:not(:disabled) { background:#001d30; }
 .rsvp-submit:disabled { opacity:.5; cursor:not-allowed; }
 .rsvp-done { padding:2rem; font-size:.9rem; color:var(--ink2); line-height:2.1; }
 .rsvp-deadline { margin-top:1.2rem; font-size:.72rem; color:var(--ink2); }
@@ -504,7 +504,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   background:var(--rose); color:#fff; border:none; border-radius:8px;
   font-size:.85rem; transition:background .2s;
 }
-.gb-submit:hover:not(:disabled) { background:#7a6257; }
+.gb-submit:hover:not(:disabled) { background:#001d30; }
 .gb-submit:disabled { opacity:.5; cursor:not-allowed; }
 .gb-list { display:flex; flex-direction:column; gap:.8rem; }
 .gb-item { background:var(--bg2); padding:1.2rem; border-radius:var(--radius); text-align:left; }
