@@ -373,9 +373,9 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 
 /* ── ACCOUNTS ── */
 .accounts-list { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
-.account-group { border-radius:var(--radius); overflow:hidden; }
+.account-group { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .account-group-head {
-  padding:.75rem 1.2rem; background:transparent;
+  padding:.75rem 1.2rem; background:var(--bg2);
   display:flex; align-items:center; justify-content:space-between;
   cursor:pointer; user-select:none;
 }
@@ -385,7 +385,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-body { display:none; }
 .account-body.open { display:block; }
 .account-item {
-  padding:1rem; border-top:none;
+  padding:.8rem 1rem 1rem; border-top:none;
   text-align:left;
 }
 .account-info { flex:1; }
