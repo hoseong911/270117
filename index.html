@@ -246,12 +246,12 @@ function renderGreeting(c) {
       <div class="greeting-family">
         <div class="greeting-family-role">신 랑 측</div>
         <p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>
-        <p class="greeting-person-name">${esc(c.groom.name)}</p>
+        <div class="greeting-person-name">${esc(c.groom.name)}</div>
       </div>
       <div class="greeting-family">
         <div class="greeting-family-role">신 부 측</div>
         <p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>
-        <p class="greeting-person-name">${esc(c.bride.name)}</p>
+        <div class="greeting-person-name">${esc(c.bride.name)}</div>
       </div>
     </div>` : ''}
   </div>
