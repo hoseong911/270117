@@ -11,10 +11,10 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
     }
-    // 방명록: 누구나 읽기/쓰기, 삭제는 어드민만
+    // 방명록: 누구나 읽기/쓰기, 수정·삭제는 어드민만
     match /guestbook/{doc} {
       allow read, create: if true;
-      allow delete: if request.auth != null;
+      allow update, delete: if request.auth != null;
     }
   }
 }
