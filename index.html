@@ -453,12 +453,12 @@ function renderAccounts(c) {
       <div class="account-item">
         <div class="account-info">
           <div class="account-who">${esc(a.who)}</div>
-          <div class="account-holder-name">${esc(a.name)}</div>
+          <div class="account-holder-name account-copy-btn"
+            data-number="${esc(a.number)}"
+            data-bank="${esc(a.bank)}"
+            data-name="${esc(a.name)}">${esc(a.name)}</div>
+          <div class="account-number-display">${esc(a.bank)} ${esc(a.number)}</div>
         </div>
-        <button class="account-copy-btn"
-          data-number="${esc(a.number)}"
-          data-bank="${esc(a.bank)}"
-          data-name="${esc(a.name)}">복사</button>
       </div>`).join('')}
     </div>
   </div>`).join('');
@@ -757,11 +757,12 @@ function initAccounts() {
   document.querySelectorAll('.account-copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const text = `${btn.dataset.bank} ${btn.dataset.number} ${btn.dataset.name}`;
+      const orig = btn.textContent;
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = '복사됨';
+        btn.textContent = '복사됨 ✓';
         btn.classList.add('copied');
         showToast('계좌번호가 복사되었습니다');
-        setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
       }).catch(() => showToast('클립보드 복사에 실패했습니다'));
     });
   });
