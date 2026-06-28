@@ -801,9 +801,10 @@
           </div>
           <div class="form-section">
             <div class="form-section-title">텍스트 요소</div>
-            <p style="font-size:.76rem;color:var(--ink2);margin-bottom:.6rem">요소를 선택하고 오른쪽 캔버스에서 드래그해 위치를 조정하세요</p>
+            <p style="font-size:.76rem;color:var(--ink2);margin-bottom:.6rem">요소 선택 후 드래그해 위치 조정 · <strong>Ctrl+클릭</strong>으로 다중 선택</p>
             <div class="hd-elem-btns" id="hdElemBtns"></div>
             <div class="hd-elem-ctrl" id="hdElemCtrl" style="display:none">
+              <div id="hdCtrlMultiLbl" style="display:none;font-size:.72rem;color:var(--rose);background:rgba(0,40,65,.06);border-radius:4px;padding:.35rem .5rem;margin-bottom:.5rem"></div>
               <div class="form-row" style="margin-bottom:.6rem">
                 <label class="form-label" id="hdCtrlLbl">문구 내용</label>
                 <input class="form-input" id="hd-ctrl-text" placeholder="비워두면 자동 입력">
@@ -862,8 +863,7 @@
             </div>
           </div>
           <div class="save-row">
-            <span class="save-msg" id="hdpMsg"></span>
-            <button class="save-btn" id="saveHdpBtn">저장</button>
+            <span id="hdpAutoStatus" style="font-size:.75rem;color:var(--ink2)"></span>
           </div>
         </div>
         <!-- 오른쪽: 드래그 캔버스 -->
@@ -1399,6 +1399,7 @@ document.getElementById('saveStoryBtn').addEventListener('click', async () => {
 // ── WYSIWYG HEADER EDITOR ─────────────────────────────
 let hdCustom = [];
 let hdSelKey = null;
+let hdSelKeys = new Set();
 let _hdDragKey = null, _hdDragStart = null;
 let _hdCustomIdSeq = 0;
 
@@ -1427,6 +1428,31 @@ function loadHdState() {
   }, 0);
 }
 
+// ── 자동 저장 ──────────────────────────────────────────
+let _hdpSaveTimer = null;
+function scheduleHdpSave() {
+  const st = document.getElementById('hdpAutoStatus');
+  if (st) { st.textContent = '저장 대기 중...'; st.style.color = 'var(--ink2)'; }
+  clearTimeout(_hdpSaveTimer);
+  _hdpSaveTimer = setTimeout(doHdpSave, 1500);
+}
+async function doHdpSave() {
+  const st = document.getElementById('hdpAutoStatus');
+  if (st) st.textContent = '저장 중...';
+  const newPhoto = document.getElementById('hdp-photo')?.value || '';
+  const headerStyle = { custom: hdCustom.map(c => ({ ...c })) };
+  const data = { header: { ...(currentConfig.header || {}), photo: newPhoto }, headerStyle };
+  try {
+    await setDoc(doc(db, 'wedding_config', 'main'), data, { merge: true });
+    Object.assign(currentConfig, data);
+    val('headerPhoto', newPhoto);
+    if (st) { st.textContent = '저장됨 ✓'; st.style.color = 'var(--rose)'; setTimeout(() => { if (st) st.textContent = ''; }, 3000); }
+  } catch(e) {
+    console.error(e);
+    if (st) { st.textContent = '저장 실패'; st.style.color = '#c0392b'; }
+  }
+}
+
 function renderHdCanvas() {
   const photo = document.getElementById('hdp-photo')?.value || '';
   const bg = document.getElementById('hdCanvasBg');
@@ -1447,23 +1473,29 @@ function renderHdCanvas() {
       el.className = 'hd-el'; el.id = `hd-el-${cu.id}`; el.dataset.key = cu.id; el.dataset.custom = '1';
       el.addEventListener('mousedown', _hdMouseDown);
       el.addEventListener('touchstart', _hdTouchStart, { passive: false });
-      el.addEventListener('click', e => { e.stopPropagation(); selectHdEl(cu.id); });
+      el.addEventListener('click', e => { e.stopPropagation(); selectHdEl(cu.id, e.ctrlKey || e.metaKey); });
       canvas.appendChild(el);
     }
     el.textContent = cu.text || '텍스트';
     el.style.cssText = `left:${cu.x}%;top:${cu.y}%;font-size:${cu.fontSize||'16px'};color:${cu.color||'#2a2520'};font-family:${cu.fontFamily||''};text-align:${cu.textAlign||'center'};`;
-    el.classList.toggle('sel', cu.id === hdSelKey);
+    el.classList.toggle('sel', hdSelKeys.has(cu.id));
   });
 }
 
-function selectHdEl(key) {
-  hdSelKey = key;
-  document.querySelectorAll('.hd-el').forEach(el => el.classList.toggle('sel', el.dataset.key === key));
-  document.querySelectorAll('.hd-elem-btn').forEach(b => b.classList.toggle('sel', b.dataset.key === key));
+function _updateHdSelUI() {
+  document.querySelectorAll('.hd-el').forEach(el => el.classList.toggle('sel', hdSelKeys.has(el.dataset.key)));
+  document.querySelectorAll('.hd-elem-btn').forEach(b => b.classList.toggle('sel', hdSelKeys.has(b.dataset.key)));
   const ctrl = document.getElementById('hdElemCtrl');
   if (!ctrl) return;
+  if (!hdSelKey) { ctrl.style.display = 'none'; return; }
   ctrl.style.display = 'block';
-  const s = getHdEl(key);
+  const multiLbl = document.getElementById('hdCtrlMultiLbl');
+  if (multiLbl) {
+    const multi = hdSelKeys.size > 1;
+    multiLbl.style.display = multi ? 'block' : 'none';
+    if (multi) multiLbl.textContent = `${hdSelKeys.size}개 선택됨 — 변경사항이 모두에 적용됩니다`;
+  }
+  const s = getHdEl(hdSelKey);
   if (!s) return;
   document.getElementById('hdCtrlLbl').textContent = '문구 내용';
   document.getElementById('hd-ctrl-text').value = s.text || '';
@@ -1474,12 +1506,29 @@ function selectHdEl(key) {
   document.getElementById('hd-ctrl-textAlign').value = s.textAlign || 'center';
 }
 
+function selectHdEl(key, addToSel = false) {
+  if (addToSel) {
+    if (hdSelKeys.has(key)) {
+      hdSelKeys.delete(key);
+      if (hdSelKey === key) hdSelKey = hdSelKeys.size ? [...hdSelKeys].at(-1) : null;
+    } else {
+      hdSelKeys.add(key);
+      hdSelKey = key;
+    }
+  } else {
+    hdSelKeys = new Set([key]);
+    hdSelKey = key;
+  }
+  _updateHdSelUI();
+}
+
 function _hdMouseDown(e) {
   if (e.button !== 0) return;
   const key = e.currentTarget.dataset.key;
-  selectHdEl(key);
+  selectHdEl(key, e.ctrlKey || e.metaKey);
   const rect = document.getElementById('hdCanvas').getBoundingClientRect();
   const s = getHdEl(key);
+  if (!s) return;
   _hdDragKey = key;
   _hdDragStart = { cx: e.clientX, cy: e.clientY, sx: s.x, sy: s.y, w: rect.width, h: rect.height };
   document.addEventListener('mousemove', _hdMouseMove);
@@ -1495,13 +1544,19 @@ function _hdMouseMove(e) {
   const el = document.getElementById(`hd-el-${_hdDragKey}`);
   if (el) { el.style.left = `${nx}%`; el.style.top = `${ny}%`; }
 }
-function _hdMouseUp() { _hdDragKey = null; document.removeEventListener('mousemove', _hdMouseMove); document.removeEventListener('mouseup', _hdMouseUp); }
+function _hdMouseUp() {
+  if (_hdDragKey) scheduleHdpSave();
+  _hdDragKey = null;
+  document.removeEventListener('mousemove', _hdMouseMove);
+  document.removeEventListener('mouseup', _hdMouseUp);
+}
 
 function _hdTouchStart(e) {
   const t = e.touches[0], key = e.currentTarget.dataset.key;
   selectHdEl(key);
   const rect = document.getElementById('hdCanvas').getBoundingClientRect();
   const s = getHdEl(key);
+  if (!s) return;
   _hdDragKey = key;
   _hdDragStart = { cx: t.clientX, cy: t.clientY, sx: s.x, sy: s.y, w: rect.width, h: rect.height };
   document.addEventListener('touchmove', _hdTouchMove, { passive: false });
@@ -1519,15 +1574,23 @@ function _hdTouchMove(e) {
   if (el) { el.style.left = `${nx}%`; el.style.top = `${ny}%`; }
   e.preventDefault();
 }
-function _hdTouchEnd() { _hdDragKey = null; document.removeEventListener('touchmove', _hdTouchMove); document.removeEventListener('touchend', _hdTouchEnd); }
+function _hdTouchEnd() {
+  if (_hdDragKey) scheduleHdpSave();
+  _hdDragKey = null;
+  document.removeEventListener('touchmove', _hdTouchMove);
+  document.removeEventListener('touchend', _hdTouchEnd);
+}
 
 function hdNudge(dx, dy) {
-  if (!hdSelKey) return;
-  const s = getHdEl(hdSelKey);
-  if (!s) return;
-  setHdElField(hdSelKey, 'x', Math.round(Math.min(99, Math.max(1, s.x + dx)) * 10) / 10);
-  setHdElField(hdSelKey, 'y', Math.round(Math.min(99, Math.max(1, s.y + dy)) * 10) / 10);
+  if (hdSelKeys.size === 0) return;
+  hdSelKeys.forEach(key => {
+    const s = getHdEl(key);
+    if (!s) return;
+    setHdElField(key, 'x', Math.round(Math.min(99, Math.max(1, s.x + dx)) * 10) / 10);
+    setHdElField(key, 'y', Math.round(Math.min(99, Math.max(1, s.y + dy)) * 10) / 10);
+  });
   renderHdCanvas();
+  scheduleHdpSave();
 }
 
 function addHdCustom() {
@@ -1537,17 +1600,18 @@ function addHdCustom() {
   buildHdElemBtns();
   renderHdCanvas();
   selectHdEl(id);
+  scheduleHdpSave();
 }
 
 function deleteHdCustom(id) {
   hdCustom = hdCustom.filter(c => c.id !== id);
   document.getElementById(`hd-el-${id}`)?.remove();
-  if (hdSelKey === id) {
-    hdSelKey = null;
-    const ctrl = document.getElementById('hdElemCtrl');
-    if (ctrl) ctrl.style.display = 'none';
-  }
+  hdSelKeys.delete(id);
+  if (hdSelKey === id) hdSelKey = hdSelKeys.size ? [...hdSelKeys].at(-1) : null;
+  const ctrl = document.getElementById('hdElemCtrl');
+  if (ctrl && !hdSelKey) ctrl.style.display = 'none';
   buildHdElemBtns();
+  scheduleHdpSave();
 }
 
 function buildHdElemBtns() {
@@ -1557,7 +1621,7 @@ function buildHdElemBtns() {
   hdCustom.forEach(cu => {
     const btn = document.createElement('button');
     btn.className = 'hd-elem-btn'; btn.dataset.key = cu.id; btn.style.paddingRight = '.35rem';
-    if (cu.id === hdSelKey) btn.classList.add('sel');
+    if (hdSelKeys.has(cu.id)) btn.classList.add('sel');
     const span = document.createElement('span');
     const t = cu.text || '새 텍스트';
     span.textContent = t.length > 8 ? t.slice(0, 8) + '…' : t;
@@ -1565,7 +1629,7 @@ function buildHdElemBtns() {
     del.className = 'hd-elem-btn-del'; del.textContent = '✕'; del.title = '삭제';
     del.addEventListener('click', e => { e.stopPropagation(); deleteHdCustom(cu.id); });
     btn.appendChild(span); btn.appendChild(del);
-    btn.addEventListener('click', () => selectHdEl(cu.id));
+    btn.addEventListener('click', e => selectHdEl(cu.id, e.ctrlKey || e.metaKey));
     c.appendChild(btn);
   });
   const addBtn = document.createElement('button');
@@ -1576,26 +1640,33 @@ function buildHdElemBtns() {
 
 function initHdPanel() {
   hdCustom = [];
+  hdSelKey = null;
+  hdSelKeys = new Set();
   loadHdState();
   buildHdElemBtns();
   renderHdCanvas();
+  const ctrl = document.getElementById('hdElemCtrl');
+  if (ctrl) ctrl.style.display = 'none';
 }
 
-// 컨트롤 입력 → 캔버스 즉시 반영
+// 컨트롤 입력 → 캔버스 즉시 반영 + 자동 저장 (선택된 모든 요소에 적용)
 ['text','fontSize','color','fontFamily','textAlign'].forEach(field => {
   const el = document.getElementById(`hd-ctrl-${field}`);
   if (!el) return;
   el.addEventListener(field === 'color' || el.tagName === 'SELECT' ? 'change' : 'input', () => {
-    if (!hdSelKey) return;
-    const val = field === 'fontSize' ? (el.value ? el.value + 'px' : '') : el.value;
-    setHdElField(hdSelKey, field, val);
-    if (field === 'text') {
+    if (hdSelKeys.size === 0) return;
+    const fval = field === 'fontSize' ? (el.value ? el.value + 'px' : '') : el.value;
+    hdSelKeys.forEach(key => setHdElField(key, field, fval));
+    if (field === 'text' && hdSelKeys.size === 1) {
       const btn = document.querySelector(`.hd-elem-btn[data-key="${hdSelKey}"] span`);
       if (btn) { const t = el.value || '새 텍스트'; btn.textContent = t.length > 8 ? t.slice(0,8)+'…' : t; }
     }
     renderHdCanvas();
+    scheduleHdpSave();
   });
-  if (field === 'color') el.addEventListener('input', () => { if (hdSelKey) { setHdElField(hdSelKey, 'color', el.value); renderHdCanvas(); } });
+  if (field === 'color') el.addEventListener('input', () => {
+    if (hdSelKeys.size > 0) { hdSelKeys.forEach(key => setHdElField(key, 'color', el.value)); renderHdCanvas(); scheduleHdpSave(); }
+  });
 });
 document.getElementById('hd-nudge-up')?.addEventListener('click', () => hdNudge(0, -.5));
 document.getElementById('hd-nudge-dn')?.addEventListener('click', () => hdNudge(0,  .5));
@@ -1603,10 +1674,25 @@ document.getElementById('hd-nudge-lt')?.addEventListener('click', () => hdNudge(
 document.getElementById('hd-nudge-rt')?.addEventListener('click', () => hdNudge( .5, 0));
 
 function hdSnap(x, y) {
-  if (!hdSelKey) return;
-  if (x != null) setHdElField(hdSelKey, 'x', x);
-  if (y != null) setHdElField(hdSelKey, 'y', y);
+  if (hdSelKeys.size === 0) return;
+  const keys = [...hdSelKeys];
+  if (hdSelKeys.size === 1) {
+    if (x != null) setHdElField(keys[0], 'x', x);
+    if (y != null) setHdElField(keys[0], 'y', y);
+  } else {
+    if (x != null) {
+      const xs = keys.map(k => getHdEl(k)?.x ?? 50);
+      const target = x === 8 ? Math.min(...xs) : x === 92 ? Math.max(...xs) : Math.round(xs.reduce((a,b)=>a+b,0)/xs.length * 10)/10;
+      keys.forEach(k => setHdElField(k, 'x', target));
+    }
+    if (y != null) {
+      const ys = keys.map(k => getHdEl(k)?.y ?? 50);
+      const target = y === 8 ? Math.min(...ys) : y === 92 ? Math.max(...ys) : Math.round(ys.reduce((a,b)=>a+b,0)/ys.length * 10)/10;
+      keys.forEach(k => setHdElField(k, 'y', target));
+    }
+  }
   renderHdCanvas();
+  scheduleHdpSave();
 }
 document.getElementById('hd-align-left')?.addEventListener('click',    () => hdSnap(8,    null));
 document.getElementById('hd-align-hcenter')?.addEventListener('click', () => hdSnap(50,   null));
@@ -1615,9 +1701,9 @@ document.getElementById('hd-align-top')?.addEventListener('click',     () => hdS
 document.getElementById('hd-align-vcenter')?.addEventListener('click', () => hdSnap(null, 50));
 document.getElementById('hd-align-bottom')?.addEventListener('click',  () => hdSnap(null, 92));
 document.getElementById('hd-align-center')?.addEventListener('click',  () => hdSnap(50,   50));
-document.getElementById('hdp-photo')?.addEventListener('input', renderHdCanvas);
-document.getElementById('hdpRemovePhotoBtn')?.addEventListener('click', () => { document.getElementById('hdp-photo').value = ''; renderHdCanvas(); });
-document.getElementById('file-hdp-photo')?.addEventListener('change', () => setTimeout(renderHdCanvas, 500));
+document.getElementById('hdp-photo')?.addEventListener('input', () => { renderHdCanvas(); scheduleHdpSave(); });
+document.getElementById('hdpRemovePhotoBtn')?.addEventListener('click', () => { document.getElementById('hdp-photo').value = ''; renderHdCanvas(); scheduleHdpSave(); });
+document.getElementById('file-hdp-photo')?.addEventListener('change', () => setTimeout(() => { renderHdCanvas(); scheduleHdpSave(); }, 500));
 
 // ── META SAVE (기본 설정) ─────────────────────────────
 document.getElementById('saveMetaBtn').addEventListener('click', async () => {
@@ -1830,18 +1916,7 @@ document.querySelectorAll('.gb-tab-btn').forEach(btn => {
   });
 });
 
-// 헤더 디자인 저장
-document.getElementById('saveHdpBtn').addEventListener('click', async () => {
-  const newPhoto = document.getElementById('hdp-photo')?.value || '';
-  const headerStyle = { custom: hdCustom.map(c => ({ ...c })) };
-  const data = {
-    header: { ...(currentConfig.header || {}), photo: newPhoto },
-    headerStyle,
-  };
-  await savePartial(data, 'hdpMsg', '헤더가 저장되었습니다');
-  if (currentConfig) { currentConfig.header = data.header; currentConfig.headerStyle = headerStyle; }
-  val('headerPhoto', newPhoto);
-});
+
 </script>
 </body>
 </html>
