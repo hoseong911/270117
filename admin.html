@@ -843,6 +843,22 @@
                   <button class="hd-nudge-btn" id="hd-nudge-rt">오른쪽</button>
                 </div>
               </div>
+              <div style="margin-top:.6rem">
+                <label class="form-label">정렬</label>
+                <div class="hd-nudge-wrap" style="margin-top:.3rem;align-items:center">
+                  <span style="font-size:.7rem;color:var(--ink2);width:2.2rem;flex-shrink:0">수평</span>
+                  <button class="hd-nudge-btn" id="hd-align-left">좌</button>
+                  <button class="hd-nudge-btn" id="hd-align-hcenter">중앙</button>
+                  <button class="hd-nudge-btn" id="hd-align-right">우</button>
+                </div>
+                <div class="hd-nudge-wrap" style="margin-top:.3rem;align-items:center">
+                  <span style="font-size:.7rem;color:var(--ink2);width:2.2rem;flex-shrink:0">수직</span>
+                  <button class="hd-nudge-btn" id="hd-align-top">상</button>
+                  <button class="hd-nudge-btn" id="hd-align-vcenter">중앙</button>
+                  <button class="hd-nudge-btn" id="hd-align-bottom">하</button>
+                </div>
+                <button class="hd-add-btn" id="hd-align-center" style="margin-top:.4rem;width:100%">화면 정중앙으로</button>
+              </div>
             </div>
           </div>
           <div class="save-row">
@@ -1585,6 +1601,20 @@ document.getElementById('hd-nudge-up')?.addEventListener('click', () => hdNudge(
 document.getElementById('hd-nudge-dn')?.addEventListener('click', () => hdNudge(0,  .5));
 document.getElementById('hd-nudge-lt')?.addEventListener('click', () => hdNudge(-.5, 0));
 document.getElementById('hd-nudge-rt')?.addEventListener('click', () => hdNudge( .5, 0));
+
+function hdSnap(x, y) {
+  if (!hdSelKey) return;
+  if (x != null) setHdElField(hdSelKey, 'x', x);
+  if (y != null) setHdElField(hdSelKey, 'y', y);
+  renderHdCanvas();
+}
+document.getElementById('hd-align-left')?.addEventListener('click',    () => hdSnap(8,    null));
+document.getElementById('hd-align-hcenter')?.addEventListener('click', () => hdSnap(50,   null));
+document.getElementById('hd-align-right')?.addEventListener('click',   () => hdSnap(92,   null));
+document.getElementById('hd-align-top')?.addEventListener('click',     () => hdSnap(null, 8));
+document.getElementById('hd-align-vcenter')?.addEventListener('click', () => hdSnap(null, 50));
+document.getElementById('hd-align-bottom')?.addEventListener('click',  () => hdSnap(null, 92));
+document.getElementById('hd-align-center')?.addEventListener('click',  () => hdSnap(50,   50));
 document.getElementById('hdp-photo')?.addEventListener('input', renderHdCanvas);
 document.getElementById('hdpRemovePhotoBtn')?.addEventListener('click', () => { document.getElementById('hdp-photo').value = ''; renderHdCanvas(); });
 document.getElementById('file-hdp-photo')?.addEventListener('change', () => setTimeout(renderHdCanvas, 500));
