@@ -234,14 +234,14 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 }
 .greeting-family { text-align:center; }
 .greeting-family-role {
-  font-size:.72rem; letter-spacing:.12em; color:var(--rose2); margin-bottom:.6rem;
+  font-size:.72rem; color:var(--rose2); margin-bottom:.6rem;
 }
 .greeting-family p { font-size:1rem; color:var(--ink2); line-height:2.2; }
 .greeting-parents-line { font-size:.82rem; color:var(--ink2); line-height:1.8; }
 .greeting-person-name {
   font-family: var(--font-serif);
   font-size:1.5rem; color:var(--ink);
-  margin-top:.3rem; letter-spacing:.05em;
+  margin-top:.3rem;
 }
 .account-holder-name { font-size:.88rem; color:var(--ink); }
 
