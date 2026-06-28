@@ -654,21 +654,56 @@ function initMapEmbed(config) {
   if (!slot) return;
   const embed = (config.wedding?.mapEmbedUrl || '').trim();
   if (!embed) return;
+
   if (embed.startsWith('http')) {
     const iframe = document.createElement('iframe');
     iframe.src = embed;
     iframe.allowFullscreen = true;
     iframe.loading = 'lazy';
     slot.appendChild(iframe);
-  } else {
-    slot.innerHTML = embed;
-    slot.querySelectorAll('script').forEach(old => {
-      const s = document.createElement('script');
-      Array.from(old.attributes).forEach(a => s.setAttribute(a.name, a.value));
-      s.textContent = old.textContent;
-      old.parentNode.replaceChild(s, old);
-    });
+    return;
   }
+
+  const tmp = document.createElement('div');
+  tmp.innerHTML = embed;
+
+  const roughDiv = tmp.querySelector('[id^="daumRoughmapContainer"]');
+  if (roughDiv) slot.appendChild(roughDiv.cloneNode(true));
+
+  const scripts = Array.from(tmp.querySelectorAll('script'));
+  const loaderEl = scripts.find(s => s.src);
+  const initEl   = scripts.find(s => !s.src && s.textContent.includes('Lander'));
+  const initCode = initEl?.textContent?.trim() || '';
+
+  function runInit() {
+    if (initCode) try { (new Function(initCode))(); } catch(e) { console.error('roughmap init:', e); }
+  }
+
+  if (window.daum?.roughmap?.Lander) {
+    runInit();
+    return;
+  }
+
+  if (!loaderEl?.src) return;
+
+  // roughmapLoader.js가 document.write()로 roughmapLander.js를 주입하는 것을 인터셉트
+  const origWrite = document.write.bind(document);
+  document.write = function(html) {
+    document.write = origWrite;
+    const m = html.match(/src="([^"]+)"/);
+    if (!m) return;
+    const lander = document.createElement('script');
+    lander.charset = 'UTF-8';
+    lander.src = m[1];
+    lander.onload = runInit;
+    document.head.appendChild(lander);
+  };
+
+  const loader = document.createElement('script');
+  loader.charset = 'UTF-8';
+  loader.src = loaderEl.src;
+  loader.onerror = () => { document.write = origWrite; };
+  document.head.appendChild(loader);
 }
 
 function initGallery(c) {
