@@ -450,15 +450,13 @@ function renderAccounts(c) {
     </div>
     <div class="account-body" id="abody-${gi}">
       ${items.map(a => `
-      <div class="account-item">
-        <div class="account-info">
-          <div class="account-who">${esc(a.who)}</div>
-          <div class="account-holder-name account-copy-btn"
-            data-number="${esc(a.number)}"
-            data-bank="${esc(a.bank)}"
-            data-name="${esc(a.name)}">${esc(a.name)}</div>
-          <div class="account-number-display">${esc(a.bank)} ${esc(a.number)}</div>
-        </div>
+      <div class="account-item account-copy-btn"
+        data-number="${esc(a.number)}"
+        data-bank="${esc(a.bank)}"
+        data-name="${esc(a.name)}">
+        <div class="account-who">${esc(a.who)}</div>
+        <div class="account-holder-name">${esc(a.name)}</div>
+        <div class="account-number-display">${esc(a.bank)}<br>${esc(a.number)}</div>
       </div>`).join('')}
     </div>
   </div>`).join('');
@@ -758,12 +756,10 @@ function initAccounts() {
   document.querySelectorAll('.account-copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const text = `${btn.dataset.bank} ${btn.dataset.number} ${btn.dataset.name}`;
-      const orig = btn.textContent;
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = '복사됨 ✓';
         btn.classList.add('copied');
         showToast('계좌번호가 복사되었습니다');
-        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+        setTimeout(() => btn.classList.remove('copied'), 2000);
       }).catch(() => showToast('클립보드 복사에 실패했습니다'));
     });
   });
