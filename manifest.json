@@ -1,0 +1,10 @@
+{
+  "name": "우리의 결혼식",
+  "short_name": "270117",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "./",
+  "background_color": "#f7f9fb",
+  "theme_color": "#f7f9fb",
+  "icons": []
+}
