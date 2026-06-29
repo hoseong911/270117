@@ -859,6 +859,11 @@
                   <button class="hd-nudge-btn" id="hd-align-vcenter">중앙</button>
                   <button class="hd-nudge-btn" id="hd-align-bottom">하</button>
                 </div>
+                <div class="hd-nudge-wrap" style="margin-top:.3rem;align-items:center">
+                  <span style="font-size:.7rem;color:var(--ink2);width:2.2rem;flex-shrink:0">간격</span>
+                  <button class="hd-nudge-btn" id="hd-dist-h">수평 균등</button>
+                  <button class="hd-nudge-btn" id="hd-dist-v">수직 균등</button>
+                </div>
                 <button class="hd-add-btn" id="hd-align-center" style="margin-top:.4rem;width:100%">화면 정중앙으로</button>
               </div>
             </div>
@@ -1702,6 +1707,20 @@ document.getElementById('hd-align-top')?.addEventListener('click',     () => hdS
 document.getElementById('hd-align-vcenter')?.addEventListener('click', () => hdSnap(null, 50));
 document.getElementById('hd-align-bottom')?.addEventListener('click',  () => hdSnap(null, 92));
 document.getElementById('hd-align-center')?.addEventListener('click',  () => hdSnap(50,   50));
+
+function hdDistribute(axis) {
+  const keys = [...hdSelKeys];
+  if (keys.length < 3) { toast('3개 이상 선택해야 합니다'); return; }
+  const sorted = keys.slice().sort((a, b) => (getHdEl(a)?.[axis] ?? 50) - (getHdEl(b)?.[axis] ?? 50));
+  const min = getHdEl(sorted[0])?.[axis] ?? 0;
+  const max = getHdEl(sorted.at(-1))?.[axis] ?? 100;
+  const step = (max - min) / (sorted.length - 1);
+  sorted.forEach((key, i) => setHdElField(key, axis, Math.round((min + step * i) * 10) / 10));
+  renderHdCanvas();
+  scheduleHdpSave();
+}
+document.getElementById('hd-dist-h')?.addEventListener('click', () => hdDistribute('x'));
+document.getElementById('hd-dist-v')?.addEventListener('click', () => hdDistribute('y'));
 document.getElementById('hdp-photo')?.addEventListener('input', () => { renderHdCanvas(); scheduleHdpSave(); });
 document.getElementById('hdpRemovePhotoBtn')?.addEventListener('click', () => { document.getElementById('hdp-photo').value = ''; renderHdCanvas(); scheduleHdpSave(); });
 document.getElementById('file-hdp-photo')?.addEventListener('change', () => setTimeout(() => { renderHdCanvas(); scheduleHdpSave(); }, 500));
