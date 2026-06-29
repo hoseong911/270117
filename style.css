@@ -376,9 +376,9 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   padding:.75rem 1.2rem; background:var(--bg2);
   display:flex; align-items:center; justify-content:center;
 }
-.account-group-title { font-size:.7rem; color:var(--rose2); }
-.account-group[data-group="신부 측"] .account-group-title { color:#b5728a; }
-.account-group[data-group="신부 측"] .account-group-head { background:#fdf0f4; }
+.account-group-title { font-size:.7rem; color:var(--rose2); text-align:center; }
+.account-group[data-group*="신부"] .account-group-title { color:#b5728a; }
+.account-group[data-group*="신부"] .account-group-head { background:#fdf0f4; }
 .account-body { display:grid; grid-template-columns:auto auto; justify-content:center; }
 .account-item { display:contents; }
 .account-body span:nth-child(n+3) { border-top:1px solid var(--border); }

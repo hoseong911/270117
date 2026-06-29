@@ -449,7 +449,7 @@ function renderAccounts(c) {
     </div>
     <div class="account-body">
       ${items.map(a => {
-        const side = title.startsWith('신랑') ? '신랑' : title.startsWith('신부') ? '신부' : '';
+        const side = title.includes('신랑') ? '신랑' : title.includes('신부') ? '신부' : '';
         const who = (side && a.who && !a.who.startsWith(side)) ? `${side} ${a.who}` : a.who;
         return `
       <div class="account-item account-copy-btn"
