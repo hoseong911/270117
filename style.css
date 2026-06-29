@@ -23,10 +23,9 @@
 
 * { margin:0; padding:0; box-sizing:border-box; }
 html {
-  scroll-behavior:smooth; scroll-snap-type:y proximity;
+  scroll-behavior:smooth;
   background:#ccc8c2;
 }
-section[id^="sec-"] { scroll-snap-align:start; }
 body {
   font-family: var(--font-ui);
   background:var(--bg);

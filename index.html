@@ -619,6 +619,35 @@ function initNav(sections) {
   document.querySelectorAll('[id^="sec-"]').forEach(el => obs.observe(el));
 }
 
+function initScrollSnap() {
+  let snapTimer = null;
+  let snapping = false;
+
+  function nearestSection() {
+    const sy = window.scrollY;
+    let best = null, bestDist = Infinity;
+    document.querySelectorAll('section[id^="sec-"]').forEach(sec => {
+      const top = sec.getBoundingClientRect().top + sy;
+      const dist = Math.abs(top - sy);
+      if (dist < bestDist) { bestDist = dist; best = { top, dist }; }
+    });
+    return best;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (snapping) return;
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(() => {
+      const target = nearestSection();
+      // 섹션 높이의 55% 이상 벗어난 경우만 snap (긴 섹션 내부 스크롤 허용)
+      if (!target || target.dist < 4 || target.dist > window.innerHeight * 0.55) return;
+      snapping = true;
+      window.scrollTo({ top: target.top, behavior: 'smooth' });
+      setTimeout(() => { snapping = false; }, 900);
+    }, 80);
+  }, { passive: true });
+}
+
 function initFadeIn() {
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
@@ -910,6 +939,7 @@ async function init() {
     .join('');
 
   initNav(sections);
+  initScrollSnap();
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
