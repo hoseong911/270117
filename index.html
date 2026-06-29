@@ -62,16 +62,23 @@
         <input class="rsvp-input" id="rsvpName" placeholder="성함을 입력해주세요" maxlength="20">
       </div>
       <div class="rsvp-field">
-        <div class="rsvp-label">참 석</div>
+        <div class="rsvp-label">참 석 여 부</div>
         <div class="rsvp-radio-row">
           <label class="rsvp-radio-opt selected" id="rsvpAttYes">
             <input type="radio" name="attendance" value="참석" checked> 참석
           </label>
+          <label class="rsvp-radio-opt" id="rsvpAttNo">
+            <input type="radio" name="attendance" value="불참"> 불참
+          </label>
         </div>
       </div>
-      <div class="rsvp-field">
-        <div class="rsvp-label">메 모 (선택)</div>
-        <textarea class="rsvp-textarea" id="rsvpMemo" placeholder="전달하실 말씀이 있으면 입력해주세요" rows="3" maxlength="300"></textarea>
+      <div class="rsvp-field" id="rsvpCountField">
+        <div class="rsvp-label">인 원 수</div>
+        <div class="rsvp-count-row">
+          <button type="button" class="rsvp-count-btn" id="rsvpCountDn">−</button>
+          <span class="rsvp-count-val" id="rsvpCountVal">1</span>
+          <button type="button" class="rsvp-count-btn" id="rsvpCountUp">+</button>
+        </div>
       </div>
       <button type="submit" class="rsvp-submit" id="rsvpSubmit">참석 의사 전달하기</button>
     </form>
@@ -792,40 +799,72 @@ function initAccounts() {
 }
 
 function initRsvp() {
-  const modal   = document.getElementById('rsvpModal');
-  const openBtn = document.getElementById('rsvpOpenBtn');
+  const modal    = document.getElementById('rsvpModal');
+  const openBtn  = document.getElementById('rsvpOpenBtn');
   const closeBtn = document.getElementById('rsvpModalClose');
-  const form    = document.getElementById('rsvpForm');
+  const form     = document.getElementById('rsvpForm');
   if (!modal || !openBtn) return;
 
+  let rsvpCount = 1;
+
+  const getAttendance = () => document.querySelector('input[name="attendance"]:checked')?.value || '참석';
+
+  const resetModal = () => {
+    form.reset();
+    rsvpCount = 1;
+    document.getElementById('rsvpCountVal').textContent = '1';
+    document.getElementById('rsvpCountField').style.display = '';
+    document.getElementById('rsvpAttYes').classList.add('selected');
+    document.getElementById('rsvpAttNo').classList.remove('selected');
+    document.getElementById('rsvpSubmit').textContent = '참석 의사 전달하기';
+  };
+
   const openModal  = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
-  const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; };
+  const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; resetModal(); };
 
   openBtn.addEventListener('click', openModal);
   closeBtn?.addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
+  // 참석/불참 토글
+  document.querySelectorAll('.rsvp-radio-opt').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('.rsvp-radio-opt').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+      const attending = label.querySelector('input').value === '참석';
+      document.getElementById('rsvpCountField').style.display = attending ? '' : 'none';
+      document.getElementById('rsvpSubmit').textContent = attending ? '참석 의사 전달하기' : '불참 의사 전달하기';
+    });
+  });
+
+  // 인원수 +/-
+  document.getElementById('rsvpCountDn')?.addEventListener('click', () => {
+    if (rsvpCount > 1) { rsvpCount--; document.getElementById('rsvpCountVal').textContent = rsvpCount; }
+  });
+  document.getElementById('rsvpCountUp')?.addEventListener('click', () => {
+    if (rsvpCount < 20) { rsvpCount++; document.getElementById('rsvpCountVal').textContent = rsvpCount; }
+  });
+
   form?.addEventListener('submit', async e => {
     e.preventDefault();
     const name = document.getElementById('rsvpName').value.trim();
     if (!name) { showToast('이름을 입력해주세요'); return; }
+    const attendance = getAttendance();
+    const count = attendance === '참석' ? rsvpCount : 0;
     const btn = document.getElementById('rsvpSubmit');
     btn.disabled = true; btn.textContent = '전송 중...';
     try {
       await addDoc(collection(db,'rsvp'), {
-        name,
-        attendance: '참석',
-        memo: document.getElementById('rsvpMemo').value.trim(),
+        name, attendance, count,
         createdAt: new Date().toISOString(),
       });
       closeModal();
-      form.reset();
-      showToast(`${name}님의 참석 의사가 전달되었습니다`);
+      showToast(`${name}님의 ${attendance} 의사가 전달되었습니다`);
     } catch(err) {
       showToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
       console.error(err);
     }
-    btn.disabled = false; btn.textContent = '참석 의사 전달하기';
+    btn.disabled = false; btn.textContent = attendance === '참석' ? '참석 의사 전달하기' : '불참 의사 전달하기';
   });
 }
 

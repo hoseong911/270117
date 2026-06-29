@@ -477,6 +477,16 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 }
 .rsvp-submit:hover:not(:disabled) { background:#001d30; }
 .rsvp-submit:disabled { opacity:.5; cursor:not-allowed; }
+.rsvp-count-row { display:flex; align-items:center; justify-content:center; gap:1.2rem; padding:.6rem 0; }
+.rsvp-count-btn {
+  width:2.4rem; height:2.4rem; border-radius:50%;
+  border:1.5px solid var(--border); background:var(--bg2);
+  font-size:1.2rem; line-height:1; color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.rsvp-count-btn:active { background:var(--border); }
+.rsvp-count-val { font-size:1.4rem; font-family:var(--font-serif); min-width:2rem; text-align:center; color:var(--ink); }
 .rsvp-done { padding:2rem; font-size:.9rem; color:var(--ink2); line-height:2.1; }
 .rsvp-deadline { margin-top:1.2rem; font-size:.72rem; color:var(--ink2); }
 
