@@ -448,14 +448,18 @@ function renderAccounts(c) {
       <span class="account-group-title">${esc(title)}</span>
     </div>
     <div class="account-body">
-      ${items.map(a => `
+      ${items.map(a => {
+        const side = title.startsWith('신랑') ? '신랑' : title.startsWith('신부') ? '신부' : '';
+        const who = (side && a.who && !a.who.startsWith(side)) ? `${side} ${a.who}` : a.who;
+        return `
       <div class="account-item account-copy-btn"
         data-number="${esc(a.number)}"
         data-bank="${esc(a.bank)}"
         data-name="${esc(a.name)}">
-        <span class="account-who">${esc(a.who)}</span>
+        <span class="account-who">${esc(who)}</span>
         <span class="account-holder-name">${esc(a.name)}</span>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
   </div>`).join('');
   return `

@@ -374,17 +374,17 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-group { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .account-group-head {
   padding:.75rem 1.2rem; background:var(--bg2);
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex; align-items:center; justify-content:center;
 }
 .account-group-title { font-size:.7rem; color:var(--rose2); }
 .account-group[data-group="신부 측"] .account-group-title { color:#b5728a; }
 .account-group[data-group="신부 측"] .account-group-head { background:#fdf0f4; }
-.account-body { display:grid; grid-template-columns:auto 1fr; }
+.account-body { display:grid; grid-template-columns:auto auto; justify-content:center; }
 .account-item { display:contents; }
 .account-body span:nth-child(n+3) { border-top:1px solid var(--border); }
-.account-who { font-size:.85rem; color:var(--ink2); padding:.85rem .5rem .85rem 1rem; white-space:nowrap; }
+.account-who { font-size:.85rem; color:var(--ink2); padding:.85rem .4rem .85rem 0; white-space:nowrap; }
 .accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
-.account-holder-name { font-size:1.05rem; color:var(--ink); cursor:pointer; padding:.85rem 1rem .85rem .5rem; }
+.account-holder-name { font-size:1.05rem; color:var(--ink); cursor:pointer; padding:.85rem 0 .85rem .4rem; }
 .account-holder-name:active { opacity:.6; }
 .account-holder-name.copied { color:var(--rose2); }
 
