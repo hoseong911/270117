@@ -379,7 +379,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-group-title { font-size:.7rem; color:var(--rose2); text-align:center; }
 .account-group[data-group*="신부"] .account-group-title { color:#b5728a; }
 .account-group[data-group*="신부"] .account-group-head { background:#fdf0f4; }
-.account-body { display:grid; grid-template-columns:auto auto; justify-content:center; }
+.account-body { display:grid; grid-template-columns:auto auto; justify-content:center; align-items:baseline; }
 .account-item { display:contents; }
 .account-body span:nth-child(n+3) { border-top:1px solid var(--border); }
 .account-who { font-size:.85rem; color:var(--ink2); padding:.85rem .4rem .85rem 0; white-space:nowrap; }
