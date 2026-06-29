@@ -453,8 +453,8 @@ function renderAccounts(c) {
         data-number="${esc(a.number)}"
         data-bank="${esc(a.bank)}"
         data-name="${esc(a.name)}">
-        <div class="account-who">${esc(a.who.replace('아버지','아버님').replace('어머니','어머님'))}</div>
-        <div class="account-holder-name">${esc(a.name)}</div>
+        <span class="account-who">${esc(a.who)}</span>
+        <span class="account-holder-name">${esc(a.name)}</span>
       </div>`).join('')}
     </div>
   </div>`).join('');

@@ -380,10 +380,10 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-group[data-group="신부 측"] .account-group-title { color:#b5728a; }
 .account-group[data-group="신부 측"] .account-group-head { background:#fdf0f4; }
 .account-body { display:block; }
-.account-item { padding:.8rem 1rem 1rem; text-align:left; }
-.account-who { font-size:.65rem; color:var(--ink2); margin-bottom:.2rem; }
+.account-item { padding:.7rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.account-who { font-size:.65rem; color:var(--ink2); flex-shrink:0; }
 .accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
-.account-holder-name { font-size:.88rem; color:var(--ink); cursor:pointer; display:inline-block; }
+.account-holder-name { font-size:.88rem; color:var(--ink); cursor:pointer; text-align:right; }
 .account-holder-name:active { opacity:.6; }
 .account-holder-name.copied { color:var(--rose2); }
 
