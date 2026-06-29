@@ -1432,6 +1432,8 @@ function loadHdState() {
     const n = parseInt((c.id || '').replace('hdc_', '')) || 0;
     return Math.max(m, n);
   }, 0);
+  const photoInput = document.getElementById('hdp-photo');
+  if (photoInput) photoInput.value = currentConfig?.header?.photo || '';
 }
 
 // ── 자동 저장 ──────────────────────────────────────────
