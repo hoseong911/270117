@@ -1474,7 +1474,7 @@ function renderHdCanvas() {
       el.className = 'hd-el'; el.id = `hd-el-${cu.id}`; el.dataset.key = cu.id; el.dataset.custom = '1';
       el.addEventListener('mousedown', _hdMouseDown);
       el.addEventListener('touchstart', _hdTouchStart, { passive: false });
-      el.addEventListener('click', e => { e.stopPropagation(); selectHdEl(cu.id, e.ctrlKey || e.metaKey); });
+      el.addEventListener('click', e => { e.stopPropagation(); });
       canvas.appendChild(el);
     }
     el.textContent = cu.text || '텍스트';
