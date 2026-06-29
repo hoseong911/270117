@@ -371,7 +371,8 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 
 /* ── ACCOUNTS ── */
 .accounts-list { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
-.account-group { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.account-group { border-radius:var(--radius); overflow:hidden; }
+.account-group.open { border:1.5px solid var(--border); }
 .account-group-head {
   padding:.75rem 1.2rem; background:var(--bg2);
   display:flex; align-items:center; justify-content:space-between;
@@ -382,19 +383,12 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-toggle.open { transform:rotate(180deg); }
 .account-body { display:none; }
 .account-body.open { display:block; }
-.account-item {
-  padding:.8rem 1rem 1rem; border-top:none;
-  text-align:left;
-}
-.account-info { flex:1; }
+.account-item { padding:.8rem 1rem 1rem; text-align:left; }
 .account-who { font-size:.65rem; color:var(--ink2); margin-bottom:.2rem; }
-.account-number { font-size:.92rem; }
-.account-bank-name { font-size:.68rem; color:var(--ink2); margin-top:.1rem; }
-.account-number-display { font-size:.75rem; color:var(--ink2); margin-top:.4rem; line-height:1.7; }
 .accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
-.account-copy-btn { cursor:pointer; transition:background .15s; }
-.account-copy-btn:active { background:rgba(0,40,65,.06); }
-.account-copy-btn.copied { background:rgba(0,40,65,.06); }
+.account-holder-name { font-size:.88rem; color:var(--ink); cursor:pointer; display:inline-block; }
+.account-holder-name:active { opacity:.6; }
+.account-holder-name.copied { color:var(--rose2); }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {

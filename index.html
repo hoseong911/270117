@@ -740,25 +740,30 @@ function initGallery(c) {
 function initAccounts() {
   document.querySelectorAll('.account-group-head').forEach(head => {
     head.addEventListener('click', () => {
-      const gi   = head.dataset.gi;
-      const body = document.getElementById(`abody-${gi}`);
-      const tog  = document.getElementById(`atoggle-${gi}`);
+      const gi    = head.dataset.gi;
+      const body  = document.getElementById(`abody-${gi}`);
+      const tog   = document.getElementById(`atoggle-${gi}`);
+      const group = head.closest('.account-group');
       if (!body) return;
       const open = body.classList.toggle('open');
       tog?.classList.toggle('open', open);
+      group?.classList.toggle('open', open);
     });
   });
   document.querySelectorAll('.account-body').forEach((body, i) => {
     body.classList.add('open');
     document.getElementById(`atoggle-${i}`)?.classList.add('open');
+    body.closest('.account-group')?.classList.add('open');
   });
-  document.querySelectorAll('.account-copy-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const text = `${btn.dataset.bank} ${btn.dataset.number} ${btn.dataset.name}`;
+  document.querySelectorAll('.account-copy-btn').forEach(item => {
+    const nameEl = item.querySelector('.account-holder-name');
+    if (!nameEl) return;
+    nameEl.addEventListener('click', () => {
+      const text = `${item.dataset.bank} ${item.dataset.number} ${item.dataset.name}`;
       navigator.clipboard.writeText(text).then(() => {
-        btn.classList.add('copied');
+        nameEl.classList.add('copied');
         showToast('계좌번호가 복사되었습니다');
-        setTimeout(() => btn.classList.remove('copied'), 2000);
+        setTimeout(() => nameEl.classList.remove('copied'), 2000);
       }).catch(() => showToast('클립보드 복사에 실패했습니다'));
     });
   });
