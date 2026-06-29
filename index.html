@@ -442,19 +442,18 @@ function renderAccounts(c) {
     if (!groups[g]) groups[g] = [];
     groups[g].push(a);
   });
-  const html = Object.entries(groups).map(([title, items], gi) => `
-  <div class="account-group">
-    <div class="account-group-head" data-gi="${gi}">
+  const html = Object.entries(groups).map(([title, items]) => `
+  <div class="account-group" data-group="${esc(title)}">
+    <div class="account-group-head">
       <span class="account-group-title">${esc(title)}</span>
-      <span class="account-toggle" id="atoggle-${gi}">▾</span>
     </div>
-    <div class="account-body" id="abody-${gi}">
+    <div class="account-body">
       ${items.map(a => `
       <div class="account-item account-copy-btn"
         data-number="${esc(a.number)}"
         data-bank="${esc(a.bank)}"
         data-name="${esc(a.name)}">
-        <div class="account-who">${esc(a.who)}</div>
+        <div class="account-who">${esc(a.who.replace('아버지','아버님').replace('어머니','어머님'))}</div>
         <div class="account-holder-name">${esc(a.name)}</div>
       </div>`).join('')}
     </div>
@@ -738,23 +737,6 @@ function initGallery(c) {
 }
 
 function initAccounts() {
-  document.querySelectorAll('.account-group-head').forEach(head => {
-    head.addEventListener('click', () => {
-      const gi    = head.dataset.gi;
-      const body  = document.getElementById(`abody-${gi}`);
-      const tog   = document.getElementById(`atoggle-${gi}`);
-      const group = head.closest('.account-group');
-      if (!body) return;
-      const open = body.classList.toggle('open');
-      tog?.classList.toggle('open', open);
-      group?.classList.toggle('open', open);
-    });
-  });
-  document.querySelectorAll('.account-body').forEach((body, i) => {
-    body.classList.add('open');
-    document.getElementById(`atoggle-${i}`)?.classList.add('open');
-    body.closest('.account-group')?.classList.add('open');
-  });
   document.querySelectorAll('.account-copy-btn').forEach(item => {
     const nameEl = item.querySelector('.account-holder-name');
     if (!nameEl) return;
