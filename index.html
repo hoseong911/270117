@@ -214,6 +214,8 @@ const SECTION_NAV = {
 
 // ─── RENDERERS ────────────────────────────────────────
 
+const HEADER_VIDEO_SRC = 'main.mp4'; // 레포 루트에 넣어둔 영상을 항상 재생
+
 function renderHeader(c) {
   const hs = c.headerStyle || {};
   const photo = c.header?.photo;
@@ -224,6 +226,12 @@ function renderHeader(c) {
     `<div class="fadein"${buildStyle(cu)}>${esc(cu.text || '')}</div>`
   ).join('');
 
+  const videoIntro = `
+  <div class="header-video-wrap" id="headerVideoWrap"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}>
+    <video id="headerVideo" class="header-video" src="${HEADER_VIDEO_SRC}" autoplay playsinline muted preload="auto"${photo ? ` poster="${esc(photo)}"` : ''}></video>
+    <button class="header-video-mute" id="headerVideoMute" aria-label="소리 켜기/끄기">🔇</button>
+  </div>`;
+
   if (photo) {
     const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';
     return `
@@ -231,14 +239,14 @@ function renderHeader(c) {
   <div class="header-photo" style="background-image:url('${esc(photo)}')">
     <div class="header-photo-overlay"${overlayStyle}>${inner}
     </div>
-  </div>
+  </div>${videoIntro}
   <div class="header-scroll">SCROLL</div>
 </section>`;
   }
 
   return `
 <section id="sec-header"${hasDrag?' class="drag-mode"':''}>
-  ${inner}
+  ${inner}${videoIntro}
   <div class="header-scroll">SCROLL</div>
 </section>`;
 }
@@ -750,6 +758,29 @@ function initMapEmbed(config) {
   document.head.appendChild(loader);
 }
 
+function initHeaderVideo() {
+  const wrap = document.getElementById('headerVideoWrap');
+  if (!wrap) return;
+  const video   = document.getElementById('headerVideo');
+  const muteBtn = document.getElementById('headerVideoMute');
+
+  function dissolve() {
+    if (!wrap.isConnected) return;
+    wrap.classList.add('dissolve');
+    setTimeout(() => wrap.remove(), 1300);
+  }
+
+  video?.play().catch(() => {}); // 음소거 상태라 대부분 브라우저에서 자동재생 허용됨
+
+  muteBtn?.addEventListener('click', () => {
+    video.muted = !video.muted;
+    muteBtn.textContent = video.muted ? '🔇' : '🔊';
+  });
+
+  video?.addEventListener('ended', dissolve);
+  video?.addEventListener('error', dissolve); // 로드 실패 시 바로 사진으로
+}
+
 function initGallery(c) {
   const images = c.gallery?.images || [];
   if (!images.length) return;
@@ -982,6 +1013,7 @@ async function init() {
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
+  initHeaderVideo();
   initGallery(config);
   initAccounts();
   initRsvp();
