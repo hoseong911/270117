@@ -228,7 +228,7 @@ function renderHeader(c) {
 
   const videoIntro = `
   <div class="header-video-wrap" id="headerVideoWrap">
-    <video id="headerVideo" class="header-video" src="${HEADER_VIDEO_SRC}" autoplay playsinline muted preload="auto"></video>
+    <video id="headerVideo" class="header-video" src="${HEADER_VIDEO_SRC}" autoplay playsinline webkit-playsinline muted disablepictureinpicture disableremoteplayback preload="auto"></video>
     <button class="header-video-mute" id="headerVideoMute" aria-label="소리 켜기/끄기">🔇</button>
   </div>`;
 
