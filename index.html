@@ -227,8 +227,8 @@ function renderHeader(c) {
   ).join('');
 
   const videoIntro = `
-  <div class="header-video-wrap" id="headerVideoWrap"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}>
-    <video id="headerVideo" class="header-video" src="${HEADER_VIDEO_SRC}" autoplay playsinline muted preload="auto"${photo ? ` poster="${esc(photo)}"` : ''}></video>
+  <div class="header-video-wrap" id="headerVideoWrap">
+    <video id="headerVideo" class="header-video" src="${HEADER_VIDEO_SRC}" autoplay playsinline muted preload="auto"></video>
     <button class="header-video-mute" id="headerVideoMute" aria-label="소리 켜기/끄기">🔇</button>
   </div>`;
 
