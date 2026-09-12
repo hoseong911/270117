@@ -1093,26 +1093,27 @@ function maybeStartGbTicker() {
   const list = document.getElementById('gbList');
   if (!list) return;
   if (gbTicker) { clearInterval(gbTicker); gbTicker = null; }
-  if (list.scrollWidth - list.clientWidth <= 8) return;   // 넘칠 때만
+  const cards = list.querySelectorAll('.gb-item');
+  if (cards.length <= 1) return;   // 2장 이상일 때만 자동으로 넘김
   if (!list._tickBound) {
     list._tickBound = true;
     const pause = () => {
       list._paused = true;
       clearTimeout(list._resume);
-      list._resume = setTimeout(() => { list._paused = false; }, 2600);
+      list._resume = setTimeout(() => { list._paused = false; }, 4000);
     };
     list.addEventListener('pointerdown', pause);
     list.addEventListener('touchstart', pause, { passive: true });
     list.addEventListener('wheel', pause, { passive: true });
   }
+  // 한 장씩(전체 너비) 왼쪽으로 슥 넘어감, 끝에서 처음으로
   gbTicker = setInterval(() => {
     if (list._paused) return;
-    if (list.scrollLeft + list.clientWidth >= list.scrollWidth - 1) {
-      list.scrollTo({ left: 0, behavior: 'smooth' });
-    } else {
-      list.scrollLeft += 1;
-    }
-  }, 45);
+    const w = list.clientWidth || 1;
+    const cur = Math.round(list.scrollLeft / w);
+    const next = (cur + 1) >= cards.length ? 0 : cur + 1;
+    list.scrollTo({ left: next * w, behavior: 'smooth' });
+  }, 3800);
 }
 
 async function loadGuestbook(append = false) {

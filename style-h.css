@@ -124,23 +124,23 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 /* ── 방명록 가로 흐름(좌→우) ── */
 .gb-hwrap { margin-top:.4rem; }
 .gb-hlist {
-  display:flex; gap:.8rem;
+  display:flex; gap:0;
   overflow-x:auto; overflow-y:hidden;
-  padding:.2rem .2rem 1rem;
-  scroll-snap-type:x proximity;
+  padding:.2rem 0 1rem;
+  scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
 }
 .gb-hlist::-webkit-scrollbar { display:none; }
 .gb-hlist .gb-item {
-  flex:0 0 78%; max-width:260px;
-  scroll-snap-align:start;
+  flex:0 0 100%; width:100%; max-width:none;
+  scroll-snap-align:start; scroll-snap-stop:always;
   display:flex; flex-direction:column;
-  min-height:120px;
+  min-height:150px;
 }
 .gb-hlist .gb-msg {
   flex:1; overflow-y:auto;
-  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
+  display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical;
 }
 .gb-hlist .gb-empty { flex:0 0 100%; }
 .gb-hhint { font-size:.66rem; color:var(--ink2); margin-top:.2rem; opacity:.8; }
