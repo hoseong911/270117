@@ -15,6 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="270117">
   <meta name="theme-color" content="#f7f9fb">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-h.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Dancing+Script:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Great+Vibes&family=Alex+Brush&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Pinyon+Script&family=Sacramento&family=Cinzel+Decorative&family=Allura&family=Nanum+Brush+Script&family=Parisienne&family=Tangerine:wght@400;700&family=Satisfy&family=Petit+Formal+Script&family=Cinzel:wght@400;700&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Noto+Serif+KR:wght@300;400&family=Black+Han+Sans&family=Sunflower:wght@300;500;700&family=Song+Myung&family=Hahmlet:wght@400;700&display=swap" rel="stylesheet">
@@ -38,9 +39,16 @@
   </div>
 </nav>
 
-<main id="wedding"></main>
+<div id="hDeck"></div>
 
-<footer id="mainFooter">2027. 01. 17</footer>
+<!-- 좌우 이동 화살표 -->
+<button class="h-arrow h-arrow-left hidden" id="hPrev" aria-label="이전">‹</button>
+<button class="h-arrow h-arrow-right" id="hNext" aria-label="다음">›</button>
+
+<!-- 하단 진행 점 -->
+<div class="h-dots" id="hDots"></div>
+
+<footer id="mainFooter" style="display:none">2027. 01. 17</footer>
 
 <div id="toast"></div>
 
@@ -212,6 +220,11 @@ const SECTION_NAV = {
   guestbook: '방명록',
 };
 
+// 가로 버전: 방명록은 참석여부 페이지에 합쳐지므로 nav 타깃을 rsvp로 돌린다
+const NAV_TARGET = { guestbook: 'rsvp' };
+
+const GALLERY_THUMBS = 9; // 3×3
+
 // ─── RENDERERS ────────────────────────────────────────
 
 function renderHeader(c) {
@@ -224,6 +237,8 @@ function renderHeader(c) {
     `<div class="fadein"${buildStyle(cu)}>${esc(cu.text || '')}</div>`
   ).join('');
 
+  const hint = `<div class="h-swipe-hint"><span>‹</span>넘겨 보세요<span>›</span></div>`;
+
   if (photo) {
     const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';
     return `
@@ -232,14 +247,14 @@ function renderHeader(c) {
     <div class="header-photo-overlay"${overlayStyle}>${inner}
     </div>
   </div>
-  <div class="header-scroll">SCROLL</div>
+  ${hint}
 </section>`;
   }
 
   return `
 <section id="sec-header"${hasDrag?' class="drag-mode"':''}>
   ${inner}
-  <div class="header-scroll">SCROLL</div>
+  ${hint}
 </section>`;
 }
 
@@ -360,18 +375,22 @@ function renderLovestory(c) {
 
 function renderGallery(c) {
   const images = c.gallery?.images || [];
+  const shown = images.slice(0, GALLERY_THUMBS);
   const content = images.length
-    ? images.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
+    ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
     : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
+  const moreBtn = images.length
+    ? `<button class="gallery-more" id="galleryMore">사진 전체 보기${images.length > GALLERY_THUMBS ? ` (${images.length})` : ''}</button>`
+    : '';
   return `
 <section id="sec-gallery" class="fadein">
-  <div class="sec" style="padding-bottom:0">
+  <div class="sec">
     <div class="sec-label">Gallery</div>
     <div class="sec-title">갤러리</div>
     <div class="sec-divider"></div>
+    <div class="gallery-grid h-gallery-grid" id="galleryGrid">${content}</div>
+    ${moreBtn}
   </div>
-  <div class="gallery-grid" id="galleryGrid">${content}</div>
-  <div style="height:4rem"></div>
 </section>`;
 }
 
@@ -413,7 +432,6 @@ function renderSchedule(c) {
     <div class="schedule-list">
       ${items.map(it => `
       <div class="schedule-item">
-        <div class="schedule-icon">${it.icon}</div>
         <div class="schedule-body">
           <div class="schedule-label">${it.label}</div>
           <div class="schedule-text">${esc(it.text)}</div>
@@ -488,20 +506,6 @@ function renderAccounts(c) {
 </section>`;
 }
 
-function renderRsvp(c) {
-  const deadline = c.rsvp?.deadline || '';
-  return `
-<section id="sec-rsvp" class="fadein">
-  <div class="sec">
-    <div class="sec-label">RSVP</div>
-    <div class="sec-title">참석 여부</div>
-    <div class="sec-divider"></div>
-    <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
-    ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
-  </div>
-</section>`;
-}
-
 function renderFlowers(c) {
   const f = c.flowers || {};
   return `
@@ -516,16 +520,32 @@ function renderFlowers(c) {
 </section>`;
 }
 
-function renderGuestbook() {
-  return `
-<section id="sec-guestbook" class="fadein">
-  <div class="sec">
-    <div class="sec-label">Guestbook</div>
-    <div class="sec-title">방명록</div>
-    <div class="sec-divider"></div>
+// 참석여부 + 방명록을 한 페이지에
+function renderRsvpGuestbook(c, withGuestbook) {
+  const deadline = c.rsvp?.deadline || '';
+  const rsvpBlock = `
+    <div class="sec-block">
+      <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
+      ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
+    </div>`;
+  const gbBlock = withGuestbook ? `
+    <div class="sub-divider"></div>
+    <div class="h-mini-label">Guestbook</div>
+    <div class="h-mini-title">방명록</div>
     <button class="gb-open-btn" id="gbOpenBtn">방명록 남기기</button>
-    <div class="gb-list" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
-    <button class="gb-more" id="gbMore" style="display:none">더 보기</button>
+    <div class="gb-hwrap">
+      <div class="gb-hlist" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
+      <div style="text-align:center"><button class="gb-more gb-more-h" id="gbMore" style="display:none">더 보기</button></div>
+      <p class="gb-hhint">← 좌우로 넘겨 보세요 →</p>
+    </div>` : '';
+  return `
+<section id="sec-rsvp" class="fadein h-rsvp-gb">
+  <div class="sec">
+    <div class="sec-label">RSVP</div>
+    <div class="sec-title">참석 여부</div>
+    <div class="sec-divider"></div>
+    ${rsvpBlock}
+    ${gbBlock}
   </div>
 </section>`;
 }
@@ -541,9 +561,7 @@ const RENDERERS = {
   schedule:  renderSchedule,
   location:  renderLocation,
   accounts:  renderAccounts,
-  rsvp:      renderRsvp,
   flowers:   renderFlowers,
-  guestbook: (_c) => renderGuestbook(),
 };
 
 // ─── UTILITIES ────────────────────────────────────────
@@ -583,17 +601,90 @@ function deepMerge(target, source) {
   return out;
 }
 
-// ─── INIT FUNCTIONS ───────────────────────────────────
+// ─── HORIZONTAL DECK ──────────────────────────────────
+function initHDeck() {
+  const deck    = document.getElementById('hDeck');
+  const pages   = [...deck.querySelectorAll('.h-page')];
+  const dotsWrap = document.getElementById('hDots');
+  const prevBtn = document.getElementById('hPrev');
+  const nextBtn = document.getElementById('hNext');
+  const hasCover = document.body.classList.contains('has-cover');
+  const navItems = () => document.querySelectorAll('.nav-item');
 
+  dotsWrap.innerHTML = pages.map((p,i) =>
+    `<button class="h-dot" data-i="${i}" aria-label="${i+1}페이지"></button>`).join('');
+  const dots = [...dotsWrap.querySelectorAll('.h-dot')];
+
+  let cur = 0;
+  const pageW = () => deck.clientWidth || window.innerWidth;
+
+  function goto(i) {
+    i = Math.max(0, Math.min(pages.length - 1, i));
+    deck.scrollTo({ left: i * pageW(), behavior: 'smooth' });
+  }
+  function gotoPage(pageId) {
+    const idx = pages.findIndex(p => p.dataset.page === pageId);
+    if (idx >= 0) goto(idx);
+  }
+  window.__hGoto = gotoPage;
+
+  function setActive(i) {
+    cur = i;
+    dots.forEach((d,di) => d.classList.toggle('active', di === i));
+    dots[i]?.scrollIntoView({ inline:'center', block:'nearest' });
+    prevBtn.classList.toggle('hidden', i === 0);
+    nextBtn.classList.toggle('hidden', i === pages.length - 1);
+
+    const onHeader = pages[i]?.dataset.page === 'header';
+    if (hasCover) {
+      document.body.classList.toggle('nav-opaque', !onHeader);
+      document.body.classList.toggle('h-cover-active', onHeader);
+    }
+    // 상단 메뉴 active 표시
+    const activePage = pages[i]?.dataset.page;
+    navItems().forEach(b => {
+      const t = b.dataset.target;
+      b.classList.toggle('active', t === activePage || NAV_TARGET[t] === activePage);
+    });
+  }
+
+  let raf = null;
+  deck.addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = null;
+      const i = Math.round(deck.scrollLeft / pageW());
+      if (i !== cur) setActive(i);
+    });
+  }, { passive: true });
+
+  dots.forEach(d => d.addEventListener('click', () => goto(+d.dataset.i)));
+  prevBtn.addEventListener('click', () => goto(cur - 1));
+  nextBtn.addEventListener('click', () => goto(cur + 1));
+
+  document.addEventListener('keydown', e => {
+    if (document.querySelector('.wedding-modal.show, #galleryModal.show')) return;
+    if (e.key === 'ArrowRight') { goto(cur + 1); }
+    if (e.key === 'ArrowLeft')  { goto(cur - 1); }
+  });
+
+  window.addEventListener('resize', () => {
+    deck.scrollTo({ left: cur * pageW() });
+  });
+
+  setActive(0);
+}
+
+// ─── INIT FUNCTIONS ───────────────────────────────────
 function initNav(sections) {
-  const inner  = document.getElementById('navInner');
+  const inner   = document.getElementById('navInner');
   const menuBtn = document.getElementById('menuBtn');
   const drawer  = document.getElementById('menuDrawer');
 
   inner.innerHTML = sections
     .filter(s => s.enabled && SECTION_NAV[s.id])
     .sort((a,b) => a.order - b.order)
-    .map(s => `<button class="nav-item" data-target="sec-${s.id}">${SECTION_NAV[s.id]}</button>`)
+    .map(s => `<button class="nav-item" data-target="${NAV_TARGET[s.id] || s.id}">${SECTION_NAV[s.id]}</button>`)
     .join('');
 
   menuBtn.addEventListener('click', () => {
@@ -603,56 +694,11 @@ function initNav(sections) {
 
   inner.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      const el = document.getElementById(btn.dataset.target);
-      if (el) {
-        const navH = document.getElementById('mainNav').offsetHeight;
-        const y = el.getBoundingClientRect().top + window.scrollY - navH;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
+      window.__hGoto?.(btn.dataset.target);
       menuBtn.classList.remove('open');
       drawer.classList.remove('open');
     });
   });
-
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        inner.querySelectorAll('.nav-item').forEach(b => {
-          b.classList.toggle('active', b.dataset.target === e.target.id);
-        });
-      }
-    });
-  }, { threshold: 0.25 });
-  document.querySelectorAll('[id^="sec-"]').forEach(el => obs.observe(el));
-}
-
-function initScrollSnap() {
-  let snapTimer = null;
-  let snapping = false;
-
-  function nearestSection() {
-    const sy = window.scrollY;
-    let best = null, bestDist = Infinity;
-    document.querySelectorAll('section[id^="sec-"]').forEach(sec => {
-      const top = sec.getBoundingClientRect().top + sy;
-      const dist = Math.abs(top - sy);
-      if (dist < bestDist) { bestDist = dist; best = { top, dist }; }
-    });
-    return best;
-  }
-
-  window.addEventListener('scroll', () => {
-    if (snapping) return;
-    clearTimeout(snapTimer);
-    snapTimer = setTimeout(() => {
-      const target = nearestSection();
-      // 섹션 높이의 55% 이상 벗어난 경우만 snap (긴 섹션 내부 스크롤 허용)
-      if (!target || target.dist < 4 || target.dist > window.innerHeight * 0.55) return;
-      snapping = true;
-      window.scrollTo({ top: target.top, behavior: 'smooth' });
-      setTimeout(() => { snapping = false; }, 900);
-    }, 80);
-  }, { passive: true });
 }
 
 function initFadeIn() {
@@ -771,6 +817,7 @@ function initGallery(c) {
     const cell = e.target.closest('.gallery-cell');
     if (cell) open(+cell.dataset.idx);
   });
+  document.getElementById('galleryMore')?.addEventListener('click', () => open(0));
   document.getElementById('modalClose')?.addEventListener('click', close);
   document.getElementById('modalPrev')?.addEventListener('click', () => open(current - 1));
   document.getElementById('modalNext')?.addEventListener('click', () => open(current + 1));
@@ -781,6 +828,19 @@ function initGallery(c) {
     if (e.key === 'ArrowRight') open(current + 1);
     if (e.key === 'Escape')     close();
   });
+
+  // 모달 좌우 스와이프
+  let sx = 0, sy = 0;
+  img.addEventListener('touchstart', e => {
+    sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY;
+  }, { passive: true });
+  img.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      open(dx < 0 ? current + 1 : current - 1);
+    }
+  }, { passive: true });
 }
 
 function initAccounts() {
@@ -826,7 +886,6 @@ function initRsvp() {
   closeBtn?.addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
-  // 참석/불참 토글
   document.querySelectorAll('.rsvp-radio-opt').forEach(label => {
     label.addEventListener('click', () => {
       document.querySelectorAll('.rsvp-radio-opt').forEach(l => l.classList.remove('selected'));
@@ -837,7 +896,6 @@ function initRsvp() {
     });
   });
 
-  // 인원수 +/-
   document.getElementById('rsvpCountDn')?.addEventListener('click', () => {
     if (rsvpCount > 1) { rsvpCount--; document.getElementById('rsvpCountVal').textContent = rsvpCount; }
   });
@@ -897,11 +955,12 @@ async function loadGuestbook(append = false) {
       list.appendChild(el);
     });
     gbLastDoc = snap.docs[snap.docs.length - 1];
-    if (more) more.style.display = snap.docs.length < GB_PER_PAGE ? 'none' : 'block';
+    if (more) more.style.display = snap.docs.length < GB_PER_PAGE ? 'none' : 'inline-block';
   } catch(err) { console.error('guestbook load error', err); }
 }
 
 function initGuestbook() {
+  if (!document.getElementById('gbList')) return;
   loadGuestbook();
   document.getElementById('gbMore')?.addEventListener('click', () => loadGuestbook(true));
 
@@ -943,6 +1002,35 @@ function initGuestbook() {
   });
 }
 
+// ─── PAGE BUILDER ─────────────────────────────────────
+function wrapPage(id, html) {
+  const cls = id === 'header' ? 'h-page h-page--header' : 'h-page';
+  return `<div class="${cls}" data-page="${id}"><div class="h-page-inner">${html}</div></div>`;
+}
+
+function buildPages(config, sections) {
+  const enabled = sections.filter(s => s.enabled).sort((a,b) => a.order - b.order);
+  const gbEnabled = enabled.some(s => s.id === 'guestbook');
+  const out = [];
+  let gbHandled = false;
+
+  for (const s of enabled) {
+    if (s.id === 'guestbook') continue; // 참석여부 페이지에 합침
+    if (s.id === 'rsvp') {
+      out.push(wrapPage('rsvp', renderRsvpGuestbook(config, gbEnabled)));
+      gbHandled = gbEnabled;
+      continue;
+    }
+    const html = RENDERERS[s.id]?.(config);
+    if (html) out.push(wrapPage(s.id, html));
+  }
+  // 방명록만 켜져 있고 참석여부는 꺼진 경우 단독 페이지
+  if (gbEnabled && !gbHandled) {
+    out.push(wrapPage('rsvp', renderRsvpGuestbook(config, true)));
+  }
+  return out.join('');
+}
+
 // ─── MAIN ─────────────────────────────────────────────
 async function init() {
   let config = JSON.parse(JSON.stringify(DEFAULT));
@@ -956,7 +1044,6 @@ async function init() {
     console.warn('Config load failed, using defaults:', e.message);
   }
 
-  // 브라우저 제목 및 메타 태그 업데이트
   const h = config.header || {};
   if (h.title) {
     document.title = h.title;
@@ -964,21 +1051,16 @@ async function init() {
   }
   if (h.ogDesc)  document.querySelector('meta[property="og:description"]')?.setAttribute('content', h.ogDesc);
   if (h.ogImage) document.querySelector('meta[property="og:image"]')?.setAttribute('content', h.ogImage);
-  const footerEl = document.getElementById('mainFooter');
-  if (footerEl && h.footer) footerEl.textContent = h.footer;
 
   const sections = (config.sections || DEFAULT.sections).slice().sort((a,b) => a.order - b.order);
-  const wedding  = document.getElementById('wedding');
-  wedding.innerHTML = sections
-    .filter(s => s.enabled)
-    .map((s, i, arr) => {
-      const html = RENDERERS[s.id]?.(config) || '';
-      return i < arr.length - 1 ? html + '<div class="sec-sep"></div>' : html;
-    })
-    .join('');
+
+  if (config.header?.photo) document.body.classList.add('has-cover');
+
+  const deck = document.getElementById('hDeck');
+  deck.innerHTML = buildPages(config, sections);
 
   initNav(sections);
-  initScrollSnap();
+  initHDeck();
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
@@ -986,17 +1068,6 @@ async function init() {
   initAccounts();
   initRsvp();
   initGuestbook();
-
-  if (config.header?.photo) {
-    document.body.classList.add('has-cover');
-    const headerEl = document.getElementById('sec-header');
-    if (headerEl) {
-      new IntersectionObserver(([e]) =>
-        document.body.classList.toggle('nav-opaque', !e.isIntersecting),
-        { threshold: 0.05 }
-      ).observe(headerEl);
-    }
-  }
 
   const loading = document.getElementById('loadingScreen');
   loading.classList.add('hidden');

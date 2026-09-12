@@ -1,0 +1,163 @@
+/* ========================================================
+   270117 웨딩 청첩장 — 가로 슬라이드(책 넘김) 레이아웃
+   style.css 위에 얹어 쓰는 오버레이 스타일
+   ======================================================== */
+
+html { scroll-behavior:auto; }
+body {
+  overflow:hidden;              /* 세로 스크롤 잠금, 페이지 내부만 스크롤 */
+  height:100svh;
+  box-shadow:0 0 60px rgba(0,0,0,.15);
+}
+
+/* ── 가로 덱(페이지 컨테이너) ── */
+#hDeck {
+  display:flex;
+  height:100svh;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  overscroll-behavior-x:contain;
+}
+#hDeck::-webkit-scrollbar { display:none; }
+
+.h-page {
+  flex:0 0 100%;
+  width:100%;
+  height:100svh;
+  scroll-snap-align:center;
+  scroll-snap-stop:always;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  position:relative;
+}
+.h-page::-webkit-scrollbar { display:none; }
+
+/* 내용이 짧으면 세로 중앙, 길면 위에서부터 흐르고 페이지 내부 스크롤 */
+.h-page-inner {
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+/* 페이지 안 섹션은 자체 100vh 강제 해제 (덱이 높이를 책임짐) */
+.h-page section { min-height:auto; }
+.h-page .sec { padding:3.2rem 1.4rem; }
+
+/* ── 헤더(표지) 페이지 ── */
+.h-page--header { overflow:hidden; }
+.h-page--header .h-page-inner { display:block; min-height:100%; }
+.h-page--header #sec-header,
+.h-page--header #sec-header.has-photo { min-height:100svh; }
+.h-swipe-hint {
+  position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+  font-size:.6rem; letter-spacing:.18em; color:var(--ink2);
+  display:flex; align-items:center; gap:.5rem;
+  animation:hSwipeHint 2s ease-in-out infinite;
+}
+.h-swipe-hint span { font-size:.9rem; }
+@keyframes hSwipeHint {
+  0%,100% { opacity:.35; transform:translateX(-50%); }
+  50%     { opacity:.85; transform:translateX(calc(-50% + 6px)); }
+}
+body.has-cover .h-swipe-hint { color:rgba(255,255,255,.85); text-shadow:0 1px 6px rgba(0,0,0,.4); }
+
+/* ── 좌우 화살표 ── */
+.h-arrow {
+  position:fixed; top:50%; transform:translateY(-50%);
+  z-index:200; width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.55); color:var(--rose);
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; line-height:1;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  transition:opacity .25s, background .2s;
+  box-shadow:0 2px 10px rgba(0,28,56,.12);
+}
+.h-arrow:hover { background:rgba(255,255,255,.85); }
+.h-arrow.hidden { opacity:0; pointer-events:none; }
+.h-arrow-left  { left:max(.6rem, calc(50vw - 240px + .6rem)); }
+.h-arrow-right { right:max(.6rem, calc(50vw - 240px + .6rem)); }
+@media (max-width:520px) {
+  .h-arrow-left  { left:.5rem; }
+  .h-arrow-right { right:.5rem; }
+}
+body.has-cover.h-cover-active .h-arrow {
+  background:rgba(0,0,0,.3); color:#fff; border-color:rgba(255,255,255,.3);
+}
+
+/* ── 하단 진행 점 ── */
+.h-dots {
+  position:fixed; bottom:1rem; left:50%; transform:translateX(-50%);
+  z-index:200; display:flex; gap:.4rem; align-items:center;
+  padding:.4rem .7rem; border-radius:100px;
+  background:rgba(247,249,251,.7);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  max-width:calc(100vw - 6rem); overflow-x:auto; scrollbar-width:none;
+}
+.h-dots::-webkit-scrollbar { display:none; }
+.h-dot {
+  width:6px; height:6px; border-radius:50%; flex:0 0 auto;
+  background:var(--gold2); border:none; padding:0;
+  transition:all .25s;
+}
+.h-dot.active { width:18px; border-radius:100px; background:var(--rose); }
+
+/* ── 갤러리(3x3 + 더보기) ── */
+.h-gallery-grid { grid-template-columns:repeat(3,1fr); }
+.gallery-more {
+  display:inline-block; margin:.9rem auto 0;
+  padding:.5rem 1.3rem; border:1px solid var(--border);
+  border-radius:100px; background:none;
+  font-size:.72rem; color:var(--ink2); transition:all .2s;
+}
+.gallery-more:hover { border-color:var(--rose); color:var(--rose); }
+
+/* ── 방명록 가로 흐름(좌→우) ── */
+.gb-hwrap { margin-top:.4rem; }
+.gb-hlist {
+  display:flex; gap:.8rem;
+  overflow-x:auto; overflow-y:hidden;
+  padding:.2rem .2rem 1rem;
+  scroll-snap-type:x proximity;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.gb-hlist::-webkit-scrollbar { display:none; }
+.gb-hlist .gb-item {
+  flex:0 0 78%; max-width:260px;
+  scroll-snap-align:start;
+  display:flex; flex-direction:column;
+  min-height:120px;
+}
+.gb-hlist .gb-msg {
+  flex:1; overflow-y:auto;
+  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
+}
+.gb-hlist .gb-empty { flex:0 0 100%; }
+.gb-hhint { font-size:.66rem; color:var(--ink2); margin-top:.2rem; opacity:.8; }
+.gb-more-h {
+  width:auto; display:inline-block;
+  margin:.6rem auto 0; padding:.5rem 1.3rem; white-space:nowrap;
+}
+
+/* 참석여부 + 방명록 합친 페이지 간격 */
+.h-rsvp-gb .sec-block + .sec-block { margin-top:2.4rem; }
+.h-rsvp-gb .sub-divider {
+  width:36px; height:1px; background:var(--gold2); margin:2.4rem auto 1.6rem;
+}
+.h-mini-label {
+  font-family:var(--font-script); font-size:1rem; color:var(--gold);
+  text-align:center; margin-bottom:.2rem;
+}
+.h-mini-title {
+  font-family:var(--font-serif); font-size:1.2rem; color:var(--ink);
+  text-align:center; margin-bottom:1.2rem;
+}
+
+/* 헤더 나침반(햄버거) 은 세로 버전 그대로 fixed 사용 */
