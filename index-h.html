@@ -954,23 +954,36 @@ function initBgm() {
   const audio = document.getElementById('bgm');
   const btn = document.getElementById('bgmBtn');
   if (!audio || !btn) return;
-  const sync = () => btn.classList.toggle('playing', !audio.paused);
-  audio.addEventListener('play', sync);
-  audio.addEventListener('pause', sync);
+
+  const audible = () => !audio.paused && !audio.muted;
+  const sync = () => btn.classList.toggle('playing', audible());
+  ['play', 'pause', 'volumechange'].forEach(ev => audio.addEventListener(ev, sync));
   // 파일이 실제로 로드돼 재생 가능할 때만 버튼 노출(파일 없으면 숨김)
   audio.addEventListener('canplay', () => btn.classList.add('ready'));
-  btn.addEventListener('click', () => {
-    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
-  });
-  // 자동재생은 대개 차단됨 → 로드 직후 1회 + 첫 화면 탭에서 1회 시도
+
+  // 1) 음소거 자동재생은 브라우저가 허용 → 미리 재생 시작
+  audio.muted = true;
   audio.play().catch(() => {});
-  let kicked = false;
-  const kick = () => {
-    if (kicked) return; kicked = true;
+
+  // 2) 첫 사용자 제스처에서 음소거 해제 = "자동재생처럼" 소리 시작
+  let done = false;
+  const events = ['pointerdown', 'touchstart', 'click', 'keydown', 'scroll'];
+  const removeGestures = () => events.forEach(ev => window.removeEventListener(ev, unmute, true));
+  function unmute(e) {
+    if (e && e.target && e.target.closest && e.target.closest('#bgmBtn')) return; // 버튼은 버튼 핸들러가 처리
+    if (done) return; done = true;
+    audio.muted = false;
     audio.play().catch(() => {});
-    document.removeEventListener('pointerdown', kick);
-  };
-  document.addEventListener('pointerdown', kick);
+    removeGestures();
+  }
+  events.forEach(ev => window.addEventListener(ev, unmute, { capture: true, passive: true }));
+
+  // 버튼: 소리 켜기/끄기(음소거 토글)
+  btn.addEventListener('click', () => {
+    done = true;
+    if (audible()) { audio.muted = true; }
+    else { audio.muted = false; audio.play().catch(() => {}); }
+  });
 }
 
 function initLocationDirections() {
