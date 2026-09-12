@@ -300,7 +300,7 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 /* 인트로에선 필름을 사진 위에 겹치고, 필름 여백(배경)은 투명 */
 .h-intro .film-strip {
   position:absolute; left:-13%; right:-13%; width:auto; margin-left:0;
-  bottom:9%;
+  bottom:30px;
   background:transparent;
   z-index:2;
 }
