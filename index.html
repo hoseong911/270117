@@ -23,9 +23,8 @@
 </head>
 <body>
 
-<div id="loadingScreen">
-  <div class="loading-text">준 비 중</div>
-</div>
+<div id="loadingScreen"></div>
+<div id="whiteWash"></div>
 
 <!-- 배경음악 (bgm.mp3 를 레포에 올리면 재생) -->
 <audio id="bgm" src="https://raw.githubusercontent.com/hoseong911/270117/main/bgm.mp3" loop preload="auto"></audio>
@@ -97,7 +96,7 @@
     <div style="display:flex;flex-direction:column;gap:.8rem;">
       <input class="rsvp-input" id="gbName" placeholder="이름" maxlength="20">
       <textarea class="rsvp-input rsvp-textarea" id="gbMsg"
-        placeholder="축하 메시지를 남겨주세요" rows="4" maxlength="200"
+        placeholder="축하 메시지를 남겨주세요 (최대 140자)" rows="4" maxlength="140"
         style="resize:vertical"></textarea>
       <button class="gb-submit" id="gbSubmit">방명록 남기기</button>
     </div>
@@ -489,10 +488,10 @@ function renderLocation(c) {
   ].filter(Boolean);
   const dir = w.directions || {};
   const cats = [
-    { key: 'car',    label: '자차 이용',          text: dir.car },
-    { key: 'subway', label: '지하철 이용',        text: dir.subway },
-    { key: 'bus',    label: '버스 이용',          text: dir.bus },
-    { key: 'outer',  label: '타지에서 오시는 경우', text: dir.outer },
+    { key: 'car',    label: '자차',   text: dir.car },
+    { key: 'subway', label: '지하철', text: dir.subway },
+    { key: 'bus',    label: '버스',   text: dir.bus },
+    { key: 'outer',  label: '타지',   text: dir.outer },
   ].filter(x => x.text && x.text.trim());
   const detail = cats.length ? `
     <div class="loc-dir" id="locDir">
@@ -651,9 +650,11 @@ function deepMerge(target, source) {
 
 // ─── GITHUB 이미지 자동 로딩 ───────────────────────────
 // images 폴더 번호 규칙:
-//   0.jpg            → 메인(표지) 사진
+//   0.jpg            → 준비중(로딩) 사진
+//   1.jpg            → 메인(표지) 사진
+//   2.jpg            → 인트로 사진
 //   01.jpg,02.jpg…   → 웨딩(오늘의 주인공 썸네일) 사진
-//   001.jpg,002.jpg… → 필름(인삿말 화면) 사진
+//   001.jpg,002.jpg… → 필름 사진
 const GH_IMG_BASE = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/';
 
 function imgExists(url) {
@@ -687,13 +688,13 @@ async function probeSeries(pad) {
 async function applyGithubImages(config) {
   try {
     const [coverOk, wedding, film, introOk] = await Promise.race([
-      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + '1.jpg') ]),
+      Promise.all([ imgExists(GH_IMG_BASE + '1.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + '2.jpg') ]),
       new Promise(r => setTimeout(() => r([false, [], [], false]), 7000)),
     ]);
-    if (coverOk)        config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '0.jpg' };
+    if (coverOk)        config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '1.jpg' };
     if (wedding.length) config.gallery = { images: wedding };
     if (film.length)    config.film    = { images: film };
-    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + '1.jpg' };
+    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + '2.jpg' };
   } catch (e) {
     console.warn('github 이미지 로딩 실패:', e);
   }
@@ -736,15 +737,38 @@ function initHDeck() {
     });
   }
 
+  // 책장 넘기듯: 스크롤 위치에 따라 각 페이지를 3D로 회전
+  function applyFlip() {
+    const w = pageW();
+    const sl = deck.scrollLeft;
+    for (let i = 0; i < pages.length; i++) {
+      const d = (i * w - sl) / w;                 // 현재 페이지 기준 0
+      const c = Math.max(-1, Math.min(1, d));
+      const p = pages[i];
+      p.style.transform = `rotateY(${c * -26}deg) scale(${1 - Math.abs(c) * 0.05})`;
+      p.style.zIndex = String(100 - Math.round(Math.abs(d)));
+    }
+  }
+
   let raf = null;
   deck.addEventListener('scroll', () => {
     if (raf) return;
     raf = requestAnimationFrame(() => {
       raf = null;
+      applyFlip();
       const i = Math.round(deck.scrollLeft / pageW());
       if (i !== cur) setActive(i);
     });
   }, { passive: true });
+
+  // 메인(표지)에서 아무 곳이나 탭/클릭하면 다음 페이지로
+  const headerIdx = pages.findIndex(p => p.dataset.page === 'header');
+  if (headerIdx >= 0) {
+    pages[headerIdx].addEventListener('click', (e) => {
+      if (e.target.closest('#menuBtn, #mainNav, #bgmBtn, a, button')) return;
+      goto(headerIdx + 1);
+    });
+  }
 
   document.addEventListener('keydown', e => {
     if (document.querySelector('.wedding-modal.show, #galleryModal.show')) return;
@@ -754,9 +778,11 @@ function initHDeck() {
 
   window.addEventListener('resize', () => {
     deck.scrollTo({ left: cur * pageW() });
+    applyFlip();
   });
 
   setActive(0);
+  applyFlip();
 }
 
 // ─── INIT FUNCTIONS ───────────────────────────────────
@@ -911,10 +937,12 @@ function initGallery(c) {
     img.src = images[current];
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');   // 뒤 덱 스크롤 고정
   };
   const close = () => {
     modal.classList.remove('show');
     document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
     img.src = '';
   };
   document.getElementById('galleryGrid')?.addEventListener('click', e => {
@@ -978,6 +1006,14 @@ function initBgm() {
     started = true;
     if (audio.paused) tryPlay(); else audio.pause();
   });
+
+  // 홈화면으로 나가거나 화면을 끄면(탭 숨김) 음악 정지, 돌아오면 재생 중이던 경우만 재개
+  let wasPlaying = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { wasPlaying = !audio.paused; audio.pause(); }
+    else if (wasPlaying) { tryPlay(); }
+  });
+  window.addEventListener('pagehide', () => audio.pause());
 }
 
 function initLocationDirections() {
@@ -1084,33 +1120,24 @@ function initRsvp() {
 let gbLastDoc = null;
 const GB_PER_PAGE = 10;
 
-// 방명록 자동 가로 흐름(넘칠 때만, 손대면 잠깐 멈춤)
-let gbTicker = null;
+// 방명록: 필름처럼 천천히 연속으로 흐르는 마퀴(끊김 없이 루프)
 function maybeStartGbTicker() {
   const list = document.getElementById('gbList');
-  if (!list) return;
-  if (gbTicker) { clearInterval(gbTicker); gbTicker = null; }
-  const cards = list.querySelectorAll('.gb-item');
-  if (cards.length <= 1) return;   // 2장 이상일 때만 자동으로 넘김
-  if (!list._tickBound) {
-    list._tickBound = true;
-    const pause = () => {
-      list._paused = true;
-      clearTimeout(list._resume);
-      list._resume = setTimeout(() => { list._paused = false; }, 4000);
-    };
-    list.addEventListener('pointerdown', pause);
-    list.addEventListener('touchstart', pause, { passive: true });
-    list.addEventListener('wheel', pause, { passive: true });
-  }
-  // 한 장씩(전체 너비) 왼쪽으로 슥 넘어감, 끝에서 처음으로
-  gbTicker = setInterval(() => {
-    if (list._paused) return;
-    const w = list.clientWidth || 1;
-    const cur = Math.round(list.scrollLeft / w);
-    const next = (cur + 1) >= cards.length ? 0 : cur + 1;
-    list.scrollTo({ left: next * w, behavior: 'smooth' });
-  }, 3800);
+  if (!list || list._track) return;
+  const items = [...list.querySelectorAll('.gb-item')];
+  if (items.length < 2) return;   // 2장 이상일 때만 흐름
+  const track = document.createElement('div');
+  track.className = 'gb-track';
+  items.forEach(it => track.appendChild(it));
+  items.forEach(it => track.appendChild(it.cloneNode(true)));   // 이음새 없는 루프용 복제
+  list.innerHTML = '';
+  list.appendChild(track);
+  list._track = track;
+  requestAnimationFrame(() => {
+    const oneSet = track.scrollWidth / 2;
+    const speed = 26;   // px/초 (천천히)
+    track.style.animationDuration = Math.max(12, oneSet / speed) + 's';
+  });
 }
 
 async function loadGuestbook(append = false) {
@@ -1121,10 +1148,10 @@ async function loadGuestbook(append = false) {
     let q = query(collection(db,'guestbook'), where('status','==','approved'), orderBy('createdAt','desc'), limit(GB_PER_PAGE));
     if (append && gbLastDoc) q = query(collection(db,'guestbook'), where('status','==','approved'), orderBy('createdAt','desc'), startAfter(gbLastDoc), limit(GB_PER_PAGE));
     const snap = await getDocs(q);
-    if (!append) list.innerHTML = '';
+    if (!append) { list.innerHTML = ''; list._track = null; }
+    if (more) more.style.display = 'none';   // 흐름 방식이라 더보기 미사용
     if (snap.empty && !append) {
       list.innerHTML = '<div class="gb-empty">첫 번째 메시지를 남겨주세요</div>';
-      if (more) more.style.display = 'none';
       return;
     }
     snap.docs.forEach(d => {
@@ -1139,7 +1166,6 @@ async function loadGuestbook(append = false) {
       list.appendChild(el);
     });
     gbLastDoc = snap.docs[snap.docs.length - 1];
-    if (more) more.style.display = snap.docs.length < GB_PER_PAGE ? 'none' : 'inline-block';
     setTimeout(maybeStartGbTicker, 300);
   } catch(err) { console.error('guestbook load error', err); }
 }
@@ -1277,9 +1303,19 @@ async function init() {
 
   initBgm();
 
+  // 준비중(0.jpg) ~1초 노출 → 흰색으로 밝아짐 → 흰화면에서 1.5초 페이드인
   const loading = document.getElementById('loadingScreen');
-  loading.classList.add('hidden');
-  setTimeout(() => loading.remove(), 1100);
+  const wash = document.getElementById('whiteWash');
+  setTimeout(() => {
+    if (wash) wash.classList.add('white');        // 0.5초 동안 흰색으로
+    setTimeout(() => {
+      if (loading) loading.remove();
+      if (wash) {
+        wash.classList.add('reveal');             // 흰화면에서 1.5초 페이드인
+        setTimeout(() => wash.remove(), 1700);
+      }
+    }, 500);
+  }, 1000);
 }
 
 init().catch(console.error);
