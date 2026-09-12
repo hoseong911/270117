@@ -37,13 +37,16 @@ body {
 }
 .h-page::-webkit-scrollbar { display:none; }
 
-/* 내용이 짧으면 세로 중앙, 길면 위에서부터 흐르고 페이지 내부 스크롤 */
+/* 모든 페이지를 위쪽부터 정렬 (시작 지점 통일) */
 .h-page-inner {
   min-height:100%;
   display:flex;
   flex-direction:column;
-  justify-content:center;
+  justify-content:flex-start;
 }
+
+/* 가로 모드에선 페이지가 순수하게 슬라이드만 (떠오르는 fadein 모션 제거) */
+.h-page .fadein { opacity:1 !important; transform:none !important; }
 
 /* 페이지 안 섹션은 자체 100vh 강제 해제 (덱이 높이를 책임짐) */
 .h-page section { min-height:auto; }
@@ -54,6 +57,8 @@ body {
 .h-page--header .h-page-inner { display:block; min-height:100%; }
 .h-page--header #sec-header,
 .h-page--header #sec-header.has-photo { min-height:100svh; }
+/* 가로 모드: 커버 사진 아래 그라데이션 제거 */
+.h-page--header .header-photo-overlay { background:none; }
 /* ── 첫 화면 넘김 힌트 (우측 하단, 흐릿하게 천천히 깜빡) ── */
 .h-next-hint {
   position:absolute; right:1.4rem; bottom:1.6rem;
@@ -129,4 +134,33 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
   text-align:center; margin-bottom:1.2rem;
 }
 
-/* 헤더 나침반(햄버거) 은 세로 버전 그대로 fixed 사용 */
+/* ── 섹션 영문 라벨 통일 (대문자 + 동일 크기) ── */
+.h-page .sec-label,
+.h-mini-label {
+  font-family:var(--font-ui);
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  font-size:.7rem;
+  font-weight:500;
+  color:var(--gold);
+  margin-bottom:.55rem;
+}
+
+/* ── 햄버거 메뉴: 보일듯 말듯 연하게 ── */
+#menuBtn span { background:rgba(28,37,53,.38) !important; }
+body.has-cover.h-cover-active #menuBtn span { background:rgba(255,255,255,.55) !important; }
+
+/* ── 모달을 480px 프레임 안에 가두고 배경을 블러(뿌옇게) 처리 ── */
+#galleryModal {
+  left:50%; right:auto; transform:translateX(-50%);
+  width:min(100vw,480px);
+  background:rgba(20,28,45,.4);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+#galleryImg { max-width:90%; max-height:80svh; }
+.wedding-modal {
+  left:50%; right:auto; transform:translateX(-50%);
+  width:min(100vw,480px);
+  background:rgba(20,28,45,.35);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+}
