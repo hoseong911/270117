@@ -285,7 +285,8 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 }
 
 /* ── 인트로: 메인 다음 사진 화면(사진 + 하단 사선 필름) ── */
-.h-intro {
+/* .h-page section { min-height:auto } 보다 우선하도록 .h-page 로 한정 */
+.h-page .h-intro {
   min-height:100svh;
   display:flex;
   flex-direction:column;
@@ -308,9 +309,10 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 
 .film-strip {
   flex:0 0 auto;
-  width:118%;
-  margin-left:-9%;
-  transform:rotate(-3.5deg);   /* 사선으로 흐르게 */
+  width:126%;
+  margin-left:-13%;
+  padding:22px 0;              /* 회전 시 프레임 상하가 잘리지 않게 여백 */
+  transform:rotate(-3deg);     /* 사선으로 흐르게 */
   overflow:hidden;
   background:#0d0c0a;
   position:relative;
