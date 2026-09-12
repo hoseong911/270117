@@ -24,9 +24,15 @@
 <body>
 
 <div id="loadingScreen">
-  <div class="loading-deco">✦</div>
   <div class="loading-text">준 비 중</div>
 </div>
+
+<!-- 메인 입장 시 플래시 -->
+<div id="flash"></div>
+
+<!-- 배경음악 (bgm.mp3 를 레포에 올리면 재생) -->
+<audio id="bgm" src="https://raw.githubusercontent.com/hoseong911/270117/main/bgm.mp3" loop preload="auto"></audio>
+<button id="bgmBtn" aria-label="배경음악 켜기/끄기"><i></i><i></i><i></i></button>
 
 <nav id="mainNav">
   <div id="navBar">
@@ -944,6 +950,29 @@ function initGallery(c) {
   }, { passive: true });
 }
 
+function initBgm() {
+  const audio = document.getElementById('bgm');
+  const btn = document.getElementById('bgmBtn');
+  if (!audio || !btn) return;
+  const sync = () => btn.classList.toggle('playing', !audio.paused);
+  audio.addEventListener('play', sync);
+  audio.addEventListener('pause', sync);
+  // 파일이 실제로 로드돼 재생 가능할 때만 버튼 노출(파일 없으면 숨김)
+  audio.addEventListener('canplay', () => btn.classList.add('ready'));
+  btn.addEventListener('click', () => {
+    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+  });
+  // 자동재생은 대개 차단됨 → 로드 직후 1회 + 첫 화면 탭에서 1회 시도
+  audio.play().catch(() => {});
+  let kicked = false;
+  const kick = () => {
+    if (kicked) return; kicked = true;
+    audio.play().catch(() => {});
+    document.removeEventListener('pointerdown', kick);
+  };
+  document.addEventListener('pointerdown', kick);
+}
+
 function initLocationDirections() {
   const box = document.getElementById('locDir');
   if (!box) return;
@@ -1238,8 +1267,12 @@ async function init() {
   initRsvp();
   initGuestbook();
 
+  initBgm();
+
   const loading = document.getElementById('loadingScreen');
+  const flash = document.getElementById('flash');
   loading.classList.add('hidden');
+  if (flash) flash.classList.add('fire');   // 메인 사진이 플래시 터지듯 드러남
   setTimeout(() => loading.remove(), 700);
 }
 
