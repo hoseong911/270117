@@ -152,6 +152,7 @@ const DEFAULT = {
     bride: { fatherName: '', motherName: '', relation: '의 딸' },
   },
   gallery: { images: [] },
+  film:    { images: [] },
   schedule: {
     meal: '예식 후 식사를 함께 합니다.',
     parking: '주차 정보를 입력해주세요.',
@@ -252,13 +253,25 @@ function renderHeader(c) {
 </section>`;
 }
 
+// 필름 흐름(옛날 사진) — 좌→우 / 우→좌 방향 스트립
+function filmStrip(images, dir) {
+  if (!images.length) return '';
+  const frames = images
+    .map(u => `<div class="film-frame"><img src="${esc(u)}" alt="" loading="lazy"></div>`)
+    .join('');
+  // 무한 루프를 위해 프레임을 두 벌 이어붙임
+  return `<div class="film-strip film-${dir}" aria-hidden="true"><div class="film-track">${frames}${frames}</div></div>`;
+}
+
 function renderGreeting(c) {
   const g  = c.greeting;
   const gp = g.groom || {};
   const bp = g.bride || {};
   const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
+  const film = c.film?.images || [];
   return `
-<section id="sec-greeting" class="fadein">
+<section id="sec-greeting" class="fadein h-greeting${film.length ? ' has-film' : ''}">
+  ${filmStrip(film, 'rtl')}
   <div class="sec">
     <div class="sec-label">Invitation</div>
     <div class="sec-title">${esc(g.title || '결혼합니다')}</div>
@@ -278,6 +291,7 @@ function renderGreeting(c) {
       </div>
     </div>` : ''}
   </div>
+  ${filmStrip(film, 'ltr')}
 </section>`;
 }
 
@@ -515,32 +529,35 @@ function renderFlowers(c) {
 </section>`;
 }
 
-// 참석여부 + 방명록을 한 페이지에
-function renderRsvpGuestbook(c, withGuestbook) {
+// 참석여부 (단독 섹션)
+function renderRsvpOnly(c) {
   const deadline = c.rsvp?.deadline || '';
-  const rsvpBlock = `
-    <div class="sec-block">
-      <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
-      ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
-    </div>`;
-  const gbBlock = withGuestbook ? `
-    <div class="sub-divider"></div>
-    <div class="h-mini-label">Guestbook</div>
-    <div class="h-mini-title">방명록</div>
+  return `
+<section id="sec-rsvp" class="fadein">
+  <div class="sec">
+    <div class="sec-label">RSVP</div>
+    <div class="sec-title">참석 여부</div>
+    <div class="sec-divider"></div>
+    <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
+    ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
+  </div>
+</section>`;
+}
+
+// 방명록 (단독 섹션, 가로 흐름 리스트)
+function renderGuestbookH() {
+  return `
+<section id="sec-guestbook" class="fadein">
+  <div class="sec">
+    <div class="sec-label">Guestbook</div>
+    <div class="sec-title">방명록</div>
+    <div class="sec-divider"></div>
     <button class="gb-open-btn" id="gbOpenBtn">방명록 남기기</button>
     <div class="gb-hwrap">
       <div class="gb-hlist" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
       <div style="text-align:center"><button class="gb-more gb-more-h" id="gbMore" style="display:none">더 보기</button></div>
       <p class="gb-hhint">← 좌우로 넘겨 보세요 →</p>
-    </div>` : '';
-  return `
-<section id="sec-rsvp" class="fadein h-rsvp-gb">
-  <div class="sec">
-    <div class="sec-label">RSVP</div>
-    <div class="sec-title">참석 여부</div>
-    <div class="sec-divider"></div>
-    ${rsvpBlock}
-    ${gbBlock}
+    </div>
   </div>
 </section>`;
 }
@@ -738,28 +755,63 @@ function initMapEmbed(config) {
     return;
   }
 
-  // 카카오맵 '지도 퍼가기' HTML → iframe srcdoc 안에서 그대로 실행
-  // (iframe 내부에서는 로더의 document.write 가 정상 동작해 안정적으로 렌더됨)
+  // 카카오맵 '지도 퍼가기' HTML → 로더를 본문(현재 도메인)에 직접 주입해 렌더.
+  // (srcdoc/iframe 방식은 about:srcdoc 오리진이라 카카오 도메인 제한에 걸려 타일이 안 뜨는 문제가 있어 변경)
   const box = slot.closest('.location-map') || slot;
   const w = Math.max(200, Math.round(box.clientWidth || 400));
   const h = Math.max(160, Math.round(box.clientHeight || Math.round(w * 0.625)));
-  const html = embed
-    .replace(/"mapWidth"\s*:\s*"?\d+"?/,  `"mapWidth" : "${w}"`)
-    .replace(/"mapHeight"\s*:\s*"?\d+"?/, `"mapHeight" : "${h}"`);
 
-  const srcdoc =
-    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-    '<style>html,body{margin:0;padding:0;overflow:hidden;background:#e2e9f2}' +
-    '.root_daum_roughmap,.root_daum_roughmap .wrap_map{width:100%!important}</style>' +
-    '</head><body>' + html + '</body></html>';
+  const idMatch  = embed.match(/id="(daumRoughmapContainer\d+)"/);
+  const tsMatch  = embed.match(/"timestamp"\s*:\s*"?(\d+)"?/);
+  const keyMatch = embed.match(/"key"\s*:\s*"([^"]+)"/);
 
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('scrolling', 'no');
-  iframe.setAttribute('title', '오시는 길 지도');
-  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
-  iframe.srcdoc = srcdoc;
-  slot.innerHTML = '';
-  slot.appendChild(iframe);
+  // 파싱 실패 시(형식이 다르면) 예전 srcdoc 방식으로 폴백
+  if (!idMatch || !tsMatch || !keyMatch) {
+    const html = embed
+      .replace(/"mapWidth"\s*:\s*"?\d+"?/,  `"mapWidth" : "${w}"`)
+      .replace(/"mapHeight"\s*:\s*"?\d+"?/, `"mapHeight" : "${h}"`);
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.setAttribute('title', '오시는 길 지도');
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+    iframe.srcdoc =
+      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+      '<style>html,body{margin:0;padding:0;overflow:hidden;background:#e2e9f2}' +
+      '.root_daum_roughmap,.root_daum_roughmap .wrap_map{width:100%!important}</style>' +
+      '</head><body>' + html + '</body></html>';
+    slot.innerHTML = '';
+    slot.appendChild(iframe);
+    return;
+  }
+
+  const cid = idMatch[1];
+  slot.innerHTML = `<div id="${cid}" class="root_daum_roughmap root_daum_roughmap_landing" style="width:100%"></div>`;
+
+  const render = () => {
+    try {
+      new daum.roughmap.Lander({
+        timestamp: tsMatch[1],
+        key: keyMatch[1],
+        mapWidth: String(w),
+        mapHeight: String(h),
+      }).render();
+    } catch (e) { console.warn('roughmap render 실패', e); }
+  };
+
+  if (window.daum?.roughmap?.Lander) { render(); return; }
+
+  if (!document.querySelector('script.daum_roughmap_loader_script')) {
+    const script = document.createElement('script');
+    script.className = 'daum_roughmap_loader_script';
+    script.charset = 'UTF-8';
+    script.src = 'https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js';
+    document.head.appendChild(script);
+  }
+  // 로더가 준비될 때까지 폴링 후 렌더
+  const iv = setInterval(() => {
+    if (window.daum?.roughmap?.Lander) { clearInterval(iv); render(); }
+  }, 100);
+  setTimeout(() => clearInterval(iv), 8000);
 }
 
 function initGallery(c) {
@@ -992,8 +1044,9 @@ function buildPages(config, sections) {
       continue;
     }
     if (s.id === 'rsvp') {
-      out.push(wrapPage('rsvp', renderRsvpGuestbook(config, gbEnabled)));
-      gbHandled = gbEnabled;
+      let html = renderRsvpOnly(config);
+      if (gbEnabled) { html += '<div class="sec-sep"></div>' + renderGuestbookH(config); gbHandled = true; }
+      out.push(wrapPage('rsvp', html));
       continue;
     }
     const html = RENDERERS[s.id]?.(config);
@@ -1002,7 +1055,7 @@ function buildPages(config, sections) {
   // D-DAY 꺼졌는데 마음전달만 켜진 경우 단독 페이지
   if (accEnabled && !accHandled) out.push(wrapPage('accounts', renderAccounts(config)));
   // 참석여부 꺼졌는데 방명록만 켜진 경우 단독 페이지
-  if (gbEnabled && !gbHandled)  out.push(wrapPage('rsvp', renderRsvpGuestbook(config, true)));
+  if (gbEnabled && !gbHandled)  out.push(wrapPage('rsvp', renderGuestbookH(config)));
   return out.join('');
 }
 

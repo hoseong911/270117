@@ -134,16 +134,26 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
   text-align:center; margin-bottom:1.2rem;
 }
 
-/* ── 섹션 영문 라벨 통일 (대문자 + 동일 크기) ── */
-.h-page .sec-label,
-.h-mini-label {
-  font-family:var(--font-ui);
-  text-transform:uppercase;
-  letter-spacing:.2em;
-  font-size:.7rem;
-  font-weight:500;
+/* ── 섹션 영문 라벨: 제목 뒤 우측 상단에 은은하게 겹치는 필기체 워터마크 ── */
+.h-page .sec-label {
+  font-family:var(--font-script);
+  text-transform:none;
+  letter-spacing:.01em;
+  font-size:3.4rem;
+  line-height:1;
+  font-weight:400;
   color:var(--gold);
-  margin-bottom:.55rem;
+  opacity:.22;
+  position:relative;
+  z-index:0;
+  transform:translate(1.5rem,-.1rem);   /* 우측 상단으로 살짝 치우침 */
+  margin-bottom:-1.9rem;                  /* 아래 제목이 위로 겹쳐 올라오게 */
+  white-space:nowrap;
+  pointer-events:none;
+}
+.h-page .sec-title {
+  position:relative;
+  z-index:1;
 }
 
 /* ── 햄버거 메뉴: 보일듯 말듯 연하게 ── */
@@ -163,4 +173,115 @@ body.has-cover.h-cover-active #menuBtn span { background:rgba(255,255,255,.55) !
   width:min(100vw,480px);
   background:rgba(20,28,45,.35);
   backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+}
+
+/* ========================================================
+   글씨 크기 3단계 위계 (가로 버전 전용 · 전반적으로 키움)
+   1단계 제목 / 2단계 본문 / 3단계 보조·캡션
+   ======================================================== */
+/* 1단계 — 제목 */
+.h-page .sec-title        { font-size:1.9rem; }
+.h-page .dday-num         { font-size:2.1rem; }
+.h-page .greeting-person-name { font-size:1.6rem; }
+
+/* 2단계 — 본문 */
+.h-page .greeting-message { font-size:1.08rem; line-height:2.4; }
+.h-page .schedule-text    { font-size:1rem; }
+.h-page .location-venue   { font-size:1.08rem; }
+.h-page .location-addr    { font-size:.9rem; }
+.h-page .account-holder-name { font-size:1.15rem; }
+.h-page .account-who      { font-size:.95rem; }
+.h-page .gb-msg           { font-size:1.02rem; }
+.h-page .flowers-text     { font-size:1rem; }
+.h-page .rsvp-open-btn,
+.h-page .gb-open-btn,
+.h-page .rsvp-submit,
+.h-page .gb-submit        { font-size:1rem; }
+.h-page .location-btn     { font-size:.85rem; }
+.h-page .greeting-parents-line { font-size:.9rem; }
+
+/* 3단계 — 보조·캡션 */
+.h-page .greeting-family-role { font-size:.8rem; }
+.h-page .schedule-label   { font-size:.72rem; }
+.h-page .account-group-title { font-size:.8rem; }
+.h-page .dday-tag         { font-size:.72rem; }
+.h-page .dday-unit-lbl    { font-size:.66rem; }
+.h-page .gb-name          { font-size:.85rem; }
+.h-page .gb-date          { font-size:.72rem; }
+.h-page .rsvp-deadline-note,
+.h-page .accounts-hint    { font-size:.82rem; }
+.h-page .gallery-more     { font-size:.9rem; }
+.h-page .location-transport { font-size:.9rem; }
+.h-page .gb-hhint         { font-size:.72rem; }
+
+/* ========================================================
+   인삿말 화면 — 옛날 사진 필름 흐름 (상단 →, 하단 ←)
+   ======================================================== */
+.h-greeting.has-film {
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:0;
+}
+.h-greeting.has-film .sec {
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.film-strip {
+  flex:0 0 auto;
+  width:100%;
+  overflow:hidden;
+  background:#141414;
+  padding:7px 0;
+  position:relative;
+}
+/* 필름 상하 스프로킷 홀 */
+.film-strip::before,
+.film-strip::after {
+  content:'';
+  position:absolute; left:0; right:0; height:7px;
+  background:repeating-linear-gradient(90deg,
+    #f4f1ea 0 5px, transparent 5px 14px);
+  opacity:.85; z-index:1;
+}
+.film-strip::before { top:0; }
+.film-strip::after  { bottom:0; }
+
+.film-track {
+  display:flex;
+  gap:4px;
+  width:max-content;
+  will-change:transform;
+  animation:filmScrollA 48s linear infinite;
+}
+.film-rtl .film-track { animation-name:filmScrollB; }
+.film-strip:hover .film-track { animation-play-state:paused; }
+
+.film-frame {
+  flex:0 0 auto;
+  width:104px; height:74px;
+  background:#000;
+  border-left:3px solid #141414;
+  border-right:3px solid #141414;
+  overflow:hidden;
+}
+.film-frame img {
+  width:100%; height:100%;
+  object-fit:cover;
+  filter:grayscale(1) contrast(1.05) brightness(1.02);
+}
+@keyframes filmScrollA {
+  from { transform:translateX(0); }
+  to   { transform:translateX(-50%); }
+}
+@keyframes filmScrollB {
+  from { transform:translateX(-50%); }
+  to   { transform:translateX(0); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .film-track { animation:none; }
 }
