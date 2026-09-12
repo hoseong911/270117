@@ -77,7 +77,7 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 /* ── 오늘의 주인공: 신랑/신부 ── */
 .stars-grid {
   display:flex; justify-content:center; gap:2.6rem;
-  margin-bottom:2rem;
+  margin-bottom:3.4rem;
 }
 .stars-grid .greeting-family { text-align:center; }
 
@@ -91,13 +91,36 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 }
 .gallery-more:hover { color:var(--rose); }
 
-/* ── 오시는 길 교통 안내 텍스트 ── */
-.location-transport {
-  margin-top:1.4rem; padding-top:1.2rem;
-  border-top:1px solid var(--border);
-  font-size:.82rem; color:var(--ink2); line-height:2;
-  text-align:left; word-break:keep-all; white-space:pre-line;
+/* ── 오시는 길: 지도 앱 버튼(프레임 없이, 브랜드색으로 구분) ── */
+.h-page .location-btns { gap:1.6rem; margin-top:.2rem; }
+.h-page .location-btn {
+  padding:.45rem .3rem; min-height:auto;
+  border:none; border-radius:0; background:none;
+  font-weight:700; font-size:.92rem; letter-spacing:.01em;
 }
+.h-page .location-btn:hover { border:none; background:none; opacity:.75; }
+.h-page .loc-kakao { color:#E0A400; }  /* 카카오 옐로우(가독 위해 살짝 진하게) */
+.h-page .loc-naver { color:#03C75A; }  /* 네이버 그린 */
+.h-page .loc-tmap  { color:#2D6CDF; }  /* T맵 블루 */
+
+/* ── 오시는 길: 교통 상세(아코디언) ── */
+.location-detail { margin-top:1.6rem; text-align:left; }
+.location-detail-toggle {
+  width:100%; display:flex; align-items:center; justify-content:space-between;
+  padding:.75rem .2rem; background:none; border:none;
+  border-top:1px solid var(--border);
+  font-size:.9rem; font-weight:600; color:var(--ink2);
+}
+.location-detail-toggle .acc-arrow { transition:transform .25s ease; font-size:.8rem; }
+.location-detail.open .location-detail-toggle .acc-arrow { transform:rotate(180deg); }
+.location-detail-body { max-height:0; overflow:hidden; transition:max-height .35s ease; }
+.location-detail.open .location-detail-body { max-height:800px; }
+.location-detail-inner {
+  padding:.3rem .2rem 1.1rem;
+  font-size:.9rem; color:var(--ink2); line-height:2;
+  word-break:keep-all;
+}
+.location-detail-inner strong { font-weight:700; color:var(--ink); }
 
 /* ── 방명록 가로 흐름(좌→우) ── */
 .gb-hwrap { margin-top:.4rem; }
@@ -260,44 +283,51 @@ body.has-cover.h-cover-active #menuBtn span { background:rgba(255,255,255,.55) !
   flex:0 0 auto;
   width:100%;
   overflow:hidden;
-  background:#141414;
-  padding:7px 0;
+  background:#0d0c0a;
   position:relative;
 }
-/* 필름 상하 스프로킷 홀 */
-.film-strip::before,
+/* 좌우 끝 페이드(필름이 자연스럽게 사라지게) */
 .film-strip::after {
-  content:'';
-  position:absolute; left:0; right:0; height:7px;
-  background:repeating-linear-gradient(90deg,
-    #f4f1ea 0 5px, transparent 5px 14px);
-  opacity:.85; z-index:1;
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+  background:linear-gradient(90deg,#0d0c0a 0,transparent 8%,transparent 92%,#0d0c0a 100%);
 }
-.film-strip::before { top:0; }
-.film-strip::after  { bottom:0; }
-
 .film-track {
   display:flex;
-  gap:4px;
   width:max-content;
   will-change:transform;
-  animation:filmScrollA 48s linear infinite;
+  animation:filmScrollA 52s linear infinite;
 }
 .film-rtl .film-track { animation-name:filmScrollB; }
 .film-strip:hover .film-track { animation-play-state:paused; }
 
 .film-frame {
+  position:relative;
   flex:0 0 auto;
-  width:100px; height:132px;   /* 세로(옛날) 사진에 맞춘 필름 프레임 */
-  background:#000;
-  border-left:3px solid #141414;
-  border-right:3px solid #141414;
-  overflow:hidden;
+  width:106px;
+  padding:15px 7px;   /* 위/아래=홀 자리, 좌/우=프레임 간격 */
+  background:linear-gradient(180deg,#1b1913 0%,#100e0a 50%,#1b1913 100%);
+}
+/* 스프로킷 홀 — 프레임에 붙어 필름과 '함께' 움직임(둥근 사각) */
+.film-frame::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='15'%3E%3Crect x='4.5' y='4' width='9' height='7' rx='2.2' fill='%23e9e3d4'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='15'%3E%3Crect x='4.5' y='4' width='9' height='7' rx='2.2' fill='%23e9e3d4'/%3E%3C/svg%3E");
+  background-repeat:repeat-x,repeat-x;
+  background-position:center top,center bottom;
+  background-size:18px 15px,18px 15px;
+  opacity:.92;
+}
+/* 사진 비네팅(가장자리 살짝 어둡게 = 필름 느낌) */
+.film-frame::after {
+  content:''; position:absolute; left:7px; right:7px; top:15px; bottom:15px;
+  pointer-events:none;
+  background:radial-gradient(ellipse at 50% 42%,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%);
 }
 .film-frame img {
-  width:100%; height:100%;
-  object-fit:cover;
-  filter:grayscale(1) contrast(1.05) brightness(1.02);
+  width:100%; height:118px;
+  object-fit:cover; display:block;
+  filter:grayscale(1) sepia(.16) contrast(1.06) brightness(1.03);   /* 빈티지 톤 */
 }
 @keyframes filmScrollA {
   from { transform:translateX(0); }

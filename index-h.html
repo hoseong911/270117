@@ -454,14 +454,27 @@ function renderSchedule(c) {
 </section>`;
 }
 
+// 교통안내 서식: **굵게**, {{색상|글자}} 지원 후 줄바꿈
+function fmtRich(s) {
+  let t = esc(s);
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\{\{([^|}]+)\|([^}]+)\}\}/g, (_m, col, txt) => `<span style="color:${col.trim()}">${txt}</span>`);
+  return t.replace(/\n/g, '<br>');
+}
+
 function renderLocation(c) {
   const w = c.wedding;
   const mapContent = `<div id="mapEmbedSlot">${w.mapEmbedUrl ? '' : '<div class="location-map-placeholder">지도 준비 중</div>'}</div>`;
   const navBtns = [
-    w.kakaoLink && `<a href="${esc(w.kakaoLink)}" class="location-btn" target="_blank" rel="noopener">카카오맵</a>`,
-    w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn" target="_blank" rel="noopener">네이버지도</a>`,
-    w.tmapLink  && `<a href="${esc(w.tmapLink)}"  class="location-btn" target="_blank" rel="noopener">T맵</a>`,
+    w.kakaoLink && `<a href="${esc(w.kakaoLink)}" class="location-btn loc-kakao" target="_blank" rel="noopener">카카오맵</a>`,
+    w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn loc-naver" target="_blank" rel="noopener">네이버지도</a>`,
+    w.tmapLink  && `<a href="${esc(w.tmapLink)}"  class="location-btn loc-tmap"  target="_blank" rel="noopener">T맵</a>`,
   ].filter(Boolean);
+  const detail = w.transport ? `
+    <div class="location-detail" id="locDetail">
+      <button class="location-detail-toggle" type="button" id="locDetailToggle">교통 안내 <span class="acc-arrow">▾</span></button>
+      <div class="location-detail-body"><div class="location-detail-inner">${fmtRich(w.transport)}</div></div>
+    </div>` : '';
   return `
 <section id="sec-location" class="fadein">
   <div class="sec">
@@ -474,7 +487,7 @@ function renderLocation(c) {
       <div class="location-addr">${esc(w.venueAddr)}</div>
     </div>
     ${navBtns.length ? `<div class="location-btns">${navBtns.join('')}</div>` : ''}
-    ${w.transport ? `<div class="location-transport">${esc(w.transport).replace(/\n/g,'<br>')}</div>` : ''}
+    ${detail}
   </div>
 </section>`;
 }
@@ -545,7 +558,6 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
     <div class="gb-hwrap">
       <div class="gb-hlist" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
       <div style="text-align:center"><button class="gb-more gb-more-h" id="gbMore" style="display:none">더 보기</button></div>
-      <p class="gb-hhint">← 좌우로 넘겨 보세요 →</p>
     </div>` : '';
   return `
 <section id="sec-rsvp" class="fadein">
@@ -554,7 +566,6 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
     <div class="sec-title">참석 여부 &amp; 방명록</div>
     <div class="sec-divider"></div>
     ${btns}
-    ${withRsvp && deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
     ${gbList}
   </div>
 </section>`;
@@ -908,6 +919,13 @@ function initGallery(c) {
   }, { passive: true });
 }
 
+function initLocationAccordion() {
+  const toggle = document.getElementById('locDetailToggle');
+  const box = document.getElementById('locDetail');
+  if (!toggle || !box) return;
+  toggle.addEventListener('click', () => box.classList.toggle('open'));
+}
+
 function initAccounts() {
   document.querySelectorAll('.account-copy-btn').forEach(item => {
     const nameEl = item.querySelector('.account-holder-name');
@@ -994,6 +1012,34 @@ function initRsvp() {
 let gbLastDoc = null;
 const GB_PER_PAGE = 10;
 
+// 방명록 자동 가로 흐름(넘칠 때만, 손대면 잠깐 멈춤)
+let gbTicker = null;
+function maybeStartGbTicker() {
+  const list = document.getElementById('gbList');
+  if (!list) return;
+  if (gbTicker) { clearInterval(gbTicker); gbTicker = null; }
+  if (list.scrollWidth - list.clientWidth <= 8) return;   // 넘칠 때만
+  if (!list._tickBound) {
+    list._tickBound = true;
+    const pause = () => {
+      list._paused = true;
+      clearTimeout(list._resume);
+      list._resume = setTimeout(() => { list._paused = false; }, 2600);
+    };
+    list.addEventListener('pointerdown', pause);
+    list.addEventListener('touchstart', pause, { passive: true });
+    list.addEventListener('wheel', pause, { passive: true });
+  }
+  gbTicker = setInterval(() => {
+    if (list._paused) return;
+    if (list.scrollLeft + list.clientWidth >= list.scrollWidth - 1) {
+      list.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      list.scrollLeft += 1;
+    }
+  }, 45);
+}
+
 async function loadGuestbook(append = false) {
   const list = document.getElementById('gbList');
   const more = document.getElementById('gbMore');
@@ -1021,6 +1067,7 @@ async function loadGuestbook(append = false) {
     });
     gbLastDoc = snap.docs[snap.docs.length - 1];
     if (more) more.style.display = snap.docs.length < GB_PER_PAGE ? 'none' : 'inline-block';
+    setTimeout(maybeStartGbTicker, 300);
   } catch(err) { console.error('guestbook load error', err); }
 }
 
@@ -1144,6 +1191,7 @@ async function init() {
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
+  initLocationAccordion();
   initGallery(config);
   initAccounts();
   initRsvp();

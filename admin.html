@@ -647,8 +647,9 @@
         <div class="form-section-title">교통 안내 (글)</div>
         <div class="form-grid">
           <div class="form-row">
-            <label class="form-label">지하철 / 버스 / 자가용 / 주차 등 교통 정보 (줄바꿈으로 구분, 지도 아래에 표시됩니다)</label>
-            <textarea class="form-textarea" id="transport" rows="6" placeholder="[지하철]&#10;2호선 ○○역 3번 출구 도보 5분&#10;&#10;[버스]&#10;간선 000, 000 / ○○정류장 하차&#10;&#10;[자가용]&#10;내비게이션에 '○○웨딩홀' 검색"></textarea>
+            <label class="form-label">지하철 / 버스 / 자가용 / 주차 등 교통 정보 (줄바꿈으로 구분, "오시는 길" 아코디언 안에 표시됩니다)</label>
+            <p style="font-size:.76rem;color:var(--ink2);margin:0 0 .5rem;line-height:1.7">서식: <b>**글자**</b> = 굵게, <b>{{색상|글자}}</b> = 색상 지정 (색상은 red, blue 같은 이름 또는 #03C75A 같은 코드).<br>예) **2호선** ○○역 / {{#C0392B|주차 만차 주의}}</p>
+            <textarea class="form-textarea" id="transport" rows="6" placeholder="**[지하철]**&#10;2호선 ○○역 3번 출구 도보 5분&#10;&#10;**[버스]**&#10;간선 000, 000 / ○○정류장 하차&#10;&#10;**[자가용]**&#10;내비게이션에 '○○웨딩홀' 검색"></textarea>
           </div>
         </div>
       </div>
