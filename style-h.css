@@ -377,19 +377,23 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
   .film-track { animation:none; }
 }
 
-/* ── 로딩: 문구만 (장식 제거) ── */
+/* ── 로딩: 문구만 (어두운 배경 → 플래시 대비 강화) ── */
 .loading-deco { display:none; }
-.loading-text { font-size:.9rem; letter-spacing:.35em; color:var(--ink2); }
+#loadingScreen { background:#14161b; }
+.loading-text { font-size:.9rem; letter-spacing:.35em; color:rgba(255,255,255,.82); }
 
-/* ── 입장 플래시 (메인 사진이 번쩍 드러남) ── */
+/* ── 입장 플래시 (어두운 준비중 → 흰 번쩍 → 메인 사진) ── */
 #flash {
   position:fixed; inset:0; background:#fff;
   opacity:0; pointer-events:none; z-index:10000;
 }
-#flash.fire { animation:flashFire .8s ease-out forwards; }
+#flash.fire { animation:flashFire 1.15s cubic-bezier(.2,.7,.2,1) forwards; }
 @keyframes flashFire {
   0%   { opacity:0; }
-  9%   { opacity:1; }
+  5%   { opacity:1; }    /* 번쩍 */
+  14%  { opacity:.72; }
+  21%  { opacity:1; }    /* 두 번째 번쩍 */
+  55%  { opacity:.22; }
   100% { opacity:0; }
 }
 

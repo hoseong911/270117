@@ -15,7 +15,6 @@
   <meta name="apple-mobile-web-app-title" content="270117">
   <meta name="theme-color" content="#f7f9fb">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="style-h.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Dancing+Script:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Great+Vibes&family=Alex+Brush&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Pinyon+Script&family=Sacramento&family=Cinzel+Decorative&family=Allura&family=Nanum+Brush+Script&family=Parisienne&family=Tangerine:wght@400;700&family=Satisfy&family=Petit+Formal+Script&family=Cinzel:wght@400;700&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Noto+Serif+KR:wght@300;400&family=Black+Han+Sans&family=Sunflower:wght@300;500;700&family=Song+Myung&family=Hahmlet:wght@400;700&display=swap" rel="stylesheet">
@@ -24,15 +23,9 @@
 <body>
 
 <div id="loadingScreen">
+  <div class="loading-deco">✦</div>
   <div class="loading-text">준 비 중</div>
 </div>
-
-<!-- 메인 입장 시 플래시 -->
-<div id="flash"></div>
-
-<!-- 배경음악 (bgm.mp3 를 레포에 올리면 재생) -->
-<audio id="bgm" src="https://raw.githubusercontent.com/hoseong911/270117/main/bgm.mp3" loop preload="auto"></audio>
-<button id="bgmBtn" aria-label="배경음악 켜기/끄기"><i></i><i></i><i></i></button>
 
 <nav id="mainNav">
   <div id="navBar">
@@ -45,9 +38,9 @@
   </div>
 </nav>
 
-<div id="hDeck"></div>
+<main id="wedding"></main>
 
-<footer id="mainFooter" style="display:none">2027. 01. 17</footer>
+<footer id="mainFooter">2027. 01. 17</footer>
 
 <div id="toast"></div>
 
@@ -150,8 +143,6 @@ const DEFAULT = {
     venueDetail: '',
     mapEmbedUrl: '',
     kakaoLink: '', naverLink: '', tmapLink: '',
-    closing: '',
-    directions: { car: '', subway: '', bus: '', outer: '' },
   },
   greeting: {
     title: '결혼합니다',
@@ -160,8 +151,6 @@ const DEFAULT = {
     bride: { fatherName: '', motherName: '', relation: '의 딸' },
   },
   gallery: { images: [] },
-  film:    { images: [] },
-  intro:   { photo: '' },
   schedule: {
     meal: '예식 후 식사를 함께 합니다.',
     parking: '주차 정보를 입력해주세요.',
@@ -192,7 +181,6 @@ const DEFAULT = {
   },
   sections: [
     { id: 'header',    enabled: true,  order: 0 },
-    { id: 'intro',     enabled: true,  order: 0.5 },
     { id: 'greeting',  enabled: true,  order: 1 },
     { id: 'couple',    enabled: false, order: 2 },
     { id: 'parents',   enabled: false, order: 3 },
@@ -210,12 +198,11 @@ const DEFAULT = {
 
 const SECTION_NAV = {
   header:    null,
-  intro:     '인트로',
   greeting:  '초대장',
   couple:    '신랑신부',
   parents:   '부모님',
   lovestory: '스토리',
-  gallery:   '오늘의 주인공',
+  gallery:   '갤러리',
   dday:      'D-DAY',
   schedule:  '예식안내',
   location:  '오시는길',
@@ -224,12 +211,6 @@ const SECTION_NAV = {
   flowers:   '화환',
   guestbook: '방명록',
 };
-
-// 가로 버전: 합쳐지는 섹션의 nav 타깃을 대표 페이지로 돌린다
-// (마음전달·참석여부·방명록 → 한 페이지(accounts), D-DAY는 마지막 단독 마무리)
-const NAV_TARGET = { rsvp: 'accounts', guestbook: 'accounts' };
-
-const GALLERY_THUMBS = 9; // 3×3
 
 // ─── RENDERERS ────────────────────────────────────────
 
@@ -243,8 +224,6 @@ function renderHeader(c) {
     `<div class="fadein"${buildStyle(cu)}>${esc(cu.text || '')}</div>`
   ).join('');
 
-  const hint = `<div class="h-next-hint" aria-hidden="true">&gt;</div>`;
-
   if (photo) {
     const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';
     return `
@@ -253,49 +232,43 @@ function renderHeader(c) {
     <div class="header-photo-overlay"${overlayStyle}>${inner}
     </div>
   </div>
-  ${hint}
+  <div class="header-scroll">SCROLL</div>
 </section>`;
   }
 
   return `
 <section id="sec-header"${hasDrag?' class="drag-mode"':''}>
   ${inner}
-  ${hint}
-</section>`;
-}
-
-// 필름 흐름(옛날 사진) — 좌→우 / 우→좌 방향 스트립
-function filmStrip(images, dir) {
-  if (!images.length) return '';
-  const frames = images
-    .map(u => `<div class="film-frame"><img src="${esc(u)}" alt="" loading="lazy"></div>`)
-    .join('');
-  // 무한 루프를 위해 프레임을 두 벌 이어붙임
-  return `<div class="film-strip film-${dir}" aria-hidden="true"><div class="film-track">${frames}${frames}</div></div>`;
-}
-
-// 인트로: 메인 다음 화면(사진 + 필름 흐름)
-function renderIntro(c) {
-  const film = c.film?.images || [];
-  const photo = c.intro?.photo || c.header?.photo || '';
-  return `
-<section id="sec-intro" class="fadein h-intro${film.length ? ' has-film' : ''}">
-  <div class="intro-photo"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}></div>
-  ${filmStrip(film, 'ltr')}
+  <div class="header-scroll">SCROLL</div>
 </section>`;
 }
 
 function renderGreeting(c) {
   const g  = c.greeting;
-  const film = c.film?.images || [];
+  const gp = g.groom || {};
+  const bp = g.bride || {};
+  const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
   return `
-<section id="sec-greeting" class="fadein h-greeting${film.length ? ' has-film' : ''}">
+<section id="sec-greeting" class="fadein">
   <div class="sec">
+    <div class="sec-label">Invitation</div>
     <div class="sec-title">${esc(g.title || '결혼합니다')}</div>
     <div class="sec-divider"></div>
     <p class="greeting-message">${esc(g.message || '').replace(/\n/g,'<br>')}</p>
+    ${showParents ? `
+    <div class="greeting-parents">
+      <div class="greeting-family">
+        <div class="greeting-family-role">신랑 측</div>
+        <p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>
+        <div class="greeting-person-name">${esc(c.groom.name)}</div>
+      </div>
+      <div class="greeting-family">
+        <div class="greeting-family-role">신부 측</div>
+        <p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>
+        <div class="greeting-person-name">${esc(c.bride.name)}</div>
+      </div>
+    </div>` : ''}
   </div>
-  ${filmStrip(film, 'ltr')}
 </section>`;
 }
 
@@ -386,49 +359,26 @@ function renderLovestory(c) {
 }
 
 function renderGallery(c) {
-  const g  = c.greeting;
-  const gp = g.groom || {};
-  const bp = g.bride || {};
-  const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
   const images = c.gallery?.images || [];
-  const shown = images.slice(0, GALLERY_THUMBS);
   const content = images.length
-    ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
+    ? images.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
     : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
-  const moreBtn = images.length
-    ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
-    : '';
-  const couple = `
-    <div class="stars-grid">
-      <div class="greeting-family">
-        <div class="greeting-family-role">신랑</div>
-        ${showParents ? `<p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>` : ''}
-        <div class="greeting-person-name">${esc(c.groom.name)}</div>
-      </div>
-      <div class="greeting-family">
-        <div class="greeting-family-role">신부</div>
-        ${showParents ? `<p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>` : ''}
-        <div class="greeting-person-name">${esc(c.bride.name)}</div>
-      </div>
-    </div>`;
   return `
 <section id="sec-gallery" class="fadein">
-  <div class="sec">
-    <div class="sec-label">Today</div>
-    <div class="sec-title">오늘의 주인공</div>
+  <div class="sec" style="padding-bottom:0">
+    <div class="sec-label">Gallery</div>
+    <div class="sec-title">갤러리</div>
     <div class="sec-divider"></div>
-    ${couple}
-    <div class="gallery-grid h-gallery-grid" id="galleryGrid">${content}</div>
-    ${moreBtn}
   </div>
+  <div class="gallery-grid" id="galleryGrid">${content}</div>
+  <div style="height:4rem"></div>
 </section>`;
 }
 
 function renderDday(c) {
   const w = c.wedding;
-  const closing = w.closing || '';
   return `
-<section id="sec-dday" class="fadein h-finale">
+<section id="sec-dday" class="fadein">
   <div class="sec">
     <div class="sec-label">Countdown</div>
     <div class="sec-title">D-DAY</div>
@@ -443,7 +393,6 @@ function renderDday(c) {
       </div>
       <div class="dday-wedding-date">${esc(w.date)}　${esc(w.time)}</div>
     </div>
-    ${closing ? `<p class="dday-closing">${esc(closing).replace(/\n/g,'<br>')}</p>` : ''}
   </div>
 </section>`;
 }
@@ -464,6 +413,7 @@ function renderSchedule(c) {
     <div class="schedule-list">
       ${items.map(it => `
       <div class="schedule-item">
+        <div class="schedule-icon">${it.icon}</div>
         <div class="schedule-body">
           <div class="schedule-label">${it.label}</div>
           <div class="schedule-text">${esc(it.text)}</div>
@@ -474,36 +424,14 @@ function renderSchedule(c) {
 </section>`;
 }
 
-// 교통안내 서식: **굵게**, {{색상|글자}} 지원 후 줄바꿈
-function fmtRich(s) {
-  let t = esc(s);
-  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  t = t.replace(/\{\{([^|}]+)\|([^}]+)\}\}/g, (_m, col, txt) => `<span style="color:${col.trim()}">${txt}</span>`);
-  return t.replace(/\n/g, '<br>');
-}
-
 function renderLocation(c) {
   const w = c.wedding;
   const mapContent = `<div id="mapEmbedSlot">${w.mapEmbedUrl ? '' : '<div class="location-map-placeholder">지도 준비 중</div>'}</div>`;
   const navBtns = [
-    w.kakaoLink && `<a href="${esc(w.kakaoLink)}" class="location-btn loc-kakao" target="_blank" rel="noopener">카카오맵</a>`,
-    w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn loc-naver" target="_blank" rel="noopener">네이버지도</a>`,
-    w.tmapLink  && `<a href="${esc(w.tmapLink)}"  class="location-btn loc-tmap"  target="_blank" rel="noopener">T맵</a>`,
+    w.kakaoLink && `<a href="${esc(w.kakaoLink)}" class="location-btn" target="_blank" rel="noopener">카카오맵</a>`,
+    w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn" target="_blank" rel="noopener">네이버지도</a>`,
+    w.tmapLink  && `<a href="${esc(w.tmapLink)}"  class="location-btn" target="_blank" rel="noopener">T맵</a>`,
   ].filter(Boolean);
-  const dir = w.directions || {};
-  const cats = [
-    { key: 'car',    label: '자차 이용',          text: dir.car },
-    { key: 'subway', label: '지하철 이용',        text: dir.subway },
-    { key: 'bus',    label: '버스 이용',          text: dir.bus },
-    { key: 'outer',  label: '타지에서 오시는 경우', text: dir.outer },
-  ].filter(x => x.text && x.text.trim());
-  const detail = cats.length ? `
-    <div class="loc-dir" id="locDir">
-      <div class="loc-dir-tabs">
-        ${cats.map(x => `<button type="button" class="loc-dir-tab" data-key="${x.key}">${esc(x.label)}</button>`).join('')}
-      </div>
-      ${cats.map(x => `<div class="loc-dir-panel" data-key="${x.key}"><div class="location-detail-inner">${fmtRich(x.text)}</div></div>`).join('')}
-    </div>` : '';
   return `
 <section id="sec-location" class="fadein">
   <div class="sec">
@@ -516,7 +444,7 @@ function renderLocation(c) {
       <div class="location-addr">${esc(w.venueAddr)}</div>
     </div>
     ${navBtns.length ? `<div class="location-btns">${navBtns.join('')}</div>` : ''}
-    ${detail}
+    ${w.transport ? `<div class="location-transport">${esc(w.transport).replace(/\n/g,'<br>')}</div>` : ''}
   </div>
 </section>`;
 }
@@ -561,6 +489,20 @@ function renderAccounts(c) {
 </section>`;
 }
 
+function renderRsvp(c) {
+  const deadline = c.rsvp?.deadline || '';
+  return `
+<section id="sec-rsvp" class="fadein">
+  <div class="sec">
+    <div class="sec-label">RSVP</div>
+    <div class="sec-title">참석 여부</div>
+    <div class="sec-divider"></div>
+    <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
+    ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
+  </div>
+</section>`;
+}
+
 function renderFlowers(c) {
   const f = c.flowers || {};
   return `
@@ -575,34 +517,22 @@ function renderFlowers(c) {
 </section>`;
 }
 
-// 참석여부 & 방명록 (한 섹션, 버튼 반반 · 참석=모달, 방명록=아래 가로흐름)
-function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
-  const deadline = c.rsvp?.deadline || '';
-  const btns = `
-    <div class="rsvp-gb-btns">
-      ${withRsvp ? `<button class="rsvp-open-btn half" id="rsvpOpenBtn">참석 여부</button>` : ''}
-      ${withGuestbook ? `<button class="gb-open-btn half" id="gbOpenBtn">방명록 남기기</button>` : ''}
-    </div>`;
-  const gbList = withGuestbook ? `
-    <div class="gb-hwrap">
-      <div class="gb-hlist" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
-      <div style="text-align:center"><button class="gb-more gb-more-h" id="gbMore" style="display:none">더 보기</button></div>
-    </div>` : '';
+function renderGuestbook() {
   return `
-<section id="sec-rsvp" class="fadein">
+<section id="sec-guestbook" class="fadein">
   <div class="sec">
-    <div class="sec-label">RSVP</div>
-    <div class="sec-title">참석 여부 &amp; 방명록</div>
+    <div class="sec-label">Guestbook</div>
+    <div class="sec-title">방명록</div>
     <div class="sec-divider"></div>
-    ${btns}
-    ${gbList}
+    <button class="gb-open-btn" id="gbOpenBtn">방명록 남기기</button>
+    <div class="gb-list" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
+    <button class="gb-more" id="gbMore" style="display:none">더 보기</button>
   </div>
 </section>`;
 }
 
 const RENDERERS = {
   header:    renderHeader,
-  intro:     renderIntro,
   greeting:  renderGreeting,
   couple:    renderCouple,
   parents:   renderParents,
@@ -612,7 +542,9 @@ const RENDERERS = {
   schedule:  renderSchedule,
   location:  renderLocation,
   accounts:  renderAccounts,
+  rsvp:      renderRsvp,
   flowers:   renderFlowers,
+  guestbook: (_c) => renderGuestbook(),
 };
 
 // ─── UTILITIES ────────────────────────────────────────
@@ -652,126 +584,17 @@ function deepMerge(target, source) {
   return out;
 }
 
-// ─── GITHUB 이미지 자동 로딩 ───────────────────────────
-// images 폴더 번호 규칙:
-//   0.jpg            → 메인(표지) 사진
-//   01.jpg,02.jpg…   → 웨딩(오늘의 주인공 썸네일) 사진
-//   001.jpg,002.jpg… → 필름(인삿말 화면) 사진
-const GH_IMG_BASE = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/';
-
-function imgExists(url) {
-  return new Promise(res => {
-    const im = new Image();
-    im.onload  = () => res(true);
-    im.onerror = () => res(false);
-    im.src = url;
-  });
-}
-
-// pad 자리수(2=웨딩,3=필름)로 1번부터 순서대로 탐색. 한 묶음(10장)이 전부 없으면 종료.
-async function probeSeries(pad) {
-  const out = [];
-  const BATCH = 10;
-  for (let start = 1; start <= 90; start += BATCH) {
-    const idxs = [];
-    for (let i = start; i < start + BATCH; i++) idxs.push(i);
-    const res = await Promise.all(idxs.map(async i => {
-      const url = GH_IMG_BASE + String(i).padStart(pad, '0') + '.jpg';
-      return { i, url, ok: await imgExists(url) };
-    }));
-    const found = res.filter(r => r.ok);
-    found.forEach(r => out.push(r.url));
-    if (found.length === 0) break;   // 빈 묶음이면 더 없다고 보고 종료
-  }
-  return out;
-}
-
-// 깃허브 이미지가 있으면 config 를 덮어씀(없으면 기존 파이어스토어 값 유지)
-async function applyGithubImages(config) {
-  try {
-    const [coverOk, wedding, film, introOk] = await Promise.race([
-      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + '1.jpg') ]),
-      new Promise(r => setTimeout(() => r([false, [], [], false]), 7000)),
-    ]);
-    if (coverOk)        config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '0.jpg' };
-    if (wedding.length) config.gallery = { images: wedding };
-    if (film.length)    config.film    = { images: film };
-    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + '1.jpg' };
-  } catch (e) {
-    console.warn('github 이미지 로딩 실패:', e);
-  }
-}
-
-// ─── HORIZONTAL DECK ──────────────────────────────────
-function initHDeck() {
-  const deck    = document.getElementById('hDeck');
-  const pages   = [...deck.querySelectorAll('.h-page')];
-  const hasCover = document.body.classList.contains('has-cover');
-  const navItems = () => document.querySelectorAll('.nav-item');
-
-  let cur = 0;
-  const pageW = () => deck.clientWidth || window.innerWidth;
-
-  function goto(i) {
-    i = Math.max(0, Math.min(pages.length - 1, i));
-    deck.scrollTo({ left: i * pageW(), behavior: 'smooth' });
-  }
-  function gotoPage(pageId) {
-    const idx = pages.findIndex(p => p.dataset.page === pageId);
-    if (idx >= 0) goto(idx);
-  }
-  window.__hGoto = gotoPage;
-
-  function setActive(i) {
-    cur = i;
-    const activePage = pages[i]?.dataset.page;
-    const onHeader = activePage === 'header';
-    if (hasCover) {
-      document.body.classList.toggle('nav-opaque', !onHeader);
-      document.body.classList.toggle('h-cover-active', onHeader);
-    }
-    // 첫 화면에서만 넘김 힌트 표시
-    document.body.classList.toggle('h-past-first', i !== 0);
-    // 상단 메뉴 active 표시
-    navItems().forEach(b => {
-      const t = b.dataset.target;
-      b.classList.toggle('active', t === activePage || NAV_TARGET[t] === activePage);
-    });
-  }
-
-  let raf = null;
-  deck.addEventListener('scroll', () => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = null;
-      const i = Math.round(deck.scrollLeft / pageW());
-      if (i !== cur) setActive(i);
-    });
-  }, { passive: true });
-
-  document.addEventListener('keydown', e => {
-    if (document.querySelector('.wedding-modal.show, #galleryModal.show')) return;
-    if (e.key === 'ArrowRight') { goto(cur + 1); }
-    if (e.key === 'ArrowLeft')  { goto(cur - 1); }
-  });
-
-  window.addEventListener('resize', () => {
-    deck.scrollTo({ left: cur * pageW() });
-  });
-
-  setActive(0);
-}
-
 // ─── INIT FUNCTIONS ───────────────────────────────────
+
 function initNav(sections) {
-  const inner   = document.getElementById('navInner');
+  const inner  = document.getElementById('navInner');
   const menuBtn = document.getElementById('menuBtn');
   const drawer  = document.getElementById('menuDrawer');
 
   inner.innerHTML = sections
     .filter(s => s.enabled && SECTION_NAV[s.id])
-    .sort((a,b) => (a.id === 'dday' ? 999 : a.order) - (b.id === 'dday' ? 999 : b.order))
-    .map(s => `<button class="nav-item" data-target="${NAV_TARGET[s.id] || s.id}">${SECTION_NAV[s.id]}</button>`)
+    .sort((a,b) => a.order - b.order)
+    .map(s => `<button class="nav-item" data-target="sec-${s.id}">${SECTION_NAV[s.id]}</button>`)
     .join('');
 
   menuBtn.addEventListener('click', () => {
@@ -781,11 +604,56 @@ function initNav(sections) {
 
   inner.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      window.__hGoto?.(btn.dataset.target);
+      const el = document.getElementById(btn.dataset.target);
+      if (el) {
+        const navH = document.getElementById('mainNav').offsetHeight;
+        const y = el.getBoundingClientRect().top + window.scrollY - navH;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
       menuBtn.classList.remove('open');
       drawer.classList.remove('open');
     });
   });
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        inner.querySelectorAll('.nav-item').forEach(b => {
+          b.classList.toggle('active', b.dataset.target === e.target.id);
+        });
+      }
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('[id^="sec-"]').forEach(el => obs.observe(el));
+}
+
+function initScrollSnap() {
+  let snapTimer = null;
+  let snapping = false;
+
+  function nearestSection() {
+    const sy = window.scrollY;
+    let best = null, bestDist = Infinity;
+    document.querySelectorAll('section[id^="sec-"]').forEach(sec => {
+      const top = sec.getBoundingClientRect().top + sy;
+      const dist = Math.abs(top - sy);
+      if (dist < bestDist) { bestDist = dist; best = { top, dist }; }
+    });
+    return best;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (snapping) return;
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(() => {
+      const target = nearestSection();
+      // 섹션 높이의 55% 이상 벗어난 경우만 snap (긴 섹션 내부 스크롤 허용)
+      if (!target || target.dist < 4 || target.dist > window.innerHeight * 0.55) return;
+      snapping = true;
+      window.scrollTo({ top: target.top, behavior: 'smooth' });
+      setTimeout(() => { snapping = false; }, 900);
+    }, 80);
+  }, { passive: true });
 }
 
 function initFadeIn() {
@@ -844,63 +712,28 @@ function initMapEmbed(config) {
     return;
   }
 
-  // 카카오맵 '지도 퍼가기' HTML → 로더를 본문(현재 도메인)에 직접 주입해 렌더.
-  // (srcdoc/iframe 방식은 about:srcdoc 오리진이라 카카오 도메인 제한에 걸려 타일이 안 뜨는 문제가 있어 변경)
+  // 카카오맵 '지도 퍼가기' HTML → iframe srcdoc 안에서 그대로 실행
+  // (iframe 내부에서는 로더의 document.write 가 정상 동작해 안정적으로 렌더됨)
   const box = slot.closest('.location-map') || slot;
   const w = Math.max(200, Math.round(box.clientWidth || 400));
   const h = Math.max(160, Math.round(box.clientHeight || Math.round(w * 0.625)));
+  const html = embed
+    .replace(/"mapWidth"\s*:\s*"?\d+"?/,  `"mapWidth" : "${w}"`)
+    .replace(/"mapHeight"\s*:\s*"?\d+"?/, `"mapHeight" : "${h}"`);
 
-  const idMatch  = embed.match(/id="(daumRoughmapContainer\d+)"/);
-  const tsMatch  = embed.match(/"timestamp"\s*:\s*"?(\d+)"?/);
-  const keyMatch = embed.match(/"key"\s*:\s*"([^"]+)"/);
+  const srcdoc =
+    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<style>html,body{margin:0;padding:0;overflow:hidden;background:#e2e9f2}' +
+    '.root_daum_roughmap,.root_daum_roughmap .wrap_map{width:100%!important}</style>' +
+    '</head><body>' + html + '</body></html>';
 
-  // 파싱 실패 시(형식이 다르면) 예전 srcdoc 방식으로 폴백
-  if (!idMatch || !tsMatch || !keyMatch) {
-    const html = embed
-      .replace(/"mapWidth"\s*:\s*"?\d+"?/,  `"mapWidth" : "${w}"`)
-      .replace(/"mapHeight"\s*:\s*"?\d+"?/, `"mapHeight" : "${h}"`);
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('scrolling', 'no');
-    iframe.setAttribute('title', '오시는 길 지도');
-    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
-    iframe.srcdoc =
-      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-      '<style>html,body{margin:0;padding:0;overflow:hidden;background:#e2e9f2}' +
-      '.root_daum_roughmap,.root_daum_roughmap .wrap_map{width:100%!important}</style>' +
-      '</head><body>' + html + '</body></html>';
-    slot.innerHTML = '';
-    slot.appendChild(iframe);
-    return;
-  }
-
-  const cid = idMatch[1];
-  slot.innerHTML = `<div id="${cid}" class="root_daum_roughmap root_daum_roughmap_landing" style="width:100%"></div>`;
-
-  const render = () => {
-    try {
-      new daum.roughmap.Lander({
-        timestamp: tsMatch[1],
-        key: keyMatch[1],
-        mapWidth: String(w),
-        mapHeight: String(h),
-      }).render();
-    } catch (e) { console.warn('roughmap render 실패', e); }
-  };
-
-  if (window.daum?.roughmap?.Lander) { render(); return; }
-
-  if (!document.querySelector('script.daum_roughmap_loader_script')) {
-    const script = document.createElement('script');
-    script.className = 'daum_roughmap_loader_script';
-    script.charset = 'UTF-8';
-    script.src = 'https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js';
-    document.head.appendChild(script);
-  }
-  // 로더가 준비될 때까지 폴링 후 렌더
-  const iv = setInterval(() => {
-    if (window.daum?.roughmap?.Lander) { clearInterval(iv); render(); }
-  }, 100);
-  setTimeout(() => clearInterval(iv), 8000);
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('scrolling', 'no');
+  iframe.setAttribute('title', '오시는 길 지도');
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+  iframe.srcdoc = srcdoc;
+  slot.innerHTML = '';
+  slot.appendChild(iframe);
 }
 
 function initGallery(c) {
@@ -924,7 +757,6 @@ function initGallery(c) {
     const cell = e.target.closest('.gallery-cell');
     if (cell) open(+cell.dataset.idx);
   });
-  document.getElementById('galleryMore')?.addEventListener('click', () => open(0));
   document.getElementById('modalClose')?.addEventListener('click', close);
   document.getElementById('modalPrev')?.addEventListener('click', () => open(current - 1));
   document.getElementById('modalNext')?.addEventListener('click', () => open(current + 1));
@@ -934,73 +766,6 @@ function initGallery(c) {
     if (e.key === 'ArrowLeft')  open(current - 1);
     if (e.key === 'ArrowRight') open(current + 1);
     if (e.key === 'Escape')     close();
-  });
-
-  // 모달 좌우 스와이프
-  let sx = 0, sy = 0;
-  img.addEventListener('touchstart', e => {
-    sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY;
-  }, { passive: true });
-  img.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-      open(dx < 0 ? current + 1 : current - 1);
-    }
-  }, { passive: true });
-}
-
-function initBgm() {
-  const audio = document.getElementById('bgm');
-  const btn = document.getElementById('bgmBtn');
-  if (!audio || !btn) return;
-
-  const audible = () => !audio.paused && !audio.muted;
-  const sync = () => btn.classList.toggle('playing', audible());
-  ['play', 'pause', 'volumechange'].forEach(ev => audio.addEventListener(ev, sync));
-  // 파일이 실제로 로드돼 재생 가능할 때만 버튼 노출(파일 없으면 숨김)
-  audio.addEventListener('canplay', () => btn.classList.add('ready'));
-
-  // 1) 음소거 자동재생은 브라우저가 허용 → 미리 재생 시작
-  audio.muted = true;
-  audio.play().catch(() => {});
-
-  // 2) 첫 사용자 제스처에서 음소거 해제 = "자동재생처럼" 소리 시작
-  let done = false;
-  const events = ['pointerdown', 'touchstart', 'click', 'keydown', 'scroll'];
-  const removeGestures = () => events.forEach(ev => window.removeEventListener(ev, unmute, true));
-  function unmute(e) {
-    if (e && e.target && e.target.closest && e.target.closest('#bgmBtn')) return; // 버튼은 버튼 핸들러가 처리
-    if (done) return; done = true;
-    audio.muted = false;
-    audio.play().catch(() => {});
-    removeGestures();
-  }
-  events.forEach(ev => window.addEventListener(ev, unmute, { capture: true, passive: true }));
-
-  // 버튼: 소리 켜기/끄기(음소거 토글)
-  btn.addEventListener('click', () => {
-    done = true;
-    if (audible()) { audio.muted = true; }
-    else { audio.muted = false; audio.play().catch(() => {}); }
-  });
-}
-
-function initLocationDirections() {
-  const box = document.getElementById('locDir');
-  if (!box) return;
-  const tabs = [...box.querySelectorAll('.loc-dir-tab')];
-  const panels = [...box.querySelectorAll('.loc-dir-panel')];
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const wasActive = tab.classList.contains('active');
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('open'));
-      if (!wasActive) {
-        tab.classList.add('active');
-        box.querySelector(`.loc-dir-panel[data-key="${tab.dataset.key}"]`)?.classList.add('open');
-      }
-    });
   });
 }
 
@@ -1047,6 +812,7 @@ function initRsvp() {
   closeBtn?.addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
+  // 참석/불참 토글
   document.querySelectorAll('.rsvp-radio-opt').forEach(label => {
     label.addEventListener('click', () => {
       document.querySelectorAll('.rsvp-radio-opt').forEach(l => l.classList.remove('selected'));
@@ -1057,6 +823,7 @@ function initRsvp() {
     });
   });
 
+  // 인원수 +/-
   document.getElementById('rsvpCountDn')?.addEventListener('click', () => {
     if (rsvpCount > 1) { rsvpCount--; document.getElementById('rsvpCountVal').textContent = rsvpCount; }
   });
@@ -1090,34 +857,6 @@ function initRsvp() {
 let gbLastDoc = null;
 const GB_PER_PAGE = 10;
 
-// 방명록 자동 가로 흐름(넘칠 때만, 손대면 잠깐 멈춤)
-let gbTicker = null;
-function maybeStartGbTicker() {
-  const list = document.getElementById('gbList');
-  if (!list) return;
-  if (gbTicker) { clearInterval(gbTicker); gbTicker = null; }
-  if (list.scrollWidth - list.clientWidth <= 8) return;   // 넘칠 때만
-  if (!list._tickBound) {
-    list._tickBound = true;
-    const pause = () => {
-      list._paused = true;
-      clearTimeout(list._resume);
-      list._resume = setTimeout(() => { list._paused = false; }, 2600);
-    };
-    list.addEventListener('pointerdown', pause);
-    list.addEventListener('touchstart', pause, { passive: true });
-    list.addEventListener('wheel', pause, { passive: true });
-  }
-  gbTicker = setInterval(() => {
-    if (list._paused) return;
-    if (list.scrollLeft + list.clientWidth >= list.scrollWidth - 1) {
-      list.scrollTo({ left: 0, behavior: 'smooth' });
-    } else {
-      list.scrollLeft += 1;
-    }
-  }, 45);
-}
-
 async function loadGuestbook(append = false) {
   const list = document.getElementById('gbList');
   const more = document.getElementById('gbMore');
@@ -1144,13 +883,11 @@ async function loadGuestbook(append = false) {
       list.appendChild(el);
     });
     gbLastDoc = snap.docs[snap.docs.length - 1];
-    if (more) more.style.display = snap.docs.length < GB_PER_PAGE ? 'none' : 'inline-block';
-    setTimeout(maybeStartGbTicker, 300);
+    if (more) more.style.display = snap.docs.length < GB_PER_PAGE ? 'none' : 'block';
   } catch(err) { console.error('guestbook load error', err); }
 }
 
 function initGuestbook() {
-  if (!document.getElementById('gbList')) return;
   loadGuestbook();
   document.getElementById('gbMore')?.addEventListener('click', () => loadGuestbook(true));
 
@@ -1192,47 +929,6 @@ function initGuestbook() {
   });
 }
 
-// ─── PAGE BUILDER ─────────────────────────────────────
-function wrapPage(id, html) {
-  const cls = id === 'header' ? 'h-page h-page--header' : 'h-page';
-  return `<div class="${cls}" data-page="${id}"><div class="h-page-inner">${html}</div></div>`;
-}
-
-function buildPages(config, sections) {
-  const enabled = sections.filter(s => s.enabled).sort((a,b) => a.order - b.order);
-  const has = id => enabled.some(s => s.id === id);
-  const ddayEnabled = has('dday');
-  const accEnabled  = has('accounts');
-  const rsvpEnabled = has('rsvp');
-  const gbEnabled   = has('guestbook');
-  const out = [];
-
-  // 마음전달(위) + 참석여부&방명록(아래) 한 페이지
-  let comboDone = false;
-  const emitCombo = () => {
-    if (comboDone) return;
-    comboDone = true;
-    let html = '';
-    if (accEnabled) html += renderAccounts(config);
-    if (accEnabled && (rsvpEnabled || gbEnabled)) html += '<div class="sec-sep"></div>';
-    if (rsvpEnabled || gbEnabled) html += renderRsvpGuestbook(config, rsvpEnabled, gbEnabled);
-    if (html) out.push(wrapPage('accounts', html));
-  };
-
-  for (const s of enabled) {
-    if (s.id === 'dday') continue;   // 맨 마지막 마무리 페이지로 별도 배치
-    if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook') { emitCombo(); continue; }
-    const html = RENDERERS[s.id]?.(config);
-    if (html) out.push(wrapPage(s.id, html));
-  }
-  emitCombo();   // 세 섹션 중 하나만 켜진 경우 등 안전 처리
-
-  // D-DAY = 마지막 마무리(카운트다운 + 마무리 멘트)
-  if (ddayEnabled) out.push(wrapPage('dday', renderDday(config)));
-
-  return out.join('');
-}
-
 // ─── MAIN ─────────────────────────────────────────────
 async function init() {
   let config = JSON.parse(JSON.stringify(DEFAULT));
@@ -1246,9 +942,7 @@ async function init() {
     console.warn('Config load failed, using defaults:', e.message);
   }
 
-  // 깃허브 images 폴더의 사진(번호 규칙)이 있으면 우선 사용
-  await applyGithubImages(config);
-
+  // 브라우저 제목 및 메타 태그 업데이트
   const h = config.header || {};
   if (h.title) {
     document.title = h.title;
@@ -1256,36 +950,42 @@ async function init() {
   }
   if (h.ogDesc)  document.querySelector('meta[property="og:description"]')?.setAttribute('content', h.ogDesc);
   if (h.ogImage) document.querySelector('meta[property="og:image"]')?.setAttribute('content', h.ogImage);
+  const footerEl = document.getElementById('mainFooter');
+  if (footerEl && h.footer) footerEl.textContent = h.footer;
 
   const sections = (config.sections || DEFAULT.sections).slice().sort((a,b) => a.order - b.order);
-
-  // 인트로는 섹션 설정과 무관하게 항상 노출(메인 다음 페이지)
-  if (!sections.some(s => s.id === 'intro')) {
-    sections.push({ id: 'intro', enabled: true, order: 0.5 });
-  }
-
-  if (config.header?.photo) document.body.classList.add('has-cover');
-
-  const deck = document.getElementById('hDeck');
-  deck.innerHTML = buildPages(config, sections);
+  const wedding  = document.getElementById('wedding');
+  wedding.innerHTML = sections
+    .filter(s => s.enabled)
+    .map((s, i, arr) => {
+      const html = RENDERERS[s.id]?.(config) || '';
+      return i < arr.length - 1 ? html + '<div class="sec-sep"></div>' : html;
+    })
+    .join('');
 
   initNav(sections);
-  initHDeck();
+  initScrollSnap();
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
-  initLocationDirections();
   initGallery(config);
   initAccounts();
   initRsvp();
   initGuestbook();
 
-  initBgm();
+  if (config.header?.photo) {
+    document.body.classList.add('has-cover');
+    const headerEl = document.getElementById('sec-header');
+    if (headerEl) {
+      new IntersectionObserver(([e]) =>
+        document.body.classList.toggle('nav-opaque', !e.isIntersecting),
+        { threshold: 0.05 }
+      ).observe(headerEl);
+    }
+  }
 
   const loading = document.getElementById('loadingScreen');
-  const flash = document.getElementById('flash');
   loading.classList.add('hidden');
-  if (flash) flash.classList.add('fire');   // 메인 사진이 플래시 터지듯 드러남
   setTimeout(() => loading.remove(), 700);
 }
 
