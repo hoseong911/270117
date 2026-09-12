@@ -619,6 +619,15 @@
           </div>
         </div>
       </div>
+      <div class="form-section">
+        <div class="form-section-title">교통 안내 (글)</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">지하철 / 버스 / 자가용 / 주차 등 교통 정보 (줄바꿈으로 구분, 지도 아래에 표시됩니다)</label>
+            <textarea class="form-textarea" id="transport" rows="6" placeholder="[지하철]&#10;2호선 ○○역 3번 출구 도보 5분&#10;&#10;[버스]&#10;간선 000, 000 / ○○정류장 하차&#10;&#10;[자가용]&#10;내비게이션에 '○○웨딩홀' 검색"></textarea>
+          </div>
+        </div>
+      </div>
       <div class="save-row">
         <span class="save-msg" id="locationMsg"></span>
         <button class="save-btn" id="saveLocationBtn">저장</button>
@@ -799,7 +808,7 @@
               <span class="upload-status" id="st-hdp-photo"></span>
             </div>
             <button class="add-btn" id="hdpRemovePhotoBtn" style="margin-top:.5rem">사진 없이 기본 배경 사용</button>
-            <p style="font-size:.72rem;color:var(--ink2);margin-top:.5rem;line-height:1.6">접속 시 레포의 main.mp4가 자동으로(음소거) 재생되고, 끝나면 위 커버 사진으로 자연스럽게 전환됩니다.</p>
+            <p style="font-size:.72rem;color:var(--ink2);margin-top:.5rem;line-height:1.6">위 커버 사진이 메인 헤더 배경으로 표시됩니다.</p>
           </div>
           <div class="form-section">
             <div class="form-section-title">텍스트 요소</div>
@@ -1070,6 +1079,7 @@ function fillForms() {
   val('venueDetail',    w.venueDetail); val('venueAddr', w.venueAddr);
   val('mapEmbedUrl',    w.mapEmbedUrl);
   val('kakaoLink', w.kakaoLink); val('naverLink', w.naverLink); val('tmapLink', w.tmapLink);
+  val('transport', w.transport);
   // 인사말
   const gr = c.greeting || {};
   val('greetTitle',   gr.title);   val('greetMessage', gr.message);
@@ -1780,7 +1790,7 @@ document.getElementById('saveLocationBtn').addEventListener('click', async () =>
       ...(currentConfig.wedding || {}),
       venueAddr:   v('venueAddr'),   mapEmbedUrl: v('mapEmbedUrl'),
       kakaoLink:   v('kakaoLink'),   naverLink:   v('naverLink'),
-      tmapLink:    v('tmapLink'),
+      tmapLink:    v('tmapLink'),    transport:   v('transport'),
     },
   };
   await savePartial(data, 'locationMsg', '오시는길이 저장되었습니다');

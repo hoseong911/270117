@@ -403,6 +403,12 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   transition:all .2s; display:inline-flex; align-items:center; gap:.4rem;
 }
 .location-btn:hover { border-color:var(--rose); color:var(--rose); }
+.location-transport {
+  margin-top:1.4rem; padding-top:1.2rem;
+  border-top:1px solid var(--border);
+  font-size:.82rem; color:var(--ink2); line-height:2;
+  text-align:left; word-break:keep-all; white-space:pre-line;
+}
 
 /* ── ACCOUNTS ── */
 .accounts-list { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }

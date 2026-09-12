@@ -41,13 +41,6 @@
 
 <div id="hDeck"></div>
 
-<!-- 좌우 이동 화살표 -->
-<button class="h-arrow h-arrow-left hidden" id="hPrev" aria-label="이전">‹</button>
-<button class="h-arrow h-arrow-right" id="hNext" aria-label="다음">›</button>
-
-<!-- 하단 진행 점 -->
-<div class="h-dots" id="hDots"></div>
-
 <footer id="mainFooter" style="display:none">2027. 01. 17</footer>
 
 <div id="toast"></div>
@@ -220,8 +213,9 @@ const SECTION_NAV = {
   guestbook: '방명록',
 };
 
-// 가로 버전: 방명록은 참석여부 페이지에 합쳐지므로 nav 타깃을 rsvp로 돌린다
-const NAV_TARGET = { guestbook: 'rsvp' };
+// 가로 버전: 합쳐지는 섹션의 nav 타깃을 대표 페이지로 돌린다
+// (방명록 → 참석여부 페이지, 마음전달 → D-DAY 페이지)
+const NAV_TARGET = { guestbook: 'rsvp', accounts: 'dday' };
 
 const GALLERY_THUMBS = 9; // 3×3
 
@@ -237,7 +231,7 @@ function renderHeader(c) {
     `<div class="fadein"${buildStyle(cu)}>${esc(cu.text || '')}</div>`
   ).join('');
 
-  const hint = `<div class="h-swipe-hint"><span>‹</span>넘겨 보세요<span>›</span></div>`;
+  const hint = `<div class="h-next-hint" aria-hidden="true">&gt;</div>`;
 
   if (photo) {
     const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';
@@ -380,7 +374,7 @@ function renderGallery(c) {
     ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
     : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
   const moreBtn = images.length
-    ? `<button class="gallery-more" id="galleryMore">사진 전체 보기${images.length > GALLERY_THUMBS ? ` (${images.length})` : ''}</button>`
+    ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
     : '';
   return `
 <section id="sec-gallery" class="fadein">
@@ -462,6 +456,7 @@ function renderLocation(c) {
       <div class="location-addr">${esc(w.venueAddr)}</div>
     </div>
     ${navBtns.length ? `<div class="location-btns">${navBtns.join('')}</div>` : ''}
+    ${w.transport ? `<div class="location-transport">${esc(w.transport).replace(/\n/g,'<br>')}</div>` : ''}
   </div>
 </section>`;
 }
@@ -605,15 +600,8 @@ function deepMerge(target, source) {
 function initHDeck() {
   const deck    = document.getElementById('hDeck');
   const pages   = [...deck.querySelectorAll('.h-page')];
-  const dotsWrap = document.getElementById('hDots');
-  const prevBtn = document.getElementById('hPrev');
-  const nextBtn = document.getElementById('hNext');
   const hasCover = document.body.classList.contains('has-cover');
   const navItems = () => document.querySelectorAll('.nav-item');
-
-  dotsWrap.innerHTML = pages.map((p,i) =>
-    `<button class="h-dot" data-i="${i}" aria-label="${i+1}페이지"></button>`).join('');
-  const dots = [...dotsWrap.querySelectorAll('.h-dot')];
 
   let cur = 0;
   const pageW = () => deck.clientWidth || window.innerWidth;
@@ -630,18 +618,15 @@ function initHDeck() {
 
   function setActive(i) {
     cur = i;
-    dots.forEach((d,di) => d.classList.toggle('active', di === i));
-    dots[i]?.scrollIntoView({ inline:'center', block:'nearest' });
-    prevBtn.classList.toggle('hidden', i === 0);
-    nextBtn.classList.toggle('hidden', i === pages.length - 1);
-
-    const onHeader = pages[i]?.dataset.page === 'header';
+    const activePage = pages[i]?.dataset.page;
+    const onHeader = activePage === 'header';
     if (hasCover) {
       document.body.classList.toggle('nav-opaque', !onHeader);
       document.body.classList.toggle('h-cover-active', onHeader);
     }
+    // 첫 화면에서만 넘김 힌트 표시
+    document.body.classList.toggle('h-past-first', i !== 0);
     // 상단 메뉴 active 표시
-    const activePage = pages[i]?.dataset.page;
     navItems().forEach(b => {
       const t = b.dataset.target;
       b.classList.toggle('active', t === activePage || NAV_TARGET[t] === activePage);
@@ -657,10 +642,6 @@ function initHDeck() {
       if (i !== cur) setActive(i);
     });
   }, { passive: true });
-
-  dots.forEach(d => d.addEventListener('click', () => goto(+d.dataset.i)));
-  prevBtn.addEventListener('click', () => goto(cur - 1));
-  nextBtn.addEventListener('click', () => goto(cur + 1));
 
   document.addEventListener('keydown', e => {
     if (document.querySelector('.wedding-modal.show, #galleryModal.show')) return;
@@ -745,55 +726,40 @@ function initMapEmbed(config) {
   const embed = (config.wedding?.mapEmbedUrl || '').trim();
   if (!embed) return;
 
-  if (embed.startsWith('http')) {
+  // 순수 URL → 바로 iframe 임베드
+  if (/^https?:\/\//.test(embed)) {
     const iframe = document.createElement('iframe');
     iframe.src = embed;
     iframe.allowFullscreen = true;
     iframe.loading = 'lazy';
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+    slot.innerHTML = '';
     slot.appendChild(iframe);
     return;
   }
 
-  const tmp = document.createElement('div');
-  tmp.innerHTML = embed;
+  // 카카오맵 '지도 퍼가기' HTML → iframe srcdoc 안에서 그대로 실행
+  // (iframe 내부에서는 로더의 document.write 가 정상 동작해 안정적으로 렌더됨)
+  const box = slot.closest('.location-map') || slot;
+  const w = Math.max(200, Math.round(box.clientWidth || 400));
+  const h = Math.max(160, Math.round(box.clientHeight || Math.round(w * 0.625)));
+  const html = embed
+    .replace(/"mapWidth"\s*:\s*"?\d+"?/,  `"mapWidth" : "${w}"`)
+    .replace(/"mapHeight"\s*:\s*"?\d+"?/, `"mapHeight" : "${h}"`);
 
-  const roughDiv = tmp.querySelector('[id^="daumRoughmapContainer"]');
-  if (roughDiv) slot.appendChild(roughDiv.cloneNode(true));
+  const srcdoc =
+    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<style>html,body{margin:0;padding:0;overflow:hidden;background:#e2e9f2}' +
+    '.root_daum_roughmap,.root_daum_roughmap .wrap_map{width:100%!important}</style>' +
+    '</head><body>' + html + '</body></html>';
 
-  const scripts = Array.from(tmp.querySelectorAll('script'));
-  const loaderEl = scripts.find(s => s.src);
-  const initEl   = scripts.find(s => !s.src && s.textContent.includes('Lander'));
-  const initCode = initEl?.textContent?.trim() || '';
-
-  function runInit() {
-    if (initCode) try { (new Function(initCode))(); } catch(e) { console.error('roughmap init:', e); }
-    slot.style.cssText = 'width:100%;height:100%;display:flex;justify-content:center;overflow:hidden;';
-  }
-
-  if (window.daum?.roughmap?.Lander) {
-    runInit();
-    return;
-  }
-
-  if (!loaderEl?.src) return;
-
-  const origWrite = document.write.bind(document);
-  document.write = function(html) {
-    document.write = origWrite;
-    const m = html.match(/src="([^"]+)"/);
-    if (!m) return;
-    const lander = document.createElement('script');
-    lander.charset = 'UTF-8';
-    lander.src = m[1];
-    lander.onload = runInit;
-    document.head.appendChild(lander);
-  };
-
-  const loader = document.createElement('script');
-  loader.charset = 'UTF-8';
-  loader.src = loaderEl.src;
-  loader.onerror = () => { document.write = origWrite; };
-  document.head.appendChild(loader);
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('scrolling', 'no');
+  iframe.setAttribute('title', '오시는 길 지도');
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+  iframe.srcdoc = srcdoc;
+  slot.innerHTML = '';
+  slot.appendChild(iframe);
 }
 
 function initGallery(c) {
@@ -1010,12 +976,21 @@ function wrapPage(id, html) {
 
 function buildPages(config, sections) {
   const enabled = sections.filter(s => s.enabled).sort((a,b) => a.order - b.order);
-  const gbEnabled = enabled.some(s => s.id === 'guestbook');
+  const gbEnabled  = enabled.some(s => s.id === 'guestbook');
+  const ddayEnabled = enabled.some(s => s.id === 'dday');
+  const accEnabled = enabled.some(s => s.id === 'accounts');
   const out = [];
-  let gbHandled = false;
+  let gbHandled = false, accHandled = false;
 
   for (const s of enabled) {
-    if (s.id === 'guestbook') continue; // 참석여부 페이지에 합침
+    if (s.id === 'guestbook') continue;          // 참석여부 페이지에 합침
+    if (s.id === 'accounts')  continue;          // D-DAY 페이지에 합침
+    if (s.id === 'dday') {
+      let html = renderDday(config);
+      if (accEnabled) { html += '<div class="sec-sep"></div>' + renderAccounts(config); accHandled = true; }
+      out.push(wrapPage('dday', html));
+      continue;
+    }
     if (s.id === 'rsvp') {
       out.push(wrapPage('rsvp', renderRsvpGuestbook(config, gbEnabled)));
       gbHandled = gbEnabled;
@@ -1024,10 +999,10 @@ function buildPages(config, sections) {
     const html = RENDERERS[s.id]?.(config);
     if (html) out.push(wrapPage(s.id, html));
   }
-  // 방명록만 켜져 있고 참석여부는 꺼진 경우 단독 페이지
-  if (gbEnabled && !gbHandled) {
-    out.push(wrapPage('rsvp', renderRsvpGuestbook(config, true)));
-  }
+  // D-DAY 꺼졌는데 마음전달만 켜진 경우 단독 페이지
+  if (accEnabled && !accHandled) out.push(wrapPage('accounts', renderAccounts(config)));
+  // 참석여부 꺼졌는데 방명록만 켜진 경우 단독 페이지
+  if (gbEnabled && !gbHandled)  out.push(wrapPage('rsvp', renderRsvpGuestbook(config, true)));
   return out.join('');
 }
 
