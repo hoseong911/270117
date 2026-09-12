@@ -684,13 +684,13 @@ async function probeSeries(pad) {
 async function applyGithubImages(config) {
   try {
     const [coverOk, wedding, film, introOk] = await Promise.race([
-      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + 'intro.jpg') ]),
+      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + '1.jpg') ]),
       new Promise(r => setTimeout(() => r([false, [], [], false]), 7000)),
     ]);
     if (coverOk)        config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '0.jpg' };
     if (wedding.length) config.gallery = { images: wedding };
     if (film.length)    config.film    = { images: film };
-    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + 'intro.jpg' };
+    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + '1.jpg' };
   } catch (e) {
     console.warn('github 이미지 로딩 실패:', e);
   }
