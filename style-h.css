@@ -377,25 +377,10 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
   .film-track { animation:none; }
 }
 
-/* ── 로딩: 문구만 (어두운 배경 → 플래시 대비 강화) ── */
+/* ── 로딩: 어두운 화면에서 부드럽게 밝아지며 메인 사진 노출 ── */
 .loading-deco { display:none; }
-#loadingScreen { background:#14161b; }
-.loading-text { font-size:.9rem; letter-spacing:.35em; color:rgba(255,255,255,.82); }
-
-/* ── 입장 플래시 (어두운 준비중 → 흰 번쩍 → 메인 사진) ── */
-#flash {
-  position:fixed; inset:0; background:#fff;
-  opacity:0; pointer-events:none; z-index:10000;
-}
-#flash.fire { animation:flashFire 1.15s cubic-bezier(.2,.7,.2,1) forwards; }
-@keyframes flashFire {
-  0%   { opacity:0; }
-  5%   { opacity:1; }    /* 번쩍 */
-  14%  { opacity:.72; }
-  21%  { opacity:1; }    /* 두 번째 번쩍 */
-  55%  { opacity:.22; }
-  100% { opacity:0; }
-}
+#loadingScreen { background:#0b0c0f; transition:opacity 1s ease; }
+.loading-text { font-size:.9rem; letter-spacing:.35em; color:rgba(255,255,255,.7); }
 
 /* ── 배경음악 토글 버튼 (좌상단, 이퀄라이저) ── */
 #bgmBtn {
