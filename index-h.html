@@ -145,6 +145,7 @@ const DEFAULT = {
     mapEmbedUrl: '',
     kakaoLink: '', naverLink: '', tmapLink: '',
     closing: '',
+    directions: { car: '', subway: '', bus: '', outer: '' },
   },
   greeting: {
     title: '결혼합니다',
@@ -269,7 +270,6 @@ function renderGreeting(c) {
   const film = c.film?.images || [];
   return `
 <section id="sec-greeting" class="fadein h-greeting${film.length ? ' has-film' : ''}">
-  ${filmStrip(film, 'rtl')}
   <div class="sec">
     <div class="sec-title">${esc(g.title || '결혼합니다')}</div>
     <div class="sec-divider"></div>
@@ -470,10 +470,19 @@ function renderLocation(c) {
     w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn loc-naver" target="_blank" rel="noopener">네이버지도</a>`,
     w.tmapLink  && `<a href="${esc(w.tmapLink)}"  class="location-btn loc-tmap"  target="_blank" rel="noopener">T맵</a>`,
   ].filter(Boolean);
-  const detail = w.transport ? `
-    <div class="location-detail" id="locDetail">
-      <button class="location-detail-toggle" type="button" id="locDetailToggle">교통 안내 <span class="acc-arrow">▾</span></button>
-      <div class="location-detail-body"><div class="location-detail-inner">${fmtRich(w.transport)}</div></div>
+  const dir = w.directions || {};
+  const cats = [
+    { key: 'car',    label: '자차 이용',          text: dir.car },
+    { key: 'subway', label: '지하철 이용',        text: dir.subway },
+    { key: 'bus',    label: '버스 이용',          text: dir.bus },
+    { key: 'outer',  label: '타지에서 오시는 경우', text: dir.outer },
+  ].filter(x => x.text && x.text.trim());
+  const detail = cats.length ? `
+    <div class="loc-dir" id="locDir">
+      <div class="loc-dir-tabs">
+        ${cats.map(x => `<button type="button" class="loc-dir-tab" data-key="${x.key}">${esc(x.label)}</button>`).join('')}
+      </div>
+      ${cats.map(x => `<div class="loc-dir-panel" data-key="${x.key}"><div class="location-detail-inner">${fmtRich(x.text)}</div></div>`).join('')}
     </div>` : '';
   return `
 <section id="sec-location" class="fadein">
@@ -919,11 +928,22 @@ function initGallery(c) {
   }, { passive: true });
 }
 
-function initLocationAccordion() {
-  const toggle = document.getElementById('locDetailToggle');
-  const box = document.getElementById('locDetail');
-  if (!toggle || !box) return;
-  toggle.addEventListener('click', () => box.classList.toggle('open'));
+function initLocationDirections() {
+  const box = document.getElementById('locDir');
+  if (!box) return;
+  const tabs = [...box.querySelectorAll('.loc-dir-tab')];
+  const panels = [...box.querySelectorAll('.loc-dir-panel')];
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const wasActive = tab.classList.contains('active');
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('open'));
+      if (!wasActive) {
+        tab.classList.add('active');
+        box.querySelector(`.loc-dir-panel[data-key="${tab.dataset.key}"]`)?.classList.add('open');
+      }
+    });
+  });
 }
 
 function initAccounts() {
@@ -1191,7 +1211,7 @@ async function init() {
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
-  initLocationAccordion();
+  initLocationDirections();
   initGallery(config);
   initAccounts();
   initRsvp();

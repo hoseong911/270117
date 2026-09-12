@@ -103,20 +103,19 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 .h-page .loc-naver { color:#03C75A; }  /* 네이버 그린 */
 .h-page .loc-tmap  { color:#2D6CDF; }  /* T맵 블루 */
 
-/* ── 오시는 길: 교통 상세(아코디언) ── */
-.location-detail { margin-top:1.6rem; text-align:left; }
-.location-detail-toggle {
-  width:100%; display:flex; align-items:center; justify-content:space-between;
-  padding:.75rem .2rem; background:none; border:none;
-  border-top:1px solid var(--border);
-  font-size:.9rem; font-weight:600; color:var(--ink2);
+/* ── 오시는 길: 교통 안내 4개 버튼(탭) ── */
+.loc-dir { margin-top:1.6rem; text-align:left; }
+.loc-dir-tabs { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+.loc-dir-tab {
+  padding:.72rem .5rem; border:1px solid var(--border); border-radius:8px;
+  background:none; font-size:.85rem; font-weight:600; color:var(--ink2);
+  transition:background .15s, border-color .15s, color .15s;
 }
-.location-detail-toggle .acc-arrow { transition:transform .25s ease; font-size:.8rem; }
-.location-detail.open .location-detail-toggle .acc-arrow { transform:rotate(180deg); }
-.location-detail-body { max-height:0; overflow:hidden; transition:max-height .35s ease; }
-.location-detail.open .location-detail-body { max-height:800px; }
+.loc-dir-tab.active { background:rgba(0,40,65,.06); border-color:var(--rose); color:var(--rose); }
+.loc-dir-panel { display:none; }
+.loc-dir-panel.open { display:block; }
 .location-detail-inner {
-  padding:.3rem .2rem 1.1rem;
+  padding:.9rem .3rem .3rem;
   font-size:.9rem; color:var(--ink2); line-height:2;
   word-break:keep-all;
 }
@@ -207,6 +206,17 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 /* ── 햄버거 메뉴: 보일듯 말듯 연하게 ── */
 #menuBtn span { background:rgba(28,37,53,.38) !important; }
 body.has-cover.h-cover-active #menuBtn span { background:rgba(255,255,255,.55) !important; }
+/* 상단 바: 스크롤/페이지 이동 시에도 항상 투명 유지 */
+body.has-cover.nav-opaque #mainNav {
+  background:transparent !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !important; }
+/* 펼친 메뉴: 불투명 흰 배경 대신 투명(글래스) */
+#menuDrawer.open {
+  background:rgba(247,249,251,.32) !important;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
 
 /* ── 모달을 480px 프레임 안에 가두고 배경을 블러(뿌옇게) 처리 ── */
 #galleryModal {
