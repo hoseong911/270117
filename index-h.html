@@ -144,6 +144,7 @@ const DEFAULT = {
     venueDetail: '',
     mapEmbedUrl: '',
     kakaoLink: '', naverLink: '', tmapLink: '',
+    closing: '',
   },
   greeting: {
     title: '결혼합니다',
@@ -215,8 +216,8 @@ const SECTION_NAV = {
 };
 
 // 가로 버전: 합쳐지는 섹션의 nav 타깃을 대표 페이지로 돌린다
-// (방명록 → 참석여부 페이지, 마음전달 → D-DAY 페이지)
-const NAV_TARGET = { guestbook: 'rsvp', accounts: 'dday' };
+// (마음전달·참석여부·방명록 → 한 페이지(accounts), D-DAY는 마지막 단독 마무리)
+const NAV_TARGET = { rsvp: 'accounts', guestbook: 'accounts' };
 
 const GALLERY_THUMBS = 9; // 3×3
 
@@ -405,8 +406,9 @@ function renderGallery(c) {
 
 function renderDday(c) {
   const w = c.wedding;
+  const closing = w.closing || '';
   return `
-<section id="sec-dday" class="fadein">
+<section id="sec-dday" class="fadein h-finale">
   <div class="sec">
     <div class="sec-label">Countdown</div>
     <div class="sec-title">D-DAY</div>
@@ -421,6 +423,7 @@ function renderDday(c) {
       </div>
       <div class="dday-wedding-date">${esc(w.date)}　${esc(w.time)}</div>
     </div>
+    ${closing ? `<p class="dday-closing">${esc(closing).replace(/\n/g,'<br>')}</p>` : ''}
   </div>
 </section>`;
 }
@@ -530,35 +533,29 @@ function renderFlowers(c) {
 </section>`;
 }
 
-// 참석여부 (단독 섹션)
-function renderRsvpOnly(c) {
+// 참석여부 & 방명록 (한 섹션, 버튼 반반 · 참석=모달, 방명록=아래 가로흐름)
+function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
   const deadline = c.rsvp?.deadline || '';
-  return `
-<section id="sec-rsvp" class="fadein">
-  <div class="sec">
-    <div class="sec-label">RSVP</div>
-    <div class="sec-title">참석 여부</div>
-    <div class="sec-divider"></div>
-    <button class="rsvp-open-btn" id="rsvpOpenBtn">참석 여부 전달하기</button>
-    ${deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
-  </div>
-</section>`;
-}
-
-// 방명록 (단독 섹션, 가로 흐름 리스트)
-function renderGuestbookH() {
-  return `
-<section id="sec-guestbook" class="fadein">
-  <div class="sec">
-    <div class="sec-label">Guestbook</div>
-    <div class="sec-title">방명록</div>
-    <div class="sec-divider"></div>
-    <button class="gb-open-btn" id="gbOpenBtn">방명록 남기기</button>
+  const btns = `
+    <div class="rsvp-gb-btns">
+      ${withRsvp ? `<button class="rsvp-open-btn half" id="rsvpOpenBtn">참석 여부</button>` : ''}
+      ${withGuestbook ? `<button class="gb-open-btn half" id="gbOpenBtn">방명록 남기기</button>` : ''}
+    </div>`;
+  const gbList = withGuestbook ? `
     <div class="gb-hwrap">
       <div class="gb-hlist" id="gbList"><div class="gb-empty">첫 번째 메시지를 남겨주세요</div></div>
       <div style="text-align:center"><button class="gb-more gb-more-h" id="gbMore" style="display:none">더 보기</button></div>
       <p class="gb-hhint">← 좌우로 넘겨 보세요 →</p>
-    </div>
+    </div>` : '';
+  return `
+<section id="sec-rsvp" class="fadein">
+  <div class="sec">
+    <div class="sec-label">RSVP</div>
+    <div class="sec-title">참석 여부 &amp; 방명록</div>
+    <div class="sec-divider"></div>
+    ${btns}
+    ${withRsvp && deadline ? `<p class="rsvp-deadline-note">※ ${esc(deadline)}까지 부탁드립니다</p>` : ''}
+    ${gbList}
   </div>
 </section>`;
 }
@@ -731,7 +728,7 @@ function initNav(sections) {
 
   inner.innerHTML = sections
     .filter(s => s.enabled && SECTION_NAV[s.id])
-    .sort((a,b) => a.order - b.order)
+    .sort((a,b) => (a.id === 'dday' ? 999 : a.order) - (b.id === 'dday' ? 999 : b.order))
     .map(s => `<button class="nav-item" data-target="${NAV_TARGET[s.id] || s.id}">${SECTION_NAV[s.id]}</button>`)
     .join('');
 
@@ -1078,34 +1075,36 @@ function wrapPage(id, html) {
 
 function buildPages(config, sections) {
   const enabled = sections.filter(s => s.enabled).sort((a,b) => a.order - b.order);
-  const gbEnabled  = enabled.some(s => s.id === 'guestbook');
-  const ddayEnabled = enabled.some(s => s.id === 'dday');
-  const accEnabled = enabled.some(s => s.id === 'accounts');
+  const has = id => enabled.some(s => s.id === id);
+  const ddayEnabled = has('dday');
+  const accEnabled  = has('accounts');
+  const rsvpEnabled = has('rsvp');
+  const gbEnabled   = has('guestbook');
   const out = [];
-  let gbHandled = false, accHandled = false;
+
+  // 마음전달(위) + 참석여부&방명록(아래) 한 페이지
+  let comboDone = false;
+  const emitCombo = () => {
+    if (comboDone) return;
+    comboDone = true;
+    let html = '';
+    if (accEnabled) html += renderAccounts(config);
+    if (accEnabled && (rsvpEnabled || gbEnabled)) html += '<div class="sec-sep"></div>';
+    if (rsvpEnabled || gbEnabled) html += renderRsvpGuestbook(config, rsvpEnabled, gbEnabled);
+    if (html) out.push(wrapPage('accounts', html));
+  };
 
   for (const s of enabled) {
-    if (s.id === 'guestbook') continue;          // 참석여부 페이지에 합침
-    if (s.id === 'accounts')  continue;          // D-DAY 페이지에 합침
-    if (s.id === 'dday') {
-      let html = renderDday(config);
-      if (accEnabled) { html += '<div class="sec-sep"></div>' + renderAccounts(config); accHandled = true; }
-      out.push(wrapPage('dday', html));
-      continue;
-    }
-    if (s.id === 'rsvp') {
-      let html = renderRsvpOnly(config);
-      if (gbEnabled) { html += '<div class="sec-sep"></div>' + renderGuestbookH(config); gbHandled = true; }
-      out.push(wrapPage('rsvp', html));
-      continue;
-    }
+    if (s.id === 'dday') continue;   // 맨 마지막 마무리 페이지로 별도 배치
+    if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook') { emitCombo(); continue; }
     const html = RENDERERS[s.id]?.(config);
     if (html) out.push(wrapPage(s.id, html));
   }
-  // D-DAY 꺼졌는데 마음전달만 켜진 경우 단독 페이지
-  if (accEnabled && !accHandled) out.push(wrapPage('accounts', renderAccounts(config)));
-  // 참석여부 꺼졌는데 방명록만 켜진 경우 단독 페이지
-  if (gbEnabled && !gbHandled)  out.push(wrapPage('rsvp', renderGuestbookH(config)));
+  emitCombo();   // 세 섹션 중 하나만 켜진 경우 등 안전 처리
+
+  // D-DAY = 마지막 마무리(카운트다운 + 마무리 멘트)
+  if (ddayEnabled) out.push(wrapPage('dday', renderDday(config)));
+
   return out.join('');
 }
 

@@ -127,6 +127,24 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
   margin:.6rem auto 0; padding:.5rem 1.3rem; white-space:nowrap;
 }
 
+/* ── 참석여부 & 방명록: 버튼 반반 ── */
+.rsvp-gb-btns { display:flex; gap:.7rem; margin-bottom:1.3rem; }
+.rsvp-gb-btns .rsvp-open-btn.half,
+.rsvp-gb-btns .gb-open-btn.half {
+  flex:1 1 0; width:auto; margin:0;
+  padding:.95rem .5rem; min-height:50px;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ── 마지막 마무리(D-DAY) 멘트 ── */
+.dday-closing {
+  margin-top:2.4rem; padding-top:1.8rem;
+  border-top:1px solid var(--border);
+  font-family:var(--font-serif);
+  font-size:1rem; line-height:2.1;
+  color:var(--ink); word-break:keep-all; white-space:pre-line;
+}
+
 /* 참석여부 + 방명록 합친 페이지 간격 */
 .h-rsvp-gb .sec-block + .sec-block { margin-top:2.4rem; }
 .h-rsvp-gb .sub-divider {
@@ -270,7 +288,7 @@ body.has-cover.h-cover-active #menuBtn span { background:rgba(255,255,255,.55) !
 
 .film-frame {
   flex:0 0 auto;
-  width:104px; height:74px;
+  width:100px; height:132px;   /* 세로(옛날) 사진에 맞춘 필름 프레임 */
   background:#000;
   border-left:3px solid #141414;
   border-right:3px solid #141414;

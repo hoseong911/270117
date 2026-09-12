@@ -580,6 +580,11 @@
           </div>
         </div>
       </div>
+      <div class="form-section">
+        <div class="form-section-title">마무리 멘트 (맨 마지막 화면 하단)</div>
+        <p style="font-size:.78rem;color:var(--ink2);margin-bottom:.6rem">청첩장 맨 마지막 D-DAY 화면 아래에 남길 인사말입니다. (줄바꿈 가능)</p>
+        <textarea class="form-textarea" id="ddayClosing" rows="4" placeholder="먼 길 와주셔서 감사합니다.&#10;예쁘게 잘 살겠습니다."></textarea>
+      </div>
       <div class="save-row">
         <span class="save-msg" id="ddayMsg"></span>
         <button class="save-btn" id="saveDdayBtn">저장</button>
@@ -1096,6 +1101,7 @@ function fillForms() {
   val('weddingDate',    w.date);    val('weddingDateISO', w.dateISO);
   val('weddingTime',    w.time);    val('venueName', w.venue);
   val('venueDetail',    w.venueDetail); val('venueAddr', w.venueAddr);
+  val('ddayClosing',    w.closing);
   val('mapEmbedUrl',    w.mapEmbedUrl);
   val('kakaoLink', w.kakaoLink); val('naverLink', w.naverLink); val('tmapLink', w.tmapLink);
   val('transport', w.transport);
@@ -1839,7 +1845,7 @@ document.getElementById('saveDdayBtn').addEventListener('click', async () => {
       ...(currentConfig.wedding || {}),
       date: v('weddingDate'), dateISO: v('weddingDateISO'),
       time: v('weddingTime'), venue:   v('venueName'),
-      venueDetail: v('venueDetail'),
+      venueDetail: v('venueDetail'), closing: v('ddayClosing'),
     },
   };
   await savePartial(data, 'ddayMsg', 'D-DAY 설정이 저장되었습니다');
