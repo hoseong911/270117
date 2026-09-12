@@ -74,6 +74,13 @@ body {
 body.has-cover .h-next-hint { color:rgba(255,255,255,.9); text-shadow:0 1px 6px rgba(0,0,0,.45); }
 body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 
+/* ── 오늘의 주인공: 신랑/신부 ── */
+.stars-grid {
+  display:flex; justify-content:center; gap:2.6rem;
+  margin-bottom:2rem;
+}
+.stars-grid .greeting-family { text-align:center; }
+
 /* ── 갤러리(3x3 + 더보기) ── */
 .h-gallery-grid { grid-template-columns:repeat(3,1fr); }
 .gallery-more {

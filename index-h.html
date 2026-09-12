@@ -204,7 +204,7 @@ const SECTION_NAV = {
   couple:    '신랑신부',
   parents:   '부모님',
   lovestory: '스토리',
-  gallery:   '갤러리',
+  gallery:   '오늘의 주인공',
   dday:      'D-DAY',
   schedule:  '예식안내',
   location:  '오시는길',
@@ -265,31 +265,14 @@ function filmStrip(images, dir) {
 
 function renderGreeting(c) {
   const g  = c.greeting;
-  const gp = g.groom || {};
-  const bp = g.bride || {};
-  const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
   const film = c.film?.images || [];
   return `
 <section id="sec-greeting" class="fadein h-greeting${film.length ? ' has-film' : ''}">
   ${filmStrip(film, 'rtl')}
   <div class="sec">
-    <div class="sec-label">Invitation</div>
     <div class="sec-title">${esc(g.title || '결혼합니다')}</div>
     <div class="sec-divider"></div>
     <p class="greeting-message">${esc(g.message || '').replace(/\n/g,'<br>')}</p>
-    ${showParents ? `
-    <div class="greeting-parents">
-      <div class="greeting-family">
-        <div class="greeting-family-role">신랑 측</div>
-        <p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>
-        <div class="greeting-person-name">${esc(c.groom.name)}</div>
-      </div>
-      <div class="greeting-family">
-        <div class="greeting-family-role">신부 측</div>
-        <p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>
-        <div class="greeting-person-name">${esc(c.bride.name)}</div>
-      </div>
-    </div>` : ''}
   </div>
   ${filmStrip(film, 'ltr')}
 </section>`;
@@ -382,6 +365,10 @@ function renderLovestory(c) {
 }
 
 function renderGallery(c) {
+  const g  = c.greeting;
+  const gp = g.groom || {};
+  const bp = g.bride || {};
+  const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
   const images = c.gallery?.images || [];
   const shown = images.slice(0, GALLERY_THUMBS);
   const content = images.length
@@ -390,12 +377,26 @@ function renderGallery(c) {
   const moreBtn = images.length
     ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
     : '';
+  const couple = `
+    <div class="stars-grid">
+      <div class="greeting-family">
+        <div class="greeting-family-role">신랑</div>
+        ${showParents ? `<p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>` : ''}
+        <div class="greeting-person-name">${esc(c.groom.name)}</div>
+      </div>
+      <div class="greeting-family">
+        <div class="greeting-family-role">신부</div>
+        ${showParents ? `<p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>` : ''}
+        <div class="greeting-person-name">${esc(c.bride.name)}</div>
+      </div>
+    </div>`;
   return `
 <section id="sec-gallery" class="fadein">
   <div class="sec">
-    <div class="sec-label">Gallery</div>
-    <div class="sec-title">갤러리</div>
+    <div class="sec-label">Today</div>
+    <div class="sec-title">오늘의 주인공</div>
     <div class="sec-divider"></div>
+    ${couple}
     <div class="gallery-grid h-gallery-grid" id="galleryGrid">${content}</div>
     ${moreBtn}
   </div>
@@ -611,6 +612,55 @@ function deepMerge(target, source) {
     }
   }
   return out;
+}
+
+// ─── GITHUB 이미지 자동 로딩 ───────────────────────────
+// images 폴더 번호 규칙:
+//   0.jpg            → 메인(표지) 사진
+//   01.jpg,02.jpg…   → 웨딩(오늘의 주인공 썸네일) 사진
+//   001.jpg,002.jpg… → 필름(인삿말 화면) 사진
+const GH_IMG_BASE = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/';
+
+function imgExists(url) {
+  return new Promise(res => {
+    const im = new Image();
+    im.onload  = () => res(true);
+    im.onerror = () => res(false);
+    im.src = url;
+  });
+}
+
+// pad 자리수(2=웨딩,3=필름)로 1번부터 순서대로 탐색. 한 묶음(10장)이 전부 없으면 종료.
+async function probeSeries(pad) {
+  const out = [];
+  const BATCH = 10;
+  for (let start = 1; start <= 90; start += BATCH) {
+    const idxs = [];
+    for (let i = start; i < start + BATCH; i++) idxs.push(i);
+    const res = await Promise.all(idxs.map(async i => {
+      const url = GH_IMG_BASE + String(i).padStart(pad, '0') + '.jpg';
+      return { i, url, ok: await imgExists(url) };
+    }));
+    const found = res.filter(r => r.ok);
+    found.forEach(r => out.push(r.url));
+    if (found.length === 0) break;   // 빈 묶음이면 더 없다고 보고 종료
+  }
+  return out;
+}
+
+// 깃허브 이미지가 있으면 config 를 덮어씀(없으면 기존 파이어스토어 값 유지)
+async function applyGithubImages(config) {
+  try {
+    const [coverOk, wedding, film] = await Promise.race([
+      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3) ]),
+      new Promise(r => setTimeout(() => r([false, [], []]), 7000)),
+    ]);
+    if (coverOk)       config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '0.jpg' };
+    if (wedding.length) config.gallery = { images: wedding };
+    if (film.length)    config.film    = { images: film };
+  } catch (e) {
+    console.warn('github 이미지 로딩 실패:', e);
+  }
 }
 
 // ─── HORIZONTAL DECK ──────────────────────────────────
@@ -1071,6 +1121,9 @@ async function init() {
   } catch(e) {
     console.warn('Config load failed, using defaults:', e.message);
   }
+
+  // 깃허브 images 폴더의 사진(번호 규칙)이 있으면 우선 사용
+  await applyGithubImages(config);
 
   const h = config.header || {};
   if (h.title) {
