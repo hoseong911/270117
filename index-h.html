@@ -155,6 +155,7 @@ const DEFAULT = {
   },
   gallery: { images: [] },
   film:    { images: [] },
+  intro:   { photo: '' },
   schedule: {
     meal: '예식 후 식사를 함께 합니다.',
     parking: '주차 정보를 입력해주세요.',
@@ -185,6 +186,7 @@ const DEFAULT = {
   },
   sections: [
     { id: 'header',    enabled: true,  order: 0 },
+    { id: 'intro',     enabled: true,  order: 0.5 },
     { id: 'greeting',  enabled: true,  order: 1 },
     { id: 'couple',    enabled: false, order: 2 },
     { id: 'parents',   enabled: false, order: 3 },
@@ -202,6 +204,7 @@ const DEFAULT = {
 
 const SECTION_NAV = {
   header:    null,
+  intro:     '인트로',
   greeting:  '초대장',
   couple:    '신랑신부',
   parents:   '부모님',
@@ -263,6 +266,17 @@ function filmStrip(images, dir) {
     .join('');
   // 무한 루프를 위해 프레임을 두 벌 이어붙임
   return `<div class="film-strip film-${dir}" aria-hidden="true"><div class="film-track">${frames}${frames}</div></div>`;
+}
+
+// 인트로: 메인 다음 화면(사진 + 필름 흐름)
+function renderIntro(c) {
+  const film = c.film?.images || [];
+  const photo = c.intro?.photo || c.header?.photo || '';
+  return `
+<section id="sec-intro" class="fadein h-intro${film.length ? ' has-film' : ''}">
+  <div class="intro-photo"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}></div>
+  ${filmStrip(film, 'ltr')}
+</section>`;
 }
 
 function renderGreeting(c) {
@@ -582,6 +596,7 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
 
 const RENDERERS = {
   header:    renderHeader,
+  intro:     renderIntro,
   greeting:  renderGreeting,
   couple:    renderCouple,
   parents:   renderParents,
@@ -668,13 +683,14 @@ async function probeSeries(pad) {
 // 깃허브 이미지가 있으면 config 를 덮어씀(없으면 기존 파이어스토어 값 유지)
 async function applyGithubImages(config) {
   try {
-    const [coverOk, wedding, film] = await Promise.race([
-      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3) ]),
-      new Promise(r => setTimeout(() => r([false, [], []]), 7000)),
+    const [coverOk, wedding, film, introOk] = await Promise.race([
+      Promise.all([ imgExists(GH_IMG_BASE + '0.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + 'intro.jpg') ]),
+      new Promise(r => setTimeout(() => r([false, [], [], false]), 7000)),
     ]);
-    if (coverOk)       config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '0.jpg' };
+    if (coverOk)        config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '0.jpg' };
     if (wedding.length) config.gallery = { images: wedding };
     if (film.length)    config.film    = { images: film };
+    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + 'intro.jpg' };
   } catch (e) {
     console.warn('github 이미지 로딩 실패:', e);
   }
@@ -1200,6 +1216,11 @@ async function init() {
   if (h.ogImage) document.querySelector('meta[property="og:image"]')?.setAttribute('content', h.ogImage);
 
   const sections = (config.sections || DEFAULT.sections).slice().sort((a,b) => a.order - b.order);
+
+  // 인트로는 섹션 설정과 무관하게 항상 노출(메인 다음 페이지)
+  if (!sections.some(s => s.id === 'intro')) {
+    sections.push({ id: 'intro', enabled: true, order: 0.5 });
+  }
 
   if (config.header?.photo) document.body.classList.add('has-cover');
 
