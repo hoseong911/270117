@@ -737,28 +737,37 @@ function initHDeck() {
     });
   }
 
-  // 책장 넘기듯: 스크롤 위치에 따라 각 페이지를 3D로 회전
+  // 책장 넘기듯: 스크롤 중에만 3D 회전, 정지(스냅)되면 완전히 원상복귀
   function applyFlip() {
     const w = pageW();
     const sl = deck.scrollLeft;
     for (let i = 0; i < pages.length; i++) {
       const d = (i * w - sl) / w;                 // 현재 페이지 기준 0
-      const c = Math.max(-1, Math.min(1, d));
       const p = pages[i];
-      p.style.transform = `rotateY(${c * -26}deg) scale(${1 - Math.abs(c) * 0.05})`;
-      p.style.zIndex = String(100 - Math.round(Math.abs(d)));
+      if (Math.abs(d) <= 0.04) {                  // 거의 정렬됨 → 변형 제거(정렬 어긋남 방지)
+        p.style.transform = 'none';
+        p.style.zIndex = '2';
+        continue;
+      }
+      const c = Math.max(-1, Math.min(1, d));
+      p.style.transform = `rotateY(${c * -22}deg)`;
+      p.style.zIndex = '1';
     }
   }
 
   let raf = null;
   deck.addEventListener('scroll', () => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = null;
-      applyFlip();
-      const i = Math.round(deck.scrollLeft / pageW());
-      if (i !== cur) setActive(i);
-    });
+    if (!raf) {
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        applyFlip();
+        const i = Math.round(deck.scrollLeft / pageW());
+        if (i !== cur) setActive(i);
+      });
+    }
+    // 스크롤이 멈춘 뒤 한 번 더 정렬 확정
+    clearTimeout(deck._settleT);
+    deck._settleT = setTimeout(applyFlip, 160);
   }, { passive: true });
 
   // 메인(표지)에서 아무 곳이나 탭/클릭하면 다음 페이지로
