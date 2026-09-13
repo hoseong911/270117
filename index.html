@@ -103,6 +103,15 @@
   </div>
 </div>
 
+<!-- 오시는 길: 교통 상세 안내 모달 -->
+<div id="transportModal" class="wedding-modal">
+  <div class="wedding-modal-box">
+    <button class="wedding-modal-close" id="transportModalClose">✕</button>
+    <div class="wedding-modal-title">상세 안내</div>
+    <div class="transport-detail" id="transportBody"></div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, collection, addDoc, getDocs, orderBy, query, limit, startAfter, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -481,25 +490,14 @@ function fmtRich(s) {
 function renderLocation(c) {
   const w = c.wedding;
   const mapContent = `<div id="mapEmbedSlot">${w.mapEmbedUrl ? '' : '<div class="location-map-placeholder">지도 준비 중</div>'}</div>`;
+  const dir = w.directions || {};
+  const hasDetail = ['car','subway','bus','outer'].some(k => (dir[k] || '').trim());
   const navBtns = [
     w.kakaoLink && `<a href="${esc(w.kakaoLink)}" class="location-btn loc-kakao" target="_blank" rel="noopener">카카오맵</a>`,
     w.naverLink && `<a href="${esc(w.naverLink)}" class="location-btn loc-naver" target="_blank" rel="noopener">네이버지도</a>`,
     w.tmapLink  && `<a href="${esc(w.tmapLink)}"  class="location-btn loc-tmap"  target="_blank" rel="noopener">T맵</a>`,
+    hasDetail   && `<button type="button" class="location-btn loc-detail" id="transportOpenBtn">상세 안내</button>`,
   ].filter(Boolean);
-  const dir = w.directions || {};
-  const cats = [
-    { key: 'car',    label: '자차',   text: dir.car },
-    { key: 'subway', label: '지하철', text: dir.subway },
-    { key: 'bus',    label: '버스',   text: dir.bus },
-    { key: 'outer',  label: '타지',   text: dir.outer },
-  ].filter(x => x.text && x.text.trim());
-  const detail = cats.length ? `
-    <div class="loc-dir" id="locDir">
-      <div class="loc-dir-tabs">
-        ${cats.map(x => `<button type="button" class="loc-dir-tab" data-key="${x.key}">${esc(x.label)}</button>`).join('')}
-      </div>
-      ${cats.map(x => `<div class="loc-dir-panel" data-key="${x.key}"><div class="location-detail-inner">${fmtRich(x.text)}</div></div>`).join('')}
-    </div>` : '';
   return `
 <section id="sec-location" class="fadein">
   <div class="sec">
@@ -512,7 +510,6 @@ function renderLocation(c) {
       <div class="location-addr">${esc(w.venueAddr)}</div>
     </div>
     ${navBtns.length ? `<div class="location-btns">${navBtns.join('')}</div>` : ''}
-    ${detail}
   </div>
 </section>`;
 }
@@ -1025,22 +1022,28 @@ function initBgm() {
   window.addEventListener('pagehide', () => audio.pause());
 }
 
-function initLocationDirections() {
-  const box = document.getElementById('locDir');
-  if (!box) return;
-  const tabs = [...box.querySelectorAll('.loc-dir-tab')];
-  const panels = [...box.querySelectorAll('.loc-dir-panel')];
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const wasActive = tab.classList.contains('active');
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('open'));
-      if (!wasActive) {
-        tab.classList.add('active');
-        box.querySelector(`.loc-dir-panel[data-key="${tab.dataset.key}"]`)?.classList.add('open');
-      }
-    });
-  });
+function initTransportDetail(config) {
+  const modal   = document.getElementById('transportModal');
+  const openBtn = document.getElementById('transportOpenBtn');
+  const body    = document.getElementById('transportBody');
+  if (!modal || !openBtn || !body) return;
+  const dir = config.wedding?.directions || {};
+  const cats = [
+    { label: '자차 이용',   text: dir.car },
+    { label: '지하철 이용', text: dir.subway },
+    { label: '버스 이용',   text: dir.bus },
+    { label: '타지 이용',   text: dir.outer },
+  ].filter(x => x.text && x.text.trim());
+  body.innerHTML = cats.map(x => `
+    <div class="transport-cat">
+      <div class="transport-cat-title">${esc(x.label)}</div>
+      <div class="location-detail-inner">${fmtRich(x.text)}</div>
+    </div>`).join('');
+  const open  = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; document.body.classList.add('modal-open'); };
+  const close = () => { modal.classList.remove('show'); document.body.style.overflow = ''; document.body.classList.remove('modal-open'); };
+  openBtn.addEventListener('click', open);
+  document.getElementById('transportModalClose')?.addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
 }
 
 function initAccounts() {
@@ -1244,7 +1247,6 @@ function buildPages(config, sections) {
     comboDone = true;
     let html = '';
     if (accEnabled) html += renderAccounts(config);
-    if (accEnabled && (rsvpEnabled || gbEnabled)) html += '<div class="sec-sep"></div>';
     if (rsvpEnabled || gbEnabled) html += renderRsvpGuestbook(config, rsvpEnabled, gbEnabled);
     if (html) out.push(wrapPage('accounts', html));
   };
@@ -1304,7 +1306,7 @@ async function init() {
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
-  initLocationDirections();
+  initTransportDetail(config);
   initGallery(config);
   initAccounts();
   initRsvp();
