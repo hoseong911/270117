@@ -1,0 +1,62 @@
+/* ========================================================
+   270117 웨딩 청첩장 — 세로(연속 스크롤) 버전
+   style.css + style-h.css 위에 얹어 '가로 슬라이드'를 '세로 스크롤'로 전환
+   ======================================================== */
+
+html { scroll-behavior:smooth; }
+body {
+  overflow:visible;
+  overflow-x:hidden;
+  height:auto;
+  min-height:100svh;
+}
+
+/* ── 덱: 가로 스크롤/스냅/3D 제거 → 세로 스택 ── */
+#hDeck {
+  display:block;
+  height:auto;
+  overflow:visible;
+  scroll-snap-type:none;
+  perspective:none;
+  -webkit-overflow-scrolling:auto;
+}
+
+/* ── 페이지: 전체높이 슬라이드 → 자연 높이 블록 ── */
+.h-page {
+  flex:none;
+  width:100%;
+  height:auto;
+  min-height:auto;
+  overflow:visible;
+  scroll-snap-align:none;
+  transform:none !important;
+  z-index:auto !important;
+}
+.h-page-inner { display:block; min-height:0; }
+.h-page section { min-height:auto; }
+
+/* ── 표지(헤더)는 첫 화면 가득 ── */
+.h-page--header { overflow:hidden; }
+.h-page--header #sec-header,
+.h-page--header #sec-header.has-photo { min-height:100svh; }
+/* 넘김(>) 힌트 → 아래 방향 스크롤 힌트로 */
+.h-next-hint {
+  top:auto; bottom:1.4rem; left:50%; right:auto;
+  transform:translateX(-50%) rotate(90deg);
+}
+body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
+
+/* ── 인트로/인삿말은 한 화면 가득(사진+필름 배치 유지) ── */
+.h-page .h-intro { min-height:100svh; }
+.h-greeting.has-film { min-height:100svh; }
+
+/* ── 스크롤 진입 시 서서히 나타나기(가로에선 꺼져 있음) ── */
+.h-page .fadein {
+  opacity:0 !important;
+  transform:translateY(18px) !important;
+  transition:opacity .7s ease, transform .7s ease;
+}
+.h-page .fadein.visible {
+  opacity:1 !important;
+  transform:none !important;
+}
