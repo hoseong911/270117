@@ -5,7 +5,7 @@
 
 html {
   scroll-behavior:smooth;
-  scroll-snap-type:y proximity;   /* 부드러운 자석 스냅 */
+  scroll-snap-type:y mandatory;   /* 각 섹션에 확실히(부드럽게) 붙기 */
 }
 body {
   overflow:visible;
@@ -49,8 +49,11 @@ body {
 .h-page--header #sec-header.has-photo { min-height:100svh; }
 .h-page .h-intro { min-height:100svh; }
 .h-greeting.has-film { min-height:100svh; }
-/* 인트로 필름 더 위로(그라데이션은 하단 그대로) */
-.h-intro .film-strip { bottom:14svh; }
+/* 인트로 필름: 위치(윗변)는 유지하고 아래쪽으로만 크게 */
+.h-intro .film-strip { bottom:calc(14svh - 2.6rem); }
+.h-intro .film-frame { width:118px; padding:11px 7px; }
+.h-intro .film-frame img { height:140px; }
+.h-intro .film-frame::after { left:7px; right:7px; top:11px; bottom:11px; }
 
 /* 넘김(>) 힌트 → 아래 방향 스크롤 힌트로 */
 .h-next-hint {
@@ -70,19 +73,19 @@ body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
   transform:none !important;
 }
 
-/* ── 페이지 경계 그라데이션(사진/필름 화면이 위아래로 자연히 이어지게) ── */
+/* ── 페이지 경계 그라데이션(은은하게 이어지게) ── */
 /* 하단 페이드: 표지·인트로·인삿말 → 다음 섹션으로 */
 .h-page[data-page="header"]::after,
 .h-page[data-page="intro"]::after,
 .h-page[data-page="greeting"]::after {
-  content:''; position:absolute; left:0; right:0; bottom:0; height:9svh;
-  background:linear-gradient(to top, var(--bg) 0%, rgba(247,249,251,0) 100%);
+  content:''; position:absolute; left:0; right:0; bottom:0; height:6svh;
+  background:linear-gradient(to top, rgba(247,249,251,.5) 0%, rgba(247,249,251,0) 100%);
   pointer-events:none; z-index:3;
 }
 /* 상단 페이드: 인트로·인삿말 → 이전 섹션에서 이어지게 */
 .h-page[data-page="intro"]::before,
 .h-page[data-page="greeting"]::before {
-  content:''; position:absolute; left:0; right:0; top:0; height:9svh;
-  background:linear-gradient(to bottom, var(--bg) 0%, rgba(247,249,251,0) 100%);
+  content:''; position:absolute; left:0; right:0; top:0; height:6svh;
+  background:linear-gradient(to bottom, rgba(247,249,251,.5) 0%, rgba(247,249,251,0) 100%);
   pointer-events:none; z-index:3;
 }
