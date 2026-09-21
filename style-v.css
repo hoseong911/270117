@@ -1,11 +1,11 @@
 /* ========================================================
-   270117 웨딩 청첩장 — 세로(연속 스크롤 + 세로 스냅) 버전
+   270117 웨딩 청첩장 — 세로(연속 스크롤) 버전
    style.css + style-h.css 위에 얹어 '가로 슬라이드'를 '세로 스크롤'로 전환
    ======================================================== */
 
 html {
   scroll-behavior:smooth;
-  scroll-snap-type:y mandatory;   /* 각 섹션에 자석처럼 붙기 */
+  scroll-snap-type:y proximity;   /* 부드러운 자석 스냅 */
 }
 body {
   overflow:visible;
@@ -23,32 +23,35 @@ body {
   -webkit-overflow-scrolling:auto;
 }
 
-/* ── 각 페이지 = 한 화면 + 세로 스냅 ── */
+/* ── 각 페이지: 자연 높이 + 부드러운 세로 스냅 ── */
 .h-page {
   flex:none;
   width:100%;
   height:auto;
-  min-height:100svh;
+  min-height:auto;
   overflow:visible;
   position:relative;
   scroll-snap-align:start;
-  scroll-snap-stop:always;
   transform:none !important;
   z-index:auto !important;
 }
-.h-page-inner {
-  min-height:100svh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;   /* 내용 세로 중앙 정렬 */
-}
+.h-page-inner { min-height:auto; display:block; }
 .h-page section { min-height:auto; }
 
-/* ── 표지(헤더)는 자체 레이아웃 유지 ── */
+/* ── 섹션 여백 일정하게(메뉴 간 간격 균일) ── */
+.h-page .sec { padding:3.4rem 1.4rem; }
+.h-page[data-page="accounts"] .sec { padding-top:3.4rem; padding-bottom:3.4rem; }
+
+/* ── 표지/인트로/인삿말은 한 화면 가득(풀블리드 비주얼 유지) ── */
 .h-page--header { overflow:hidden; }
-.h-page--header .h-page-inner { display:block; justify-content:flex-start; }
+.h-page--header .h-page-inner { display:block; }
 .h-page--header #sec-header,
 .h-page--header #sec-header.has-photo { min-height:100svh; }
+.h-page .h-intro { min-height:100svh; }
+.h-greeting.has-film { min-height:100svh; }
+/* 인트로 필름 더 위로(그라데이션은 하단 그대로) */
+.h-intro .film-strip { bottom:14svh; }
+
 /* 넘김(>) 힌트 → 아래 방향 스크롤 힌트로 */
 .h-next-hint {
   top:auto; bottom:1.4rem; left:50%; right:auto;
@@ -56,11 +59,7 @@ body {
 }
 body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 
-/* ── 인트로/인삿말도 한 화면 가득(사진+필름 배치 유지) ── */
-.h-page .h-intro { min-height:100svh; }
-.h-greeting.has-film { min-height:100svh; }
-
-/* ── 스크롤 진입 시 서서히 나타나기(가로에선 꺼져 있음) ── */
+/* ── 스크롤 진입 시 서서히 나타나기 ── */
 .h-page .fadein {
   opacity:0 !important;
   transform:translateY(18px) !important;
@@ -72,15 +71,18 @@ body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 }
 
 /* ── 페이지 경계 그라데이션(사진/필름 화면이 위아래로 자연히 이어지게) ── */
-.h-page[data-page="intro"]::before,
-.h-page[data-page="greeting"]::before {
-  content:''; position:absolute; left:0; right:0; top:0; height:9svh;
-  background:linear-gradient(to bottom, var(--bg) 0%, rgba(247,249,251,0) 100%);
-  pointer-events:none; z-index:3;
-}
+/* 하단 페이드: 표지·인트로·인삿말 → 다음 섹션으로 */
+.h-page[data-page="header"]::after,
 .h-page[data-page="intro"]::after,
 .h-page[data-page="greeting"]::after {
   content:''; position:absolute; left:0; right:0; bottom:0; height:9svh;
   background:linear-gradient(to top, var(--bg) 0%, rgba(247,249,251,0) 100%);
+  pointer-events:none; z-index:3;
+}
+/* 상단 페이드: 인트로·인삿말 → 이전 섹션에서 이어지게 */
+.h-page[data-page="intro"]::before,
+.h-page[data-page="greeting"]::before {
+  content:''; position:absolute; left:0; right:0; top:0; height:9svh;
+  background:linear-gradient(to bottom, var(--bg) 0%, rgba(247,249,251,0) 100%);
   pointer-events:none; z-index:3;
 }
