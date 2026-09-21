@@ -1,14 +1,16 @@
 /* ========================================================
-   270117 웨딩 청첩장 — 세로(연속 스크롤) 버전
+   270117 웨딩 청첩장 — 세로(연속 스크롤 + 세로 스냅) 버전
    style.css + style-h.css 위에 얹어 '가로 슬라이드'를 '세로 스크롤'로 전환
    ======================================================== */
 
-html { scroll-behavior:smooth; }
+html {
+  scroll-behavior:smooth;
+  scroll-snap-type:y mandatory;   /* 각 섹션에 자석처럼 붙기 */
+}
 body {
   overflow:visible;
   overflow-x:hidden;
   height:auto;
-  min-height:100svh;
 }
 
 /* ── 덱: 가로 스크롤/스냅/3D 제거 → 세로 스택 ── */
@@ -21,22 +23,30 @@ body {
   -webkit-overflow-scrolling:auto;
 }
 
-/* ── 페이지: 전체높이 슬라이드 → 자연 높이 블록 ── */
+/* ── 각 페이지 = 한 화면 + 세로 스냅 ── */
 .h-page {
   flex:none;
   width:100%;
   height:auto;
-  min-height:auto;
+  min-height:100svh;
   overflow:visible;
-  scroll-snap-align:none;
+  position:relative;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
   transform:none !important;
   z-index:auto !important;
 }
-.h-page-inner { display:block; min-height:0; }
+.h-page-inner {
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;   /* 내용 세로 중앙 정렬 */
+}
 .h-page section { min-height:auto; }
 
-/* ── 표지(헤더)는 첫 화면 가득 ── */
+/* ── 표지(헤더)는 자체 레이아웃 유지 ── */
 .h-page--header { overflow:hidden; }
+.h-page--header .h-page-inner { display:block; justify-content:flex-start; }
 .h-page--header #sec-header,
 .h-page--header #sec-header.has-photo { min-height:100svh; }
 /* 넘김(>) 힌트 → 아래 방향 스크롤 힌트로 */
@@ -46,7 +56,7 @@ body {
 }
 body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 
-/* ── 인트로/인삿말은 한 화면 가득(사진+필름 배치 유지) ── */
+/* ── 인트로/인삿말도 한 화면 가득(사진+필름 배치 유지) ── */
 .h-page .h-intro { min-height:100svh; }
 .h-greeting.has-film { min-height:100svh; }
 
@@ -59,4 +69,18 @@ body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 .h-page .fadein.visible {
   opacity:1 !important;
   transform:none !important;
+}
+
+/* ── 페이지 경계 그라데이션(사진/필름 화면이 위아래로 자연히 이어지게) ── */
+.h-page[data-page="intro"]::before,
+.h-page[data-page="greeting"]::before {
+  content:''; position:absolute; left:0; right:0; top:0; height:9svh;
+  background:linear-gradient(to bottom, var(--bg) 0%, rgba(247,249,251,0) 100%);
+  pointer-events:none; z-index:3;
+}
+.h-page[data-page="intro"]::after,
+.h-page[data-page="greeting"]::after {
+  content:''; position:absolute; left:0; right:0; bottom:0; height:9svh;
+  background:linear-gradient(to top, var(--bg) 0%, rgba(247,249,251,0) 100%);
+  pointer-events:none; z-index:3;
 }
