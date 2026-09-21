@@ -41,6 +41,8 @@ body {
 /* ── 섹션 여백 일정하게(메뉴 간 간격 균일) ── */
 .h-page .sec { padding:3.4rem 1.4rem; }
 .h-page[data-page="accounts"] .sec { padding-top:3.4rem; padding-bottom:3.4rem; }
+/* 오시는 길 → 마음전달 사이만 살짝 더 띄우기 */
+.h-page[data-page="accounts"] .sec:first-child { padding-top:5rem; }
 
 /* ── 표지/인트로/인삿말은 한 화면 가득(풀블리드 비주얼 유지) ── */
 .h-page--header { overflow:hidden; }

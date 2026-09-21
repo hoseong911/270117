@@ -114,28 +114,25 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 }
 .location-detail-inner strong { font-weight:700; color:var(--ink); }
 
-/* ── 방명록 가로 흐름(좌→우) ── */
+/* ── 방명록: 한 줄로 쫙 이어지는 가로 흐름 ── */
 .gb-hwrap { margin-top:.4rem; }
 .gb-hlist {
   overflow:hidden;
-  padding:.2rem 0 1rem;
+  padding:1rem 0 1.4rem;
 }
 .gb-track {
-  display:flex; gap:.8rem; width:max-content;
+  display:flex; align-items:center; width:max-content;
   animation:gbFlow linear infinite;
 }
-.gb-track:hover { animation-play-state:paused; }
 @keyframes gbFlow { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-.gb-hlist .gb-item {
-  flex:0 0 auto; width:min(78vw,270px);
-  display:flex; flex-direction:column;
-  min-height:130px;
+.gb-line {
+  flex:0 0 auto; white-space:nowrap;
+  font-family:var(--font-serif);
+  font-size:1.2rem; line-height:1.7; color:var(--ink);
 }
-.gb-hlist .gb-msg {
-  flex:1; overflow:hidden;
-  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
-}
-.gb-hlist .gb-empty { flex:0 0 100%; }
+.gb-line .gb-nm { color:var(--rose); font-weight:600; margin-right:.5rem; }
+.gb-sep { flex:0 0 auto; color:var(--gold); margin:0 1.7rem; font-size:1rem; }
+.gb-hlist .gb-empty { text-align:center; }
 .gb-hhint { font-size:.66rem; color:var(--ink2); margin-top:.2rem; opacity:.8; }
 .gb-more-h {
   width:auto; display:inline-block;

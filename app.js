@@ -822,31 +822,46 @@ function initMapEmbed(config) {
   const cid = idMatch[1];
   slot.innerHTML = `<div id="${cid}" class="root_daum_roughmap root_daum_roughmap_landing" style="width:100%"></div>`;
 
+  // 실제 렌더(그 시점의 박스 크기로 다시 측정 → 오프스크린/0크기 방지)
   const render = () => {
+    const box2 = slot.closest('.location-map') || slot;
+    const w2 = Math.max(200, Math.round(box2.clientWidth || w));
+    const h2 = Math.max(160, Math.round(box2.clientHeight || Math.round(w2 * 0.625)));
     try {
       new daum.roughmap.Lander({
         timestamp: tsMatch[1],
         key: keyMatch[1],
-        mapWidth: String(w),
-        mapHeight: String(h),
+        mapWidth: String(w2),
+        mapHeight: String(h2),
       }).render();
     } catch (e) { console.warn('roughmap render 실패', e); }
   };
 
-  if (window.daum?.roughmap?.Lander) { render(); return; }
+  const ensureThenRender = () => {
+    if (window.daum?.roughmap?.Lander) { render(); return; }
+    if (!document.querySelector('script.daum_roughmap_loader_script')) {
+      const script = document.createElement('script');
+      script.className = 'daum_roughmap_loader_script';
+      script.charset = 'UTF-8';
+      script.src = 'https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js';
+      document.head.appendChild(script);
+    }
+    const iv = setInterval(() => {
+      if (window.daum?.roughmap?.Lander) { clearInterval(iv); render(); }
+    }, 100);
+    setTimeout(() => clearInterval(iv), 8000);
+  };
 
-  if (!document.querySelector('script.daum_roughmap_loader_script')) {
-    const script = document.createElement('script');
-    script.className = 'daum_roughmap_loader_script';
-    script.charset = 'UTF-8';
-    script.src = 'https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js';
-    document.head.appendChild(script);
+  // 지도가 화면(근처)에 들어올 때 렌더 — 세로/가로 모두 오프스크린 렌더 실패 방지
+  const mapBox = slot.closest('.location-map') || slot;
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { io.disconnect(); ensureThenRender(); }
+    }, { rootMargin: '300px' });
+    io.observe(mapBox);
+  } else {
+    ensureThenRender();
   }
-  // 로더가 준비될 때까지 폴링 후 렌더
-  const iv = setInterval(() => {
-    if (window.daum?.roughmap?.Lander) { clearInterval(iv); render(); }
-  }, 100);
-  setTimeout(() => clearInterval(iv), 8000);
 }
 
 function initGallery(c) {
@@ -1053,19 +1068,26 @@ const GB_PER_PAGE = 10;
 function maybeStartGbTicker() {
   const list = document.getElementById('gbList');
   if (!list || list._track) return;
-  const items = [...list.querySelectorAll('.gb-item')];
-  if (items.length < 2) return;   // 2장 이상일 때만 흐름
+  const items = [...list.querySelectorAll('.gb-line')];
+  if (items.length < 1) return;
   const track = document.createElement('div');
   track.className = 'gb-track';
-  items.forEach(it => track.appendChild(it));
-  items.forEach(it => track.appendChild(it.cloneNode(true)));   // 이음새 없는 루프용 복제
+  const buildSet = () => items.forEach(it => {
+    track.appendChild(it.cloneNode(true));
+    const sep = document.createElement('span');
+    sep.className = 'gb-sep';
+    sep.textContent = '♡';
+    track.appendChild(sep);
+  });
+  buildSet();   // 원본 한 벌
+  buildSet();   // 이음새 없는 루프용 복제
   list.innerHTML = '';
   list.appendChild(track);
   list._track = track;
   requestAnimationFrame(() => {
     const oneSet = track.scrollWidth / 2;
-    const speed = 26;   // px/초 (천천히)
-    track.style.animationDuration = Math.max(12, oneSet / speed) + 's';
+    const speed = 30;   // px/초
+    track.style.animationDuration = Math.max(14, oneSet / speed) + 's';
   });
 }
 
@@ -1085,13 +1107,9 @@ async function loadGuestbook(append = false) {
     }
     snap.docs.forEach(d => {
       const data = d.data();
-      const el = document.createElement('div');
-      el.className = 'gb-item';
-      const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ko-KR') : '';
-      el.innerHTML = `
-        <div class="gb-name">${esc(data.name)}</div>
-        <div class="gb-msg">${esc(data.message)}</div>
-        ${dateStr ? `<div class="gb-date">${dateStr}</div>` : ''}`;
+      const el = document.createElement('span');
+      el.className = 'gb-line';
+      el.innerHTML = `<span class="gb-nm">${esc(data.name)}</span><span class="gb-tx">${esc(data.message)}</span>`;
       list.appendChild(el);
     });
     gbLastDoc = snap.docs[snap.docs.length - 1];
