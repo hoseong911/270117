@@ -78,14 +78,15 @@ body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 .h-page[data-page="header"]::after,
 .h-page[data-page="intro"]::after,
 .h-page[data-page="greeting"]::after {
-  content:''; position:absolute; left:0; right:0; bottom:0; height:6svh;
-  background:linear-gradient(to top, rgba(247,249,251,.5) 0%, rgba(247,249,251,0) 100%);
+  content:''; position:absolute; left:0; right:0; bottom:0; height:7svh;
+  /* 가장자리는 배경색 100%(경계 완전히 덮음) → 위로 갈수록 투명(은은) */
+  background:linear-gradient(to top, var(--bg) 0%, var(--bg) 12%, rgba(247,249,251,0) 100%);
   pointer-events:none; z-index:3;
 }
 /* 상단 페이드: 인트로·인삿말 → 이전 섹션에서 이어지게 */
 .h-page[data-page="intro"]::before,
 .h-page[data-page="greeting"]::before {
-  content:''; position:absolute; left:0; right:0; top:0; height:6svh;
-  background:linear-gradient(to bottom, rgba(247,249,251,.5) 0%, rgba(247,249,251,0) 100%);
+  content:''; position:absolute; left:0; right:0; top:0; height:7svh;
+  background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 12%, rgba(247,249,251,0) 100%);
   pointer-events:none; z-index:3;
 }
