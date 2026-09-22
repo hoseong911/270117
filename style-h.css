@@ -107,9 +107,9 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 .h-page .loc-detail { color:var(--ink); }
 .transport-cat { margin-bottom:1.4rem; text-align:left; }
 .transport-cat:last-child { margin-bottom:0; }
-.transport-cat-title { font-size:1.08rem; font-weight:700; color:var(--rose); margin-bottom:.45rem; }
+.transport-cat-title { font-size:1.12rem; font-weight:700; color:var(--rose); margin-bottom:.45rem; }
 .location-detail-inner {
-  font-size:1.04rem; color:var(--ink2); line-height:2;
+  font-size:.9rem; color:var(--ink2); line-height:2;
   word-break:keep-all;
 }
 .location-detail-inner strong { font-weight:700; color:var(--ink); }

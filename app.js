@@ -89,6 +89,7 @@ const DEFAULT = {
     { id: 'parents',   enabled: false, order: 3 },
     { id: 'lovestory', enabled: false, order: 4 },
     { id: 'gallery',   enabled: true,  order: 5 },
+    { id: 'album',     enabled: true,  order: 5.5 },
     { id: 'dday',      enabled: true,  order: 6 },
     { id: 'schedule',  enabled: true,  order: 7 },
     { id: 'location',  enabled: true,  order: 8 },
@@ -108,6 +109,7 @@ const SECTION_NAV = {
   parents:   '부모님',
   lovestory: '스토리',
   gallery:   '오늘의 주인공',
+  album:     '갤러리',
   dday:      'D-DAY',
   schedule:  '예식안내',
   location:  '오시는길',
@@ -279,18 +281,11 @@ function renderLovestory(c) {
 }
 
 function renderGallery(c) {
-  const g  = c.greeting;
+  const g  = c.greeting || {};
   const gp = g.groom || {};
   const bp = g.bride || {};
+  const w  = c.wedding || {};
   const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
-  const images = c.gallery?.images || [];
-  const shown = images.slice(0, GALLERY_THUMBS);
-  const content = images.length
-    ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
-    : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
-  const moreBtn = images.length
-    ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
-    : '';
   const couple = `
     <div class="stars-grid">
       <div class="greeting-family">
@@ -304,6 +299,14 @@ function renderGallery(c) {
         <div class="greeting-person-name">${esc(c.bride.name)}</div>
       </div>
     </div>`;
+  const dateLine = [w.date, w.time].filter(Boolean).map(esc).join(' ');
+  const venueLine = [w.venue, w.venueDetail].filter(Boolean).map(esc).join(' ');
+  const info = (dateLine || venueLine || w.venueAddr) ? `
+    <div class="today-info">
+      ${dateLine ? `<div class="today-info-when">${dateLine}</div>` : ''}
+      ${venueLine ? `<div class="today-info-where">${venueLine}</div>` : ''}
+      ${w.venueAddr ? `<div class="today-info-addr">${esc(w.venueAddr)}</div>` : ''}
+    </div>` : '';
   return `
 <section id="sec-gallery" class="fadein">
   <div class="sec">
@@ -311,6 +314,26 @@ function renderGallery(c) {
     <div class="sec-title">오늘의 주인공</div>
     <div class="sec-divider"></div>
     ${couple}
+    ${info}
+  </div>
+</section>`;
+}
+
+function renderAlbum(c) {
+  const images = c.gallery?.images || [];
+  const shown = images.slice(0, GALLERY_THUMBS);
+  const content = images.length
+    ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
+    : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
+  const moreBtn = images.length
+    ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
+    : '';
+  return `
+<section id="sec-album" class="fadein">
+  <div class="sec">
+    <div class="sec-label">Gallery</div>
+    <div class="sec-title">갤러리</div>
+    <div class="sec-divider"></div>
     <div class="gallery-grid h-gallery-grid" id="galleryGrid">${content}</div>
     ${moreBtn}
   </div>
@@ -431,12 +454,39 @@ function renderAccounts(c) {
       }).join('')}
     </div>
   </div>`).join('');
+  // 혼주에게 연락하기 — 전화/문자 버튼 (번호가 있는 사람만)
+  const g = c.greeting || {}; const gp = g.groom || {}; const bp = g.bride || {};
+  const contacts = [
+    ['신랑', c.groom?.phone], ['신랑 아버지', gp.fatherPhone], ['신랑 어머니', gp.motherPhone],
+    ['신부', c.bride?.phone], ['신부 아버지', bp.fatherPhone], ['신부 어머니', bp.motherPhone],
+  ].filter(([, p]) => p && String(p).trim());
+  const contactBlock = contacts.length ? `
+    <div class="contact-acc" id="contactAcc">
+      <button type="button" class="contact-head" aria-expanded="false">
+        <span>혼주에게 연락하기</span>
+        <span class="account-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="contact-body">
+        ${contacts.map(([role, phone]) => {
+          const d = String(phone).replace(/[^0-9]/g, '');
+          return `
+        <div class="contact-row">
+          <span class="contact-role">${esc(role)}</span>
+          <span class="contact-btns">
+            <a class="contact-btn" href="tel:${d}" aria-label="${esc(role)} 전화">전화</a>
+            <a class="contact-btn" href="sms:${d}" aria-label="${esc(role)} 문자">문자</a>
+          </span>
+        </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
   return `
 <section id="sec-accounts" class="fadein">
   <div class="sec">
     <div class="sec-label">Gift</div>
     <div class="sec-title">마음 전달</div>
     <div class="sec-divider"></div>
+    ${contactBlock}
     <div class="accounts-list">${html}</div>
     <p class="accounts-hint">* 이름을 누르시면 계좌번호가 복사됩니다</p>
   </div>
@@ -505,6 +555,7 @@ const RENDERERS = {
   parents:   renderParents,
   lovestory: renderLovestory,
   gallery:   renderGallery,
+  album:     renderAlbum,
   dday:      renderDday,
   schedule:  renderSchedule,
   location:  renderLocation,
@@ -1030,6 +1081,12 @@ function initAccounts() {
       head.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   });
+  // 혼주에게 연락하기 토글
+  const contactHead = document.querySelector('.contact-head');
+  contactHead?.addEventListener('click', () => {
+    const open = document.getElementById('contactAcc').classList.toggle('open');
+    contactHead.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
   document.querySelectorAll('.account-copy-btn').forEach(item => {
     const nameEl = item.querySelector('.account-holder-name');
     if (!nameEl) return;
@@ -1370,6 +1427,10 @@ async function init() {
   // 하객 사진 섹션(신규): 저장된 config 에 없으면 기본 활성으로 추가
   if (!sections.some(s => s.id === 'photos')) {
     sections.push({ id: 'photos', enabled: true, order: 13 });
+  }
+  // 갤러리(앨범) 섹션(신규): 오늘의 주인공에서 분리
+  if (!sections.some(s => s.id === 'album')) {
+    sections.push({ id: 'album', enabled: true, order: 5.5 });
   }
 
   if (config.header?.photo) document.body.classList.add('has-cover');

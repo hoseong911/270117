@@ -478,14 +478,23 @@
       </div>
       <div class="form-section">
         <div class="form-section-title">혼주 정보 (입력하면 하단에 표시됩니다)</div>
+        <p style="margin:-.3rem 0 .8rem;font-size:.76rem;color:var(--ink2);line-height:1.6">전화번호를 입력하면 '마음 전달 &gt; 혼주에게 연락하기'에 전화/문자 버튼이 생깁니다.</p>
         <div class="form-grid form-grid-2">
           <div class="form-row">
             <label class="form-label">신랑 아버지</label>
             <input class="form-input" id="groomFather" placeholder="홍길동">
           </div>
           <div class="form-row">
+            <label class="form-label">신랑 아버지 연락처</label>
+            <input class="form-input" id="groomFatherPhone" placeholder="010-0000-0000" type="tel">
+          </div>
+          <div class="form-row">
             <label class="form-label">신랑 어머니</label>
             <input class="form-input" id="groomMother" placeholder="김영희">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신랑 어머니 연락처</label>
+            <input class="form-input" id="groomMotherPhone" placeholder="010-0000-0000" type="tel">
           </div>
           <div class="form-row">
             <label class="form-label">신랑 관계 (예: 의 장남)</label>
@@ -497,8 +506,16 @@
             <input class="form-input" id="brideFather" placeholder="이철수">
           </div>
           <div class="form-row">
+            <label class="form-label">신부 아버지 연락처</label>
+            <input class="form-input" id="brideFatherPhone" placeholder="010-0000-0000" type="tel">
+          </div>
+          <div class="form-row">
             <label class="form-label">신부 어머니</label>
             <input class="form-input" id="brideMother" placeholder="박미숙">
+          </div>
+          <div class="form-row">
+            <label class="form-label">신부 어머니 연락처</label>
+            <input class="form-input" id="brideMotherPhone" placeholder="010-0000-0000" type="tel">
           </div>
           <div class="form-row">
             <label class="form-label">신부 관계 (예: 의 장녀)</label>
@@ -935,6 +952,7 @@ const DEFAULT_SECTIONS = [
   { id: 'header',    label: '메인',     enabled: true,  order: 0 },
   { id: 'greeting',  label: '초대장',   enabled: true,  order: 1 },
   { id: 'gallery',   label: '오늘의 주인공', enabled: true, order: 5 },
+  { id: 'album',     label: '갤러리',   enabled: true,  order: 5.5 },
   { id: 'dday',      label: 'D-DAY',    enabled: true,  order: 6 },
   { id: 'schedule',  label: '예식안내', enabled: true,  order: 7 },
   { id: 'location',  label: '오시는길', enabled: true,  order: 8 },
@@ -979,8 +997,10 @@ function fillForms() {
   val('greetTitle',   gr.title);   val('greetMessage', gr.message);
   val('groomFather',  gr.groom?.fatherName); val('groomMother', gr.groom?.motherName);
   val('groomRelation', gr.groom?.relation);
+  val('groomFatherPhone', gr.groom?.fatherPhone); val('groomMotherPhone', gr.groom?.motherPhone);
   val('brideFather',  gr.bride?.fatherName); val('brideMother', gr.bride?.motherName);
   val('brideRelation', gr.bride?.relation);
+  val('brideFatherPhone', gr.bride?.fatherPhone); val('brideMotherPhone', gr.bride?.motherPhone);
   // 예식 안내
   const s = c.schedule || {}; const f = c.flowers || {};
   val('scheduleMeal', s.meal); val('scheduleParking', s.parking); val('scheduleShuttle', s.shuttle);
@@ -1596,8 +1616,10 @@ document.getElementById('saveGreetBtn').addEventListener('click', async () => {
     bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
     greeting: {
       ...(currentConfig.greeting || {}),
-      groom: { fatherName: v('groomFather'), motherName: v('groomMother'), relation: v('groomRelation') },
-      bride: { fatherName: v('brideFather'), motherName: v('brideMother'), relation: v('brideRelation') },
+      groom: { fatherName: v('groomFather'), motherName: v('groomMother'), relation: v('groomRelation'),
+               fatherPhone: v('groomFatherPhone'), motherPhone: v('groomMotherPhone') },
+      bride: { fatherName: v('brideFather'), motherName: v('brideMother'), relation: v('brideRelation'),
+               fatherPhone: v('brideFatherPhone'), motherPhone: v('brideMotherPhone') },
     },
   };
   await savePartial(data, 'greetMsg', '저장되었습니다');

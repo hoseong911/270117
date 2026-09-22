@@ -277,6 +277,14 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   font-size:1.5rem; color:var(--ink);
   margin-top:.3rem;
 }
+.today-info {
+  margin-top:1.8rem; padding-top:1.6rem;
+  border-top:1px solid var(--border);
+  line-height:1.9;
+}
+.today-info-when { font-family:var(--font-serif); font-size:1.12rem; color:var(--ink); }
+.today-info-where { font-size:.95rem; color:var(--ink2); margin-top:.4rem; }
+.today-info-addr { font-size:.82rem; color:var(--ink2); margin-top:.15rem; }
 .account-holder-name { font-size:.88rem; color:var(--ink); }
 
 /* ── COUPLE (optional) ── */
@@ -353,10 +361,11 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .modal-prev, .modal-next {
   position:absolute; top:50%; transform:translateY(-50%);
   color:rgba(255,255,255,.65); font-size:2.3rem; line-height:1; background:none;
-  border:none; width:44px; height:44px;
+  border:none; width:44px; height:44px; z-index:5;
   display:flex; align-items:center; justify-content:center;
   opacity:.55; text-shadow:0 1px 5px rgba(0,0,0,.35);
 }
+#galleryModal .modal-close { z-index:5; }
 .modal-prev { left:1.6rem; }
 .modal-next { right:1.6rem; }
 
@@ -428,6 +437,27 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-body span:nth-child(n+3) { border-top:1px solid var(--border); }
 .account-who { font-size:.95rem; color:var(--ink2); padding:.9rem .5rem .9rem 0; white-space:nowrap; }
 .accounts-hint { font-size:.76rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
+/* 혼주에게 연락하기 */
+.contact-acc { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:1rem; }
+.contact-head {
+  width:100%; padding:1rem 1.2rem; background:var(--bg2); border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:.95rem; color:var(--rose2);
+}
+.contact-body { display:none; padding:.3rem 1.1rem .8rem; }
+.contact-acc.open .contact-body { display:block; }
+.contact-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.7rem 0; border-bottom:1px solid var(--border);
+}
+.contact-row:last-child { border-bottom:none; }
+.contact-role { font-size:.95rem; color:var(--ink); }
+.contact-btns { display:flex; gap:.5rem; }
+.contact-btn {
+  padding:.4rem .95rem; border:1.5px solid var(--rose); border-radius:100px;
+  color:var(--rose); font-size:.82rem; background:none; white-space:nowrap;
+}
+.contact-btn:active { background:var(--rose); color:#fff; }
 .account-holder-name { font-size:1.15rem; color:var(--ink); cursor:pointer; padding:.9rem 0 .9rem .5rem; }
 .account-holder-name:active { opacity:.6; }
 .account-holder-name.copied { color:var(--rose2); }
