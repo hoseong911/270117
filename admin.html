@@ -830,6 +830,18 @@
 
     <!-- 찰나의 순간(하객이 올린 사진 모음) -->
     <div class="panel" id="panelPhotos">
+      <div class="form-section">
+        <div class="form-section-title">안내 문구</div>
+        <div class="form-row">
+          <label class="form-label">'찰나의 순간' 섹션에 표시될 문구 (줄바꿈 가능)</label>
+          <textarea class="form-textarea" id="photosDesc" rows="3" placeholder="신랑과 신부와 함께한 순간을 남겨주세요."></textarea>
+        </div>
+        <div class="save-row">
+          <span class="save-msg" id="photosDescMsg"></span>
+          <button class="save-btn" id="savePhotosDescBtn">저장</button>
+        </div>
+      </div>
+      <div class="form-section-title" style="font-size:.72rem;font-weight:500;letter-spacing:.1em;color:var(--rose);border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:1rem">올라온 사진</div>
       <p style="font-size:.8rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem">하객들이 올려준 사진 모음입니다. (사이트에는 공개되지 않아요)</p>
       <div class="data-count" id="phCount"></div>
       <div class="ph-admin-grid" id="phAdminList"><div class="data-empty">로딩 중...</div></div>
@@ -974,6 +986,7 @@ function fillForms() {
   val('scheduleMeal', s.meal); val('scheduleParking', s.parking); val('scheduleShuttle', s.shuttle);
   val('flowersText', f.text); val('flowersUrl', f.url);
   val('rsvpDeadline', c.rsvp?.deadline);
+  val('photosDesc', c.photos?.desc);
   // 계좌
   renderAccountList(c.accounts || [
     { group:'신랑 측', who:'신랑',      name:'예금주', bank:'은행', number:'계좌번호' },
@@ -1793,6 +1806,13 @@ async function loadPhotoList(append = false) {
 }
 
 document.getElementById('phLoadMore').addEventListener('click', () => loadPhotoList(true));
+
+document.getElementById('savePhotosDescBtn').addEventListener('click', async () => {
+  await savePartial(
+    { photos: { ...(currentConfig.photos || {}), desc: v('photosDesc') } },
+    'photosDescMsg', '문구가 저장되었습니다'
+  );
+});
 
 
 </script>

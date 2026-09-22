@@ -484,13 +484,14 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
 
 // 찰나의 순간: 하객이 사진을 올려 신랑신부에게 모아주는 섹션(공개 전시 없음)
 function renderPhotos(c) {
+  const desc = (c.photos?.desc || '신랑과 신부와 함께한 순간을 남겨주세요.');
   return `
 <section id="sec-photos" class="fadein">
   <div class="sec">
     <div class="sec-label">Moment</div>
     <div class="sec-title">찰나의 순간</div>
     <div class="sec-divider"></div>
-    <p class="ph-hint">신랑과 신부와 함께한 순간을 남겨주세요.</p>
+    <p class="ph-hint">${esc(desc).replace(/\n/g,'<br>')}</p>
     <button class="ph-open-btn" id="phOpenBtn">사진 올리기</button>
   </div>
 </section>`;
