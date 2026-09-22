@@ -283,6 +283,17 @@
     }
     .gb-approve-btn:hover { background:var(--rose-h); }
 
+    /* ── 하객 사진 관리 ── */
+    .ph-admin-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:.7rem; }
+    .ph-admin-cell {
+      border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+      background:var(--bg2); display:flex; flex-direction:column;
+    }
+    .ph-admin-cell img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
+    .ph-admin-name { padding:.35rem .5rem 0; font-size:.72rem; color:var(--ink2); }
+    .ph-admin-btns { display:flex; gap:.35rem; padding:.5rem; margin-top:auto; }
+    .ph-admin-btns button { flex:1; padding:.35rem; font-size:.72rem; border-radius:var(--radius); cursor:pointer; }
+
     /* ── DRAG AND DROP ── */
     .section-drag-handle { color:var(--ink2); font-size:1.1rem; padding:0 2px; cursor:grab; flex-shrink:0; user-select:none; }
     .section-row[draggable="true"] { cursor:default; }
@@ -390,6 +401,7 @@
     <button class="tab-btn" data-panel="panelRsvp">참석여부</button>
     <button class="tab-btn" data-panel="panelFlowers">화환</button>
     <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
+    <button class="tab-btn" data-panel="panelPhotos">하객사진 <span id="phPendingBadge"></span></button>
     <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
   </div>
   <div class="admin-content">
@@ -828,6 +840,17 @@
       <button class="data-load-btn" id="gbLoadMore" style="display:none">더 불러오기</button>
     </div>
 
+    <!-- 하객 사진 -->
+    <div class="panel" id="panelPhotos">
+      <div class="gb-admin-tabs">
+        <button class="ph-tab-btn gb-tab-btn active" data-status="pending">대기 중 <span id="phAdminPendingBadge"></span></button>
+        <button class="ph-tab-btn gb-tab-btn" data-status="approved">승인됨</button>
+      </div>
+      <div class="data-count" id="phCount"></div>
+      <div class="ph-admin-grid" id="phAdminList"><div class="data-empty">로딩 중...</div></div>
+      <button class="data-load-btn" id="phLoadMore" style="display:none">더 불러오기</button>
+    </div>
+
   </div><!-- admin-content -->
 </div><!-- adminView -->
 
@@ -837,7 +860,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc, orderBy, query, limit, startAfter, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getStorage, ref as sref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+import { getStorage, ref as sref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBrtXBFmtWdUBf9e__ihXbuzEmesZZzV-o",
@@ -887,6 +910,8 @@ onAuthStateChanged(auth, async user => {
     loadRsvpList();
     loadGbList();
     updatePendingBadge();
+    loadPhotoList();
+    updatePhotoBadge();
   } else {
     document.getElementById('loginView').style.display  = 'flex';
     document.getElementById('adminView').style.display  = 'none';
@@ -921,6 +946,7 @@ const DEFAULT_SECTIONS = [
   { id: 'rsvp',      label: '참석여부', enabled: true,  order: 10 },
   { id: 'flowers',   label: '화환',     enabled: true,  order: 11 },
   { id: 'guestbook', label: '방명록',   enabled: true,  order: 12 },
+  { id: 'photos',    label: '하객 사진', enabled: true,  order: 13 },
 ];
 
 async function loadConfig() {
@@ -973,9 +999,14 @@ function fillForms() {
   ]);
   // 섹션 (사용하지 않는 섹션은 목록에서 제외)
   const HIDDEN = ['couple','parents','lovestory'];
-  const sections = (c.sections || DEFAULT_SECTIONS)
+  const saved = (c.sections || DEFAULT_SECTIONS).slice();
+  // 저장본에 없는 기본 섹션(신규 추가분 등)은 뒤에 채워 넣는다
+  DEFAULT_SECTIONS.forEach(d => {
+    if (!saved.some(s => s.id === d.id)) saved.push({ ...d });
+  });
+  const sections = saved
     .filter(s => !HIDDEN.includes(s.id))
-    .slice().sort((a,b)=>a.order-b.order);
+    .sort((a,b)=>a.order-b.order);
   renderSectionsList(sections);
 }
 function val(id, v) { const el = document.getElementById(id); if (el) el.value = v || ''; }
@@ -1723,13 +1754,92 @@ async function updatePendingBadge() {
 }
 
 document.getElementById('gbLoadMore').addEventListener('click', () => loadGbList(true));
-document.querySelectorAll('.gb-tab-btn').forEach(btn => {
+document.querySelectorAll('#panelGuestbook .gb-tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.gb-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#panelGuestbook .gb-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     gbCurrentStatus = btn.dataset.status;
     gbAdminLast = null;
     loadGbList();
+  });
+});
+
+// ── 하객 사진 ──────────────────────────────────────────
+let phCurrentStatus = 'pending';
+let phAdminLast = null;
+
+async function loadPhotoList(append = false) {
+  const list = document.getElementById('phAdminList');
+  const more = document.getElementById('phLoadMore');
+  const countEl = document.getElementById('phCount');
+  try {
+    let q = query(collection(db,'photos'), where('status','==',phCurrentStatus), orderBy('createdAt','desc'), limit(18));
+    if (append && phAdminLast) q = query(collection(db,'photos'), where('status','==',phCurrentStatus), orderBy('createdAt','desc'), startAfter(phAdminLast), limit(18));
+    const snap = await getDocs(q);
+    if (!append) list.innerHTML = '';
+    if (snap.empty && !append) {
+      list.innerHTML = `<div class="data-empty">${phCurrentStatus === 'pending' ? '대기 중인 사진이 없습니다' : '승인된 사진이 없습니다'}</div>`;
+      more.style.display = 'none';
+      countEl.textContent = '';
+      return;
+    }
+    if (!append) countEl.textContent = `${snap.size}장 이상`;
+    const isPending = phCurrentStatus === 'pending';
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const el = document.createElement('div');
+      el.className = 'ph-admin-cell';
+      el.innerHTML = `
+        <img src="${esc(data.url)}" alt="" loading="lazy">
+        ${data.name ? `<div class="ph-admin-name">${esc(data.name)}</div>` : ''}
+        <div class="ph-admin-btns">
+          ${isPending ? `<button class="gb-approve-btn" data-act="ok">승인</button>` : ''}
+          <button class="data-del-btn" data-act="del">삭제</button>
+        </div>`;
+      if (isPending) {
+        el.querySelector('[data-act="ok"]').addEventListener('click', async function() {
+          this.disabled = true;
+          try {
+            await updateDoc(doc(db,'photos',d.id), { status: 'approved' });
+            el.remove(); toast('승인되었습니다'); updatePhotoBadge();
+          } catch(e) { toast('실패했습니다'); console.error(e); this.disabled = false; }
+        });
+      }
+      el.querySelector('[data-act="del"]').addEventListener('click', async () => {
+        if (!confirm('사진을 삭제하시겠습니까?')) return;
+        try {
+          if (data.path) { try { await deleteObject(sref(storage, data.path)); } catch(e) { /* 이미 없을 수 있음 */ } }
+          await deleteDoc(doc(db,'photos',d.id));
+          el.remove(); toast('삭제되었습니다');
+          if (phCurrentStatus === 'pending') updatePhotoBadge();
+        } catch(e) { toast('실패했습니다'); console.error(e); }
+      });
+      list.appendChild(el);
+    });
+    phAdminLast = snap.docs[snap.docs.length - 1];
+    more.style.display = snap.docs.length < 18 ? 'none' : 'block';
+  } catch(e) { console.error(e); list.innerHTML = '<div class="data-empty">로딩에 실패했습니다</div>'; }
+}
+
+async function updatePhotoBadge() {
+  try {
+    const snap = await getDocs(query(collection(db,'photos'), where('status','==','pending')));
+    const n = snap.size > 0 ? `(${snap.size})` : '';
+    const b1 = document.getElementById('phPendingBadge');
+    const b2 = document.getElementById('phAdminPendingBadge');
+    if (b1) b1.textContent = n;
+    if (b2) b2.textContent = n;
+  } catch(e) {}
+}
+
+document.getElementById('phLoadMore').addEventListener('click', () => loadPhotoList(true));
+document.querySelectorAll('#panelPhotos .ph-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#panelPhotos .ph-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    phCurrentStatus = btn.dataset.status;
+    phAdminLast = null;
+    loadPhotoList();
   });
 });
 

@@ -126,12 +126,21 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 }
 @keyframes gbFlow { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 .gb-line {
-  flex:0 0 auto; white-space:nowrap;
-  font-family:var(--font-serif);
-  font-size:1.2rem; line-height:1.7; color:var(--ink);
+  flex:0 0 auto; margin-right:1.1rem;
+  display:flex; flex-direction:column; gap:.35rem;
+  min-width:170px; max-width:300px; white-space:normal;
+  padding:.9rem 1.15rem;
+  background:transparent;
+  border:1px solid color-mix(in srgb, var(--rose) 30%, transparent);
+  border-radius:14px;
+  font-family:var(--font-serif); color:var(--ink);
 }
-.gb-line .gb-nm { color:var(--rose); font-weight:600; margin-right:.5rem; }
-.gb-sep { flex:0 0 auto; color:var(--gold); margin:0 1.7rem; font-size:1rem; }
+.gb-line .gb-nm { color:var(--rose); font-weight:600; font-size:.92rem; }
+.gb-line .gb-tx {
+  font-size:1.02rem; line-height:1.55;
+  word-break:keep-all;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+}
 .gb-hlist .gb-empty { text-align:center; }
 .gb-hhint { font-size:.66rem; color:var(--ink2); margin-top:.2rem; opacity:.8; }
 .gb-more-h {

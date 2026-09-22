@@ -96,6 +96,7 @@ const DEFAULT = {
     { id: 'rsvp',      enabled: true,  order: 10 },
     { id: 'flowers',   enabled: true,  order: 11 },
     { id: 'guestbook', enabled: true,  order: 12 },
+    { id: 'photos',    enabled: true,  order: 13 },
   ],
 };
 
@@ -114,11 +115,12 @@ const SECTION_NAV = {
   rsvp:      '참석여부',
   flowers:   '화환',
   guestbook: '방명록',
+  photos:    '하객 사진',
 };
 
 // 가로 버전: 합쳐지는 섹션의 nav 타깃을 대표 페이지로 돌린다
 // (마음전달·참석여부·방명록 → 한 페이지(accounts), D-DAY는 마지막 단독 마무리)
-const NAV_TARGET = { rsvp: 'accounts', guestbook: 'accounts' };
+const NAV_TARGET = { rsvp: 'accounts', guestbook: 'accounts', photos: 'accounts' };
 
 const GALLERY_THUMBS = 9; // 3×3
 
@@ -475,6 +477,22 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
     <div class="sec-divider"></div>
     ${btns}
     ${gbList}
+  </div>
+</section>`;
+}
+
+// 하객 사진: 승인된 사진을 그리드로 보여주고, 하객이 직접 올릴 수 있는 섹션
+function renderPhotos(c) {
+  return `
+<section id="sec-photos" class="fadein">
+  <div class="sec">
+    <div class="sec-label">Photos</div>
+    <div class="sec-title">하객 사진</div>
+    <div class="sec-divider"></div>
+    <p class="ph-hint">함께한 순간을 남겨주세요. 올려주신 사진은 확인 후 게시됩니다.</p>
+    <button class="ph-open-btn" id="phOpenBtn">사진 올리기</button>
+    <div class="ph-grid" id="phGrid"><div class="ph-empty">첫 사진을 남겨주세요</div></div>
+    <div style="text-align:center"><button class="ph-more" id="phMore" style="display:none">더 보기</button></div>
   </div>
 </section>`;
 }
@@ -839,7 +857,23 @@ function initMapEmbed(config) {
 
   const ensureThenRender = () => {
     if (window.daum?.roughmap?.Lander) { render(); return; }
-    if (!document.querySelector('script.daum_roughmap_loader_script')) {
+    // 카카오 로더(roughmapLoader.js)는 실제 지도 엔진(roughmapLander.js)을
+    // document.write 로 끌어오는데, 페이지 로드 후 동적 주입 시 document.write 가
+    // 무력화돼 Lander 가 끝내 정의되지 않는다(→ 실서버에서도 지도 안 뜸).
+    // document.write 를 가로채 그 안의 스크립트를 정상 방식(<script> append)으로 로드한다.
+    if (!window.__roughmapLoaderInjected) {
+      window.__roughmapLoaderInjected = true;
+      const origWrite = document.write.bind(document);
+      document.write = function (str) {
+        const m = /src=["']([^"']*roughmapLander\.js[^"']*)["']/.exec(String(str));
+        if (m) {
+          const s = document.createElement('script');
+          s.src = m[1]; s.charset = 'UTF-8';
+          document.head.appendChild(s);
+        } else {
+          try { origWrite(str); } catch (e) { /* 로드 후 document.write 무시 */ }
+        }
+      };
       const script = document.createElement('script');
       script.className = 'daum_roughmap_loader_script';
       script.charset = 'UTF-8';
@@ -849,7 +883,7 @@ function initMapEmbed(config) {
     const iv = setInterval(() => {
       if (window.daum?.roughmap?.Lander) { clearInterval(iv); render(); }
     }, 100);
-    setTimeout(() => clearInterval(iv), 8000);
+    setTimeout(() => clearInterval(iv), 10000);
   };
 
   // 지도가 화면(근처)에 들어올 때 렌더 — 세로/가로 모두 오프스크린 렌더 실패 방지
@@ -1074,10 +1108,6 @@ function maybeStartGbTicker() {
   track.className = 'gb-track';
   const buildSet = () => items.forEach(it => {
     track.appendChild(it.cloneNode(true));
-    const sep = document.createElement('span');
-    sep.className = 'gb-sep';
-    sep.textContent = '♡';
-    track.appendChild(sep);
   });
   buildSet();   // 원본 한 벌
   buildSet();   // 이음새 없는 루프용 복제
@@ -1160,6 +1190,124 @@ function initGuestbook() {
   });
 }
 
+// ─── 하객 사진 업로드 ──────────────────────────────────
+const PH_PER_PAGE = 12;
+let phLastDoc = null;
+
+// 업로드 전 캔버스로 리사이즈+JPEG 압축(용량 절감: 폰 원본 수 MB → 수백 KB)
+function compressImage(file, maxSide = 1600, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      const scale = Math.min(1, maxSide / Math.max(width, height));
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('compress failed')),
+        'image/jpeg', quality
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+    img.src = url;
+  });
+}
+
+async function loadPhotos(append = false) {
+  const grid = document.getElementById('phGrid');
+  const more = document.getElementById('phMore');
+  if (!grid) return;
+  try {
+    let q = db.collection('photos').where('status','==','approved').orderBy('createdAt','desc').limit(PH_PER_PAGE);
+    if (append && phLastDoc) q = q.startAfter(phLastDoc);
+    const snap = await q.get();
+    if (!append) grid.innerHTML = '';
+    if (snap.empty && !append) {
+      grid.innerHTML = '<div class="ph-empty">첫 사진을 남겨주세요</div>';
+      if (more) more.style.display = 'none';
+      return;
+    }
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const cell = document.createElement('div');
+      cell.className = 'ph-cell';
+      cell.innerHTML = `<img src="${esc(data.url)}" alt="${esc(data.name || '하객 사진')}" loading="lazy">`;
+      grid.appendChild(cell);
+    });
+    phLastDoc = snap.docs[snap.docs.length - 1];
+    if (more) more.style.display = snap.size < PH_PER_PAGE ? 'none' : 'inline-block';
+  } catch (err) { console.error('photos load error', err); }
+}
+
+function initPhotos() {
+  if (!document.getElementById('phGrid')) return;
+  loadPhotos();
+  document.getElementById('phMore')?.addEventListener('click', () => loadPhotos(true));
+
+  const modal    = document.getElementById('phModal');
+  const openBtn  = document.getElementById('phOpenBtn');
+  const closeBtn = document.getElementById('phModalClose');
+  const fileInput = document.getElementById('phFile');
+  const nameInput = document.getElementById('phName');
+  const preview  = document.getElementById('phPreview');
+  const submit   = document.getElementById('phSubmit');
+  if (!modal || !openBtn) return;
+  let files = [];
+
+  const open  = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
+  const close = () => {
+    modal.classList.remove('show'); document.body.style.overflow = '';
+    files = []; if (preview) preview.innerHTML = ''; if (fileInput) fileInput.value = '';
+  };
+  openBtn.addEventListener('click', open);
+  closeBtn?.addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+  fileInput?.addEventListener('change', () => {
+    files = [...fileInput.files].slice(0, 10);
+    if (preview) {
+      preview.innerHTML = '';
+      files.forEach(f => {
+        const im = document.createElement('img');
+        im.src = URL.createObjectURL(f);
+        preview.appendChild(im);
+      });
+    }
+  });
+
+  submit?.addEventListener('click', async () => {
+    if (!files.length) { showToast('사진을 선택해주세요'); return; }
+    const name = (nameInput?.value || '').trim();
+    submit.disabled = true; submit.textContent = '올리는 중...';
+    try {
+      const storage = firebase.storage();
+      for (const f of files) {
+        const blob = await compressImage(f);
+        const path = `photos/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+        const ref  = storage.ref().child(path);
+        await ref.put(blob, { contentType: 'image/jpeg' });
+        const url = await ref.getDownloadURL();
+        await db.collection('photos').add({
+          name, url, path,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        });
+      }
+      close();
+      showToast('사진이 등록되었습니다. 확인 후 게시됩니다.');
+    } catch (err) {
+      console.error(err);
+      showToast('업로드에 실패했습니다');
+    }
+    submit.disabled = false; submit.textContent = '올리기';
+  });
+}
+
 // ─── PAGE BUILDER ─────────────────────────────────────
 function wrapPage(id, html) {
   const cls = id === 'header' ? 'h-page h-page--header' : 'h-page';
@@ -1173,9 +1321,10 @@ function buildPages(config, sections) {
   const accEnabled  = has('accounts');
   const rsvpEnabled = has('rsvp');
   const gbEnabled   = has('guestbook');
+  const phEnabled   = has('photos');
   const out = [];
 
-  // 마음전달(위) + 참석여부&방명록(아래) 한 페이지
+  // 마음전달(위) + 참석여부&방명록 + 하객 사진(아래) 한 페이지
   let comboDone = false;
   const emitCombo = () => {
     if (comboDone) return;
@@ -1183,12 +1332,13 @@ function buildPages(config, sections) {
     let html = '';
     if (accEnabled) html += renderAccounts(config);
     if (rsvpEnabled || gbEnabled) html += renderRsvpGuestbook(config, rsvpEnabled, gbEnabled);
+    if (phEnabled) html += renderPhotos(config);
     if (html) out.push(wrapPage('accounts', html));
   };
 
   for (const s of enabled) {
     if (s.id === 'dday') continue;   // 맨 마지막 마무리 페이지로 별도 배치
-    if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook') { emitCombo(); continue; }
+    if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook' || s.id === 'photos') { emitCombo(); continue; }
     const html = RENDERERS[s.id]?.(config);
     if (html) out.push(wrapPage(s.id, html));
   }
@@ -1230,6 +1380,10 @@ async function init() {
   if (!sections.some(s => s.id === 'intro')) {
     sections.push({ id: 'intro', enabled: true, order: 0.5 });
   }
+  // 하객 사진 섹션(신규): 저장된 config 에 없으면 기본 활성으로 추가
+  if (!sections.some(s => s.id === 'photos')) {
+    sections.push({ id: 'photos', enabled: true, order: 13 });
+  }
 
   if (config.header?.photo) document.body.classList.add('has-cover');
 
@@ -1246,6 +1400,7 @@ async function init() {
   initAccounts();
   initRsvp();
   initGuestbook();
+  initPhotos();
 
   initBgm();
 
