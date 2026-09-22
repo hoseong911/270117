@@ -422,47 +422,37 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   text-align:left; word-break:keep-all; white-space:pre-line;
 }
 
-/* ── ACCOUNTS ── */
-.accounts-list { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; align-items:start; }
+/* ── ACCOUNTS (마음 전달) ── */
+.accounts-list { display:flex; flex-direction:column; gap:.7rem; }
 .account-group { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .account-group-head {
-  width:100%; padding:1rem; background:var(--bg2); border:none; cursor:pointer;
+  width:100%; padding:1rem 1.2rem; background:var(--bg2); border:none; cursor:pointer;
   display:flex; align-items:center; justify-content:space-between; gap:.4rem;
 }
-.account-group-title { font-size:.92rem; color:var(--rose2); }
-.account-chevron { font-size:1.1rem; color:var(--ink2); line-height:1; transition:transform .25s ease; }
+.account-group-title { font-size:.95rem; color:var(--rose2); }
+.account-chevron { display:flex; align-items:center; color:var(--ink2); transition:transform .25s ease; }
 .account-group.open .account-chevron { transform:rotate(180deg); }
 .account-group[data-group*="신부"] .account-group-title { color:#b5728a; }
 .account-group[data-group*="신부"] .account-group-head { background:#fdf0f4; }
-.account-body { display:none; flex-direction:column; padding:.2rem 1rem .7rem; }
-.account-group.open .account-body { display:flex; }
-/* 계좌 목록 */
-.account-entries { display:flex; flex-direction:column; }
-.account-item {
-  display:flex; align-items:baseline; justify-content:space-between; gap:.5rem;
-  padding:.7rem 0; border-top:1px solid var(--border);
+.account-body { display:none; padding:.1rem 1.2rem .7rem; }
+.account-group.open .account-body { display:block; }
+/* 한 사람 = 한 줄: 이름 + [계좌][전화][문자] */
+.mt-row {
+  display:flex; align-items:center; justify-content:space-between; gap:.6rem;
+  padding:.85rem 0; border-top:1px solid var(--border);
 }
-.account-who { font-size:.9rem; color:var(--ink2); white-space:nowrap; }
-.account-holder-name { font-size:1.05rem; color:var(--ink); cursor:pointer; text-align:right; }
-.account-holder-name:active { opacity:.6; }
-.account-holder-name.copied { color:var(--rose2); }
-.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; word-break:keep-all; }
-/* 연락하기(전화·문자) — 계좌와 한 박스 안에 함께 */
-.contact-rows { display:flex; flex-direction:column; margin-bottom:.2rem; }
-.contact-row {
-  display:flex; align-items:center; justify-content:space-between; gap:.3rem;
-  padding:.55rem 0; border-bottom:1px dashed var(--border);
-}
-.contact-role { font-size:.82rem; color:var(--ink2); word-break:keep-all; line-height:1.35; min-width:0; }
-.contact-role b { font-weight:600; color:var(--ink); }
-.contact-btns { display:flex; gap:.35rem; flex-shrink:0; }
-.contact-btn {
-  width:30px; height:30px; border:1.5px solid var(--rose); border-radius:50%;
+.mt-row:first-child { border-top:none; }
+.mt-name { font-size:.9rem; color:var(--ink2); word-break:keep-all; line-height:1.35; }
+.mt-name b { font-weight:600; color:var(--ink); font-size:1.02rem; margin-left:.15rem; }
+.mt-actions { display:flex; align-items:center; gap:.45rem; flex-shrink:0; }
+.mt-btn {
+  width:36px; height:36px; border:1.5px solid var(--rose); border-radius:50%;
   color:var(--rose); background:none; flex-shrink:0;
-  display:inline-flex; align-items:center; justify-content:center;
+  display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
 }
-.contact-btn svg { width:15px; height:15px; }
-.contact-btn:active { background:var(--rose); color:#fff; }
+.mt-btn svg { width:16px; height:16px; }
+.mt-btn:active, .mt-btn.copied { background:var(--rose); color:#fff; }
+.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; word-break:keep-all; }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {
