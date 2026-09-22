@@ -301,11 +301,10 @@ function renderGallery(c) {
     </div>`;
   const dateLine = [w.date, w.time].filter(Boolean).map(esc).join(' ');
   const venueLine = [w.venue, w.venueDetail].filter(Boolean).map(esc).join(' ');
-  const info = (dateLine || venueLine || w.venueAddr) ? `
+  const info = (dateLine || venueLine) ? `
     <div class="today-info">
       ${dateLine ? `<div class="today-info-when">${dateLine}</div>` : ''}
       ${venueLine ? `<div class="today-info-where">${venueLine}</div>` : ''}
-      ${w.venueAddr ? `<div class="today-info-addr">${esc(w.venueAddr)}</div>` : ''}
     </div>` : '';
   return `
 <section id="sec-gallery" class="fadein">
@@ -438,19 +437,20 @@ function renderAccounts(c) {
   });
   const g = c.greeting || {}; const gp = g.groom || {}; const bp = g.bride || {};
   const sideContacts = {
-    신랑: [['신랑', c.groom?.phone], ['신랑 아버지', gp.fatherPhone], ['신랑 어머니', gp.motherPhone]],
-    신부: [['신부', c.bride?.phone], ['신부 아버지', bp.fatherPhone], ['신부 어머니', bp.motherPhone]],
+    신랑: [['신랑', c.groom?.name, c.groom?.phone], ['신랑 아버지', gp.fatherName, gp.fatherPhone], ['신랑 어머니', gp.motherName, gp.motherPhone]],
+    신부: [['신부', c.bride?.name, c.bride?.phone], ['신부 아버지', bp.fatherName, bp.fatherPhone], ['신부 어머니', bp.motherName, bp.motherPhone]],
   };
   const html = Object.entries(groups).map(([title, items]) => {
     const side = title.includes('신랑') ? '신랑' : title.includes('신부') ? '신부' : '';
-    const contacts = (sideContacts[side] || []).filter(([, p]) => p && String(p).trim());
+    const contacts = (sideContacts[side] || []).filter(([, , p]) => p && String(p).trim());
     const contactRows = contacts.length ? `
       <div class="contact-rows">
-        ${contacts.map(([role, phone]) => {
+        ${contacts.map(([role, name, phone]) => {
           const d = String(phone).replace(/[^0-9]/g, '');
+          const label = name ? `${esc(role)} <b>${esc(name)}</b>` : esc(role);
           return `
         <div class="contact-row">
-          <span class="contact-role">${esc(role)}</span>
+          <span class="contact-role">${label}</span>
           <span class="contact-btns">
             <a class="contact-btn" href="tel:${d}" aria-label="${esc(role)} 전화">${SVG_PHONE}</a>
             <a class="contact-btn" href="sms:${d}" aria-label="${esc(role)} 문자">${SVG_SMS}</a>

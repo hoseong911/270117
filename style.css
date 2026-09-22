@@ -450,16 +450,18 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 /* 연락하기(전화·문자) — 계좌와 한 박스 안에 함께 */
 .contact-rows { display:flex; flex-direction:column; margin-bottom:.2rem; }
 .contact-row {
-  display:flex; align-items:center; justify-content:space-between; gap:.4rem;
+  display:flex; align-items:center; justify-content:space-between; gap:.3rem;
   padding:.55rem 0; border-bottom:1px dashed var(--border);
 }
-.contact-role { font-size:.9rem; color:var(--ink); }
-.contact-btns { display:flex; gap:.4rem; flex-shrink:0; }
+.contact-role { font-size:.82rem; color:var(--ink2); word-break:keep-all; line-height:1.35; min-width:0; }
+.contact-role b { font-weight:600; color:var(--ink); }
+.contact-btns { display:flex; gap:.35rem; flex-shrink:0; }
 .contact-btn {
-  width:34px; height:34px; border:1.5px solid var(--rose); border-radius:50%;
-  color:var(--rose); background:none;
+  width:30px; height:30px; border:1.5px solid var(--rose); border-radius:50%;
+  color:var(--rose); background:none; flex-shrink:0;
   display:inline-flex; align-items:center; justify-content:center;
 }
+.contact-btn svg { width:15px; height:15px; }
 .contact-btn:active { background:var(--rose); color:#fff; }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
