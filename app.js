@@ -103,7 +103,7 @@ const DEFAULT = {
 const SECTION_NAV = {
   header:    null,
   intro:     '인트로',
-  greeting:  '초대장',
+  greeting:  null,
   couple:    '신랑신부',
   parents:   '부모님',
   lovestory: '스토리',
@@ -113,7 +113,7 @@ const SECTION_NAV = {
   location:  '오시는길',
   accounts:  '마음전달',
   rsvp:      '참석여부',
-  flowers:   '화환',
+  flowers:   null,
   guestbook: '방명록',
   photos:    '하객 사진',
 };
@@ -500,7 +500,7 @@ function renderPhotos(c) {
 const RENDERERS = {
   header:    renderHeader,
   intro:     renderIntro,
-  greeting:  renderGreeting,
+  // greeting(인사말)·flowers(화환) 섹션은 폐지 — 인트로 사진이 인사말을 대신함
   couple:    renderCouple,
   parents:   renderParents,
   lovestory: renderLovestory,
@@ -509,7 +509,6 @@ const RENDERERS = {
   schedule:  renderSchedule,
   location:  renderLocation,
   accounts:  renderAccounts,
-  flowers:   renderFlowers,
 };
 
 // ─── UTILITIES ────────────────────────────────────────

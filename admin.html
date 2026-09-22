@@ -392,14 +392,12 @@
   </header>
   <div class="admin-tabs" id="adminTabs">
     <button class="tab-btn active" data-panel="panelMeta">기본 설정</button>
-    <button class="tab-btn" data-panel="panelHeader">메인 헤더</button>
-    <button class="tab-btn" data-panel="panelGreeting">초대장</button>
+    <button class="tab-btn" data-panel="panelGreeting">오늘의 주인공</button>
     <button class="tab-btn" data-panel="panelDday">D-DAY</button>
     <button class="tab-btn" data-panel="panelSchedule">예식안내</button>
     <button class="tab-btn" data-panel="panelLocation">오시는길</button>
     <button class="tab-btn" data-panel="panelAccounts">마음전달</button>
     <button class="tab-btn" data-panel="panelRsvp">참석여부</button>
-    <button class="tab-btn" data-panel="panelFlowers">화환</button>
     <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
     <button class="tab-btn" data-panel="panelPhotos">하객사진 <span id="phPendingBadge"></span></button>
     <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
@@ -438,6 +436,17 @@
           </div>
         </div>
       </div>
+      <div class="save-row">
+        <span class="save-msg" id="metaMsg"></span>
+        <button class="save-btn" id="saveMetaBtn">저장</button>
+      </div>
+    </div>
+
+    <!-- 오늘의 주인공 -->
+    <div class="panel" id="panelGreeting">
+      <div class="form-section" style="background:#f5f7fa;border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem">
+        <div style="font-size:.8rem;color:var(--ink2);line-height:1.7">대표 사진은 깃허브 <b>images</b> 폴더의 번호 파일(<b>01.jpg, 02.jpg …</b>)로 관리됩니다. 새 사진은 그 폴더에 순서대로 올려주세요.</div>
+      </div>
       <div class="form-section">
         <div class="form-section-title">신랑 · 신부</div>
         <div class="form-grid form-grid-2">
@@ -464,27 +473,6 @@
           <div class="form-row">
             <label class="form-label">신부 연락처</label>
             <input class="form-input" id="bridePhone" placeholder="010-0000-0000" type="tel">
-          </div>
-        </div>
-      </div>
-      <div class="save-row">
-        <span class="save-msg" id="metaMsg"></span>
-        <button class="save-btn" id="saveMetaBtn">저장</button>
-      </div>
-    </div>
-
-    <!-- 인사말 -->
-    <div class="panel" id="panelGreeting">
-      <div class="form-section">
-        <div class="form-section-title">인사말 문구</div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">제목 (예: 결혼합니다)</label>
-            <input class="form-input" id="greetTitle" placeholder="결혼합니다">
-          </div>
-          <div class="form-row">
-            <label class="form-label">본문</label>
-            <textarea class="form-textarea" id="greetMessage" rows="5" placeholder="초대 문구를 입력해주세요"></textarea>
           </div>
         </div>
       </div>
@@ -998,7 +986,7 @@ function fillForms() {
     { group:'신부 측', who:'신부 아버지',name:'예금주', bank:'은행', number:'계좌번호' },
   ]);
   // 섹션 (사용하지 않는 섹션은 목록에서 제외)
-  const HIDDEN = ['couple','parents','lovestory'];
+  const HIDDEN = ['couple','parents','lovestory','greeting','flowers'];
   const saved = (c.sections || DEFAULT_SECTIONS).slice();
   // 저장본에 없는 기본 섹션(신규 추가분 등)은 뒤에 채워 넣는다
   DEFAULT_SECTIONS.forEach(d => {
@@ -1556,8 +1544,6 @@ document.getElementById('saveMetaBtn').addEventListener('click', async () => {
       footer:  v('headerFooter'),  ogDesc: v('headerOgDesc'),
       ogImage: v('headerOgImage'),
     },
-    groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
-    bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
   };
   await savePartial(data, 'metaMsg', '기본 설정이 저장되었습니다');
 });
@@ -1594,16 +1580,18 @@ document.getElementById('saveLocationBtn').addEventListener('click', async () =>
   await savePartial(data, 'locationMsg', '오시는길이 저장되었습니다');
 });
 
-// ── GREETING SAVE ─────────────────────────────────────
+// ── 오늘의 주인공 SAVE (신랑신부 + 혼주) ────────────────
 document.getElementById('saveGreetBtn').addEventListener('click', async () => {
   const data = {
+    groom: { name: v('groomName'), engName: v('groomEng'), phone: v('groomPhone') },
+    bride: { name: v('brideName'), engName: v('brideEng'), phone: v('bridePhone') },
     greeting: {
-      title: v('greetTitle'), message: v('greetMessage'),
+      ...(currentConfig.greeting || {}),
       groom: { fatherName: v('groomFather'), motherName: v('groomMother'), relation: v('groomRelation') },
       bride: { fatherName: v('brideFather'), motherName: v('brideMother'), relation: v('brideRelation') },
     },
   };
-  await savePartial(data, 'greetMsg', '인사말이 저장되었습니다');
+  await savePartial(data, 'greetMsg', '저장되었습니다');
 });
 
 // ── SCHEDULE SAVE ─────────────────────────────────────
