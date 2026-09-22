@@ -55,7 +55,7 @@ body {
 .h-page .h-intro { min-height:100svh; }
 .h-greeting.has-film { min-height:100svh; }
 /* 인트로 필름: 위치(윗변)는 유지하고 아래쪽으로만 크게 */
-.h-intro .film-strip { bottom:calc(14svh - 2.6rem); }
+.h-intro .film-strip { bottom:calc(4svh - 2.6rem); }
 .h-intro .film-frame { width:118px; padding:11px 7px; }
 .h-intro .film-frame img { height:140px; }
 .h-intro .film-frame::after { left:7px; right:7px; top:11px; bottom:11px; }
