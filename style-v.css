@@ -40,6 +40,9 @@ body {
 
 /* ── 섹션 여백 일정하게(메뉴 간 간격 균일) ── */
 .h-page .sec { padding:3.4rem 1.4rem; }
+/* 갤러리는 오늘의 주인공과 확실히 분리 → 다음 한 화면으로 */
+.h-page[data-page="album"] { min-height:100svh; display:flex; align-items:center; }
+.h-page[data-page="album"] .h-page-inner { width:100%; }
 .h-page[data-page="accounts"] .sec { padding-top:3.4rem; padding-bottom:3.4rem; }
 /* 오시는 길 → 마음전달 사이만 살짝 더 띄우기 */
 .h-page[data-page="accounts"] .sec:first-child { padding-top:5rem; }

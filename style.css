@@ -278,9 +278,12 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   margin-top:.3rem;
 }
 .today-info {
-  margin-top:1.8rem; padding-top:1.6rem;
-  border-top:1px solid var(--border);
+  margin-top:1.7rem; padding-top:1.6rem; position:relative;
   line-height:1.9;
+}
+.today-info::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:34px; height:1px; background:var(--gold2);
 }
 .today-info-when { font-family:var(--font-serif); font-size:1.12rem; color:var(--ink); }
 .today-info-where { font-size:.95rem; color:var(--ink2); margin-top:.4rem; }
@@ -431,36 +434,33 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-group.open .account-chevron { transform:rotate(180deg); }
 .account-group[data-group*="신부"] .account-group-title { color:#b5728a; }
 .account-group[data-group*="신부"] .account-group-head { background:#fdf0f4; }
-.account-body { display:none; grid-template-columns:auto auto; justify-content:center; align-items:baseline; }
-.account-group.open .account-body { display:grid; }
-.account-item { display:contents; }
-.account-body span:nth-child(n+3) { border-top:1px solid var(--border); }
-.account-who { font-size:.95rem; color:var(--ink2); padding:.9rem .5rem .9rem 0; white-space:nowrap; }
-.accounts-hint { font-size:.76rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
-/* 혼주에게 연락하기 */
-.contact-acc { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:1rem; }
-.contact-head {
-  width:100%; padding:1rem 1.2rem; background:var(--bg2); border:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:space-between;
-  font-size:.95rem; color:var(--rose2);
+.account-body { display:none; flex-direction:column; padding:.2rem 1rem .7rem; }
+.account-group.open .account-body { display:flex; }
+/* 계좌 목록 */
+.account-entries { display:flex; flex-direction:column; }
+.account-item {
+  display:flex; align-items:baseline; justify-content:space-between; gap:.5rem;
+  padding:.7rem 0; border-top:1px solid var(--border);
 }
-.contact-body { display:none; padding:.3rem 1.1rem .8rem; }
-.contact-acc.open .contact-body { display:block; }
-.contact-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:.7rem 0; border-bottom:1px solid var(--border);
-}
-.contact-row:last-child { border-bottom:none; }
-.contact-role { font-size:.95rem; color:var(--ink); }
-.contact-btns { display:flex; gap:.5rem; }
-.contact-btn {
-  padding:.4rem .95rem; border:1.5px solid var(--rose); border-radius:100px;
-  color:var(--rose); font-size:.82rem; background:none; white-space:nowrap;
-}
-.contact-btn:active { background:var(--rose); color:#fff; }
-.account-holder-name { font-size:1.15rem; color:var(--ink); cursor:pointer; padding:.9rem 0 .9rem .5rem; }
+.account-who { font-size:.9rem; color:var(--ink2); white-space:nowrap; }
+.account-holder-name { font-size:1.05rem; color:var(--ink); cursor:pointer; text-align:right; }
 .account-holder-name:active { opacity:.6; }
 .account-holder-name.copied { color:var(--rose2); }
+.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; word-break:keep-all; }
+/* 연락하기(전화·문자) — 계좌와 한 박스 안에 함께 */
+.contact-rows { display:flex; flex-direction:column; margin-bottom:.2rem; }
+.contact-row {
+  display:flex; align-items:center; justify-content:space-between; gap:.4rem;
+  padding:.55rem 0; border-bottom:1px dashed var(--border);
+}
+.contact-role { font-size:.9rem; color:var(--ink); }
+.contact-btns { display:flex; gap:.4rem; flex-shrink:0; }
+.contact-btn {
+  width:34px; height:34px; border:1.5px solid var(--rose); border-radius:50%;
+  color:var(--rose); background:none;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.contact-btn:active { background:var(--rose); color:#fff; }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {

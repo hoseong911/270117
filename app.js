@@ -425,6 +425,9 @@ function renderLocation(c) {
 </section>`;
 }
 
+const SVG_PHONE = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+const SVG_SMS = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+
 function renderAccounts(c) {
   const accounts = c.accounts || [];
   const groups = {};
@@ -433,62 +436,57 @@ function renderAccounts(c) {
     if (!groups[g]) groups[g] = [];
     groups[g].push(a);
   });
-  const html = Object.entries(groups).map(([title, items]) => `
-  <div class="account-group" data-group="${esc(title)}">
-    <button type="button" class="account-group-head" aria-expanded="false">
-      <span class="account-group-title">${esc(title)}</span>
-      <span class="account-chevron" aria-hidden="true">⌄</span>
-    </button>
-    <div class="account-body">
-      ${items.map(a => {
-        const side = title.includes('신랑') ? '신랑' : title.includes('신부') ? '신부' : '';
-        const who = (side && a.who && !a.who.startsWith(side)) ? `${side} ${a.who}` : a.who;
-        return `
-      <div class="account-item account-copy-btn"
-        data-number="${esc(a.number)}"
-        data-bank="${esc(a.bank)}"
-        data-name="${esc(a.name)}">
-        <span class="account-who">${esc(who)}</span>
-        <span class="account-holder-name">${esc(a.name)}</span>
-      </div>`;
-      }).join('')}
-    </div>
-  </div>`).join('');
-  // 혼주에게 연락하기 — 전화/문자 버튼 (번호가 있는 사람만)
   const g = c.greeting || {}; const gp = g.groom || {}; const bp = g.bride || {};
-  const contacts = [
-    ['신랑', c.groom?.phone], ['신랑 아버지', gp.fatherPhone], ['신랑 어머니', gp.motherPhone],
-    ['신부', c.bride?.phone], ['신부 아버지', bp.fatherPhone], ['신부 어머니', bp.motherPhone],
-  ].filter(([, p]) => p && String(p).trim());
-  const contactBlock = contacts.length ? `
-    <div class="contact-acc" id="contactAcc">
-      <button type="button" class="contact-head" aria-expanded="false">
-        <span>혼주에게 연락하기</span>
-        <span class="account-chevron" aria-hidden="true">⌄</span>
-      </button>
-      <div class="contact-body">
+  const sideContacts = {
+    신랑: [['신랑', c.groom?.phone], ['신랑 아버지', gp.fatherPhone], ['신랑 어머니', gp.motherPhone]],
+    신부: [['신부', c.bride?.phone], ['신부 아버지', bp.fatherPhone], ['신부 어머니', bp.motherPhone]],
+  };
+  const html = Object.entries(groups).map(([title, items]) => {
+    const side = title.includes('신랑') ? '신랑' : title.includes('신부') ? '신부' : '';
+    const contacts = (sideContacts[side] || []).filter(([, p]) => p && String(p).trim());
+    const contactRows = contacts.length ? `
+      <div class="contact-rows">
         ${contacts.map(([role, phone]) => {
           const d = String(phone).replace(/[^0-9]/g, '');
           return `
         <div class="contact-row">
           <span class="contact-role">${esc(role)}</span>
           <span class="contact-btns">
-            <a class="contact-btn" href="tel:${d}" aria-label="${esc(role)} 전화">전화</a>
-            <a class="contact-btn" href="sms:${d}" aria-label="${esc(role)} 문자">문자</a>
+            <a class="contact-btn" href="tel:${d}" aria-label="${esc(role)} 전화">${SVG_PHONE}</a>
+            <a class="contact-btn" href="sms:${d}" aria-label="${esc(role)} 문자">${SVG_SMS}</a>
           </span>
         </div>`;
         }).join('')}
-      </div>
-    </div>` : '';
+      </div>` : '';
+    const accRows = items.map(a => {
+      const who = (side && a.who && !a.who.startsWith(side)) ? `${side} ${a.who}` : a.who;
+      return `
+        <div class="account-item account-copy-btn"
+          data-number="${esc(a.number)}" data-bank="${esc(a.bank)}" data-name="${esc(a.name)}">
+          <span class="account-who">${esc(who)}</span>
+          <span class="account-holder-name">${esc(a.name)}</span>
+        </div>`;
+    }).join('');
+    return `
+  <div class="account-group" data-group="${esc(title)}">
+    <button type="button" class="account-group-head" aria-expanded="false">
+      <span class="account-group-title">${esc(title)}</span>
+      <span class="account-chevron" aria-hidden="true">⌄</span>
+    </button>
+    <div class="account-body">
+      ${contactRows}
+      ${accRows ? `<div class="account-entries">${accRows}</div>` : ''}
+    </div>
+  </div>`;
+  }).join('');
   return `
 <section id="sec-accounts" class="fadein">
   <div class="sec">
     <div class="sec-label">Gift</div>
     <div class="sec-title">마음 전달</div>
     <div class="sec-divider"></div>
-    ${contactBlock}
     <div class="accounts-list">${html}</div>
-    <p class="accounts-hint">* 이름을 누르시면 계좌번호가 복사됩니다</p>
+    <p class="accounts-hint">* 계좌는 이름을 누르면 복사, 전화·문자 아이콘으로 연락할 수 있어요</p>
   </div>
 </section>`;
 }
@@ -1080,12 +1078,6 @@ function initAccounts() {
       const open = grp.classList.toggle('open');
       head.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
-  });
-  // 혼주에게 연락하기 토글
-  const contactHead = document.querySelector('.contact-head');
-  contactHead?.addEventListener('click', () => {
-    const open = document.getElementById('contactAcc').classList.toggle('open');
-    contactHead.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   document.querySelectorAll('.account-copy-btn').forEach(item => {
     const nameEl = item.querySelector('.account-holder-name');
