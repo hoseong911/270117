@@ -107,9 +107,9 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 .h-page .loc-detail { color:var(--ink); }
 .transport-cat { margin-bottom:1.4rem; text-align:left; }
 .transport-cat:last-child { margin-bottom:0; }
-.transport-cat-title { font-size:.92rem; font-weight:700; color:var(--rose); margin-bottom:.3rem; }
+.transport-cat-title { font-size:1.08rem; font-weight:700; color:var(--rose); margin-bottom:.45rem; }
 .location-detail-inner {
-  font-size:.9rem; color:var(--ink2); line-height:2;
+  font-size:1.04rem; color:var(--ink2); line-height:2;
   word-break:keep-all;
 }
 .location-detail-inner strong { font-weight:700; color:var(--ink); }
@@ -191,7 +191,7 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
   opacity:.22;
   position:relative;
   z-index:0;
-  transform:translate(1.5rem,-.1rem);   /* 우측 상단으로 살짝 치우침 */
+  transform:translateY(-.1rem);          /* 좌우 치우침 없이 중앙정렬(제목과 한 덩어리) */
   margin-bottom:-1.9rem;                  /* 아래 제목이 위로 겹쳐 올라오게 */
   white-space:nowrap;
   pointer-events:none;
