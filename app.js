@@ -115,7 +115,7 @@ const SECTION_NAV = {
   rsvp:      '참석여부',
   flowers:   null,
   guestbook: '방명록',
-  photos:    '하객 사진',
+  photos:    '찰나의 순간',
 };
 
 // 가로 버전: 합쳐지는 섹션의 nav 타깃을 대표 페이지로 돌린다
@@ -412,9 +412,10 @@ function renderAccounts(c) {
   });
   const html = Object.entries(groups).map(([title, items]) => `
   <div class="account-group" data-group="${esc(title)}">
-    <div class="account-group-head">
+    <button type="button" class="account-group-head" aria-expanded="false">
       <span class="account-group-title">${esc(title)}</span>
-    </div>
+      <span class="account-chevron" aria-hidden="true">⌄</span>
+    </button>
     <div class="account-body">
       ${items.map(a => {
         const side = title.includes('신랑') ? '신랑' : title.includes('신부') ? '신부' : '';
@@ -481,18 +482,16 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
 </section>`;
 }
 
-// 하객 사진: 승인된 사진을 그리드로 보여주고, 하객이 직접 올릴 수 있는 섹션
+// 찰나의 순간: 하객이 사진을 올려 신랑신부에게 모아주는 섹션(공개 전시 없음)
 function renderPhotos(c) {
   return `
 <section id="sec-photos" class="fadein">
   <div class="sec">
-    <div class="sec-label">Photos</div>
-    <div class="sec-title">하객 사진</div>
+    <div class="sec-label">Moment</div>
+    <div class="sec-title">찰나의 순간</div>
     <div class="sec-divider"></div>
-    <p class="ph-hint">함께한 순간을 남겨주세요. 올려주신 사진은 확인 후 게시됩니다.</p>
+    <p class="ph-hint">신랑과 신부와 함께한 순간을 남겨주세요.</p>
     <button class="ph-open-btn" id="phOpenBtn">사진 올리기</button>
-    <div class="ph-grid" id="phGrid"><div class="ph-empty">첫 사진을 남겨주세요</div></div>
-    <div style="text-align:center"><button class="ph-more" id="phMore" style="display:none">더 보기</button></div>
   </div>
 </section>`;
 }
@@ -903,12 +902,22 @@ function initGallery(c) {
   let current = 0;
   const modal = document.getElementById('galleryModal');
   const img   = document.getElementById('galleryImg');
-  const open  = idx => {
+  // dir: +1(다음)·-1(이전)이면 그 방향으로 슬라이드, 0이면 그냥 표시
+  const open  = (idx, dir = 0) => {
     current = ((idx % images.length) + images.length) % images.length;
-    img.src = images[current];
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
     document.body.classList.add('modal-open');   // 뒤 덱 스크롤 고정
+    if (dir === 0) { img.src = images[current]; return; }
+    img.style.transition = 'none';
+    img.style.transform  = `translateX(${dir > 0 ? 60 : -60}px)`;
+    img.style.opacity    = '0';
+    img.src = images[current];
+    requestAnimationFrame(() => {
+      img.style.transition = 'transform .3s ease, opacity .3s ease';
+      img.style.transform  = 'translateX(0)';
+      img.style.opacity    = '1';
+    });
   };
   const close = () => {
     modal.classList.remove('show');
@@ -922,13 +931,13 @@ function initGallery(c) {
   });
   document.getElementById('galleryMore')?.addEventListener('click', () => open(0));
   document.getElementById('modalClose')?.addEventListener('click', close);
-  document.getElementById('modalPrev')?.addEventListener('click', () => open(current - 1));
-  document.getElementById('modalNext')?.addEventListener('click', () => open(current + 1));
+  document.getElementById('modalPrev')?.addEventListener('click', () => open(current - 1, -1));
+  document.getElementById('modalNext')?.addEventListener('click', () => open(current + 1, 1));
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
   document.addEventListener('keydown', e => {
     if (!modal.classList.contains('show')) return;
-    if (e.key === 'ArrowLeft')  open(current - 1);
-    if (e.key === 'ArrowRight') open(current + 1);
+    if (e.key === 'ArrowLeft')  open(current - 1, -1);
+    if (e.key === 'ArrowRight') open(current + 1, 1);
     if (e.key === 'Escape')     close();
   });
 
@@ -941,7 +950,7 @@ function initGallery(c) {
     const dx = e.changedTouches[0].clientX - sx;
     const dy = e.changedTouches[0].clientY - sy;
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-      open(dx < 0 ? current + 1 : current - 1);
+      if (dx < 0) open(current + 1, 1); else open(current - 1, -1);
     }
   }, { passive: true });
 }
@@ -1012,6 +1021,14 @@ function initTransportDetail(config) {
 }
 
 function initAccounts() {
+  // 신랑 측 / 신부 측 아코디언 토글(기본 접힘)
+  document.querySelectorAll('.account-group-head').forEach(head => {
+    head.addEventListener('click', () => {
+      const grp = head.closest('.account-group');
+      const open = grp.classList.toggle('open');
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
   document.querySelectorAll('.account-copy-btn').forEach(item => {
     const nameEl = item.querySelector('.account-holder-name');
     if (!nameEl) return;
@@ -1189,9 +1206,8 @@ function initGuestbook() {
   });
 }
 
-// ─── 하객 사진 업로드 ──────────────────────────────────
-const PH_PER_PAGE = 12;
-let phLastDoc = null;
+// ─── 찰나의 순간(하객 사진 업로드) ─────────────────────
+// 공개 전시 없이 신랑신부에게 사진을 모아주는 기능 → 업로드만, 목록 노출 없음
 
 // 업로드 전 캔버스로 리사이즈+JPEG 압축(용량 절감: 폰 원본 수 MB → 수백 KB)
 function compressImage(file, maxSide = 1600, quality = 0.82) {
@@ -1217,37 +1233,8 @@ function compressImage(file, maxSide = 1600, quality = 0.82) {
   });
 }
 
-async function loadPhotos(append = false) {
-  const grid = document.getElementById('phGrid');
-  const more = document.getElementById('phMore');
-  if (!grid) return;
-  try {
-    let q = db.collection('photos').where('status','==','approved').orderBy('createdAt','desc').limit(PH_PER_PAGE);
-    if (append && phLastDoc) q = q.startAfter(phLastDoc);
-    const snap = await q.get();
-    if (!append) grid.innerHTML = '';
-    if (snap.empty && !append) {
-      grid.innerHTML = '<div class="ph-empty">첫 사진을 남겨주세요</div>';
-      if (more) more.style.display = 'none';
-      return;
-    }
-    snap.docs.forEach(d => {
-      const data = d.data();
-      const cell = document.createElement('div');
-      cell.className = 'ph-cell';
-      cell.innerHTML = `<img src="${esc(data.url)}" alt="${esc(data.name || '하객 사진')}" loading="lazy">`;
-      grid.appendChild(cell);
-    });
-    phLastDoc = snap.docs[snap.docs.length - 1];
-    if (more) more.style.display = snap.size < PH_PER_PAGE ? 'none' : 'inline-block';
-  } catch (err) { console.error('photos load error', err); }
-}
-
 function initPhotos() {
-  if (!document.getElementById('phGrid')) return;
-  loadPhotos();
-  document.getElementById('phMore')?.addEventListener('click', () => loadPhotos(true));
-
+  if (!document.getElementById('phOpenBtn')) return;
   const modal    = document.getElementById('phModal');
   const openBtn  = document.getElementById('phOpenBtn');
   const closeBtn = document.getElementById('phModalClose');
@@ -1298,7 +1285,7 @@ function initPhotos() {
         });
       }
       close();
-      showToast('사진이 등록되었습니다. 확인 후 게시됩니다.');
+      showToast('소중한 순간을 남겨주셔서 감사합니다.');
     } catch (err) {
       console.error(err);
       showToast('업로드에 실패했습니다');

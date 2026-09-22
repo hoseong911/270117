@@ -343,7 +343,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   display:none; align-items:center; justify-content:center; z-index:9000;
 }
 #galleryModal.show { display:flex; }
-#galleryImg { max-width:95vw; max-height:88svh; object-fit:contain; border-radius:4px; }
+#galleryImg { max-width:95vw; max-height:88svh; object-fit:contain; border-radius:4px; will-change:transform,opacity; }
 .modal-close {
   position:absolute; top:.8rem; right:.8rem;
   color:#fff; font-size:1.4rem; background:none; border:none;
@@ -352,13 +352,13 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 }
 .modal-prev, .modal-next {
   position:absolute; top:50%; transform:translateY(-50%);
-  color:#fff; font-size:1.3rem; background:rgba(255,255,255,.08);
-  border:none; width:48px; height:48px;
+  color:#fff; font-size:2.4rem; line-height:1; background:none;
+  border:none; width:44px; height:44px;
   display:flex; align-items:center; justify-content:center;
-  border-radius:50%; opacity:.8;
+  opacity:.85; text-shadow:0 1px 6px rgba(0,0,0,.5);
 }
-.modal-prev { left:.6rem; }
-.modal-next { right:.6rem; }
+.modal-prev { left:1.6rem; }
+.modal-next { right:1.6rem; }
 
 /* ── D-DAY ── */
 .dday-wrapper { text-align:center; }
@@ -411,21 +411,24 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 }
 
 /* ── ACCOUNTS ── */
-.accounts-list { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+.accounts-list { display:flex; flex-direction:column; gap:.7rem; }
 .account-group { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .account-group-head {
-  padding:.75rem 1.2rem; background:var(--bg2);
-  display:flex; align-items:center; justify-content:center;
+  width:100%; padding:1rem 1.3rem; background:var(--bg2); border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:space-between;
 }
-.account-group-title { font-size:.7rem; color:var(--rose2); text-align:center; }
+.account-group-title { font-size:.92rem; color:var(--rose2); }
+.account-chevron { font-size:1.1rem; color:var(--ink2); line-height:1; transition:transform .25s ease; }
+.account-group.open .account-chevron { transform:rotate(180deg); }
 .account-group[data-group*="신부"] .account-group-title { color:#b5728a; }
 .account-group[data-group*="신부"] .account-group-head { background:#fdf0f4; }
-.account-body { display:grid; grid-template-columns:auto auto; justify-content:center; align-items:baseline; }
+.account-body { display:none; grid-template-columns:auto auto; justify-content:center; align-items:baseline; }
+.account-group.open .account-body { display:grid; }
 .account-item { display:contents; }
 .account-body span:nth-child(n+3) { border-top:1px solid var(--border); }
-.account-who { font-size:.85rem; color:var(--ink2); padding:.85rem .4rem .85rem 0; white-space:nowrap; }
-.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
-.account-holder-name { font-size:1.05rem; color:var(--ink); cursor:pointer; padding:.85rem 0 .85rem .4rem; }
+.account-who { font-size:.95rem; color:var(--ink2); padding:.9rem .5rem .9rem 0; white-space:nowrap; }
+.accounts-hint { font-size:.76rem; color:var(--ink2); margin-top:.9rem; text-align:center; }
+.account-holder-name { font-size:1.15rem; color:var(--ink); cursor:pointer; padding:.9rem 0 .9rem .5rem; }
 .account-holder-name:active { opacity:.6; }
 .account-holder-name.copied { color:var(--rose2); }
 

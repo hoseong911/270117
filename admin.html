@@ -399,7 +399,7 @@
     <button class="tab-btn" data-panel="panelAccounts">마음전달</button>
     <button class="tab-btn" data-panel="panelRsvp">참석여부</button>
     <button class="tab-btn" data-panel="panelGuestbook">방명록</button>
-    <button class="tab-btn" data-panel="panelPhotos">하객사진 <span id="phPendingBadge"></span></button>
+    <button class="tab-btn" data-panel="panelPhotos">찰나의 순간</button>
     <button class="tab-btn" data-panel="panelSections">섹션 관리</button>
   </div>
   <div class="admin-content">
@@ -828,12 +828,9 @@
       <button class="data-load-btn" id="gbLoadMore" style="display:none">더 불러오기</button>
     </div>
 
-    <!-- 하객 사진 -->
+    <!-- 찰나의 순간(하객이 올린 사진 모음) -->
     <div class="panel" id="panelPhotos">
-      <div class="gb-admin-tabs">
-        <button class="ph-tab-btn gb-tab-btn active" data-status="pending">대기 중 <span id="phAdminPendingBadge"></span></button>
-        <button class="ph-tab-btn gb-tab-btn" data-status="approved">승인됨</button>
-      </div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem">하객들이 올려준 사진 모음입니다. (사이트에는 공개되지 않아요)</p>
       <div class="data-count" id="phCount"></div>
       <div class="ph-admin-grid" id="phAdminList"><div class="data-empty">로딩 중...</div></div>
       <button class="data-load-btn" id="phLoadMore" style="display:none">더 불러오기</button>
@@ -899,7 +896,6 @@ onAuthStateChanged(auth, async user => {
     loadGbList();
     updatePendingBadge();
     loadPhotoList();
-    updatePhotoBadge();
   } else {
     document.getElementById('loginView').style.display  = 'flex';
     document.getElementById('adminView').style.display  = 'none';
@@ -1752,8 +1748,7 @@ document.querySelectorAll('#panelGuestbook .gb-tab-btn').forEach(btn => {
   });
 });
 
-// ── 하객 사진 ──────────────────────────────────────────
-let phCurrentStatus = 'pending';
+// ── 찰나의 순간(하객이 올린 사진 모음) ─────────────────
 let phAdminLast = null;
 
 async function loadPhotoList(append = false) {
@@ -1761,45 +1756,33 @@ async function loadPhotoList(append = false) {
   const more = document.getElementById('phLoadMore');
   const countEl = document.getElementById('phCount');
   try {
-    let q = query(collection(db,'photos'), where('status','==',phCurrentStatus), orderBy('createdAt','desc'), limit(18));
-    if (append && phAdminLast) q = query(collection(db,'photos'), where('status','==',phCurrentStatus), orderBy('createdAt','desc'), startAfter(phAdminLast), limit(18));
+    let q = query(collection(db,'photos'), orderBy('createdAt','desc'), limit(18));
+    if (append && phAdminLast) q = query(collection(db,'photos'), orderBy('createdAt','desc'), startAfter(phAdminLast), limit(18));
     const snap = await getDocs(q);
     if (!append) list.innerHTML = '';
     if (snap.empty && !append) {
-      list.innerHTML = `<div class="data-empty">${phCurrentStatus === 'pending' ? '대기 중인 사진이 없습니다' : '승인된 사진이 없습니다'}</div>`;
+      list.innerHTML = '<div class="data-empty">아직 올라온 사진이 없습니다</div>';
       more.style.display = 'none';
       countEl.textContent = '';
       return;
     }
     if (!append) countEl.textContent = `${snap.size}장 이상`;
-    const isPending = phCurrentStatus === 'pending';
     snap.docs.forEach(d => {
       const data = d.data();
       const el = document.createElement('div');
       el.className = 'ph-admin-cell';
       el.innerHTML = `
-        <img src="${esc(data.url)}" alt="" loading="lazy">
+        <a href="${esc(data.url)}" target="_blank" rel="noopener"><img src="${esc(data.url)}" alt="" loading="lazy"></a>
         ${data.name ? `<div class="ph-admin-name">${esc(data.name)}</div>` : ''}
         <div class="ph-admin-btns">
-          ${isPending ? `<button class="gb-approve-btn" data-act="ok">승인</button>` : ''}
           <button class="data-del-btn" data-act="del">삭제</button>
         </div>`;
-      if (isPending) {
-        el.querySelector('[data-act="ok"]').addEventListener('click', async function() {
-          this.disabled = true;
-          try {
-            await updateDoc(doc(db,'photos',d.id), { status: 'approved' });
-            el.remove(); toast('승인되었습니다'); updatePhotoBadge();
-          } catch(e) { toast('실패했습니다'); console.error(e); this.disabled = false; }
-        });
-      }
       el.querySelector('[data-act="del"]').addEventListener('click', async () => {
         if (!confirm('사진을 삭제하시겠습니까?')) return;
         try {
           if (data.path) { try { await deleteObject(sref(storage, data.path)); } catch(e) { /* 이미 없을 수 있음 */ } }
           await deleteDoc(doc(db,'photos',d.id));
           el.remove(); toast('삭제되었습니다');
-          if (phCurrentStatus === 'pending') updatePhotoBadge();
         } catch(e) { toast('실패했습니다'); console.error(e); }
       });
       list.appendChild(el);
@@ -1809,27 +1792,7 @@ async function loadPhotoList(append = false) {
   } catch(e) { console.error(e); list.innerHTML = '<div class="data-empty">로딩에 실패했습니다</div>'; }
 }
 
-async function updatePhotoBadge() {
-  try {
-    const snap = await getDocs(query(collection(db,'photos'), where('status','==','pending')));
-    const n = snap.size > 0 ? `(${snap.size})` : '';
-    const b1 = document.getElementById('phPendingBadge');
-    const b2 = document.getElementById('phAdminPendingBadge');
-    if (b1) b1.textContent = n;
-    if (b2) b2.textContent = n;
-  } catch(e) {}
-}
-
 document.getElementById('phLoadMore').addEventListener('click', () => loadPhotoList(true));
-document.querySelectorAll('#panelPhotos .ph-tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#panelPhotos .ph-tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    phCurrentStatus = btn.dataset.status;
-    phAdminLast = null;
-    loadPhotoList();
-  });
-});
 
 
 </script>
