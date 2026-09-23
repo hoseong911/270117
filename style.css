@@ -446,13 +446,12 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .mt-name b { font-weight:600; color:var(--ink); font-size:1.02rem; margin-left:.15rem; }
 .mt-actions { display:flex; align-items:center; gap:.45rem; flex-shrink:0; }
 .mt-btn {
-  width:36px; height:36px; border:1.5px solid var(--rose); border-radius:50%;
-  color:var(--rose); background:none; flex-shrink:0;
+  width:32px; height:34px; border:none; background:none;
+  color:var(--rose); flex-shrink:0;
   display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
 }
-.mt-btn svg { width:16px; height:16px; }
-.mt-btn:active, .mt-btn.copied { background:var(--rose); color:#fff; }
-.accounts-hint { font-size:.72rem; color:var(--ink2); margin-top:.9rem; text-align:center; word-break:keep-all; }
+.mt-btn svg { width:20px; height:20px; }
+.mt-btn:active, .mt-btn.copied { color:var(--rose2); transform:scale(.88); }
 
 /* ── WEDDING MODAL (RSVP, Guestbook) ── */
 .wedding-modal {
