@@ -99,9 +99,10 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
   font-weight:700; font-size:.92rem; letter-spacing:.01em;
 }
 .h-page .location-btn:hover { border:none; background:none; opacity:.75; }
-.h-page .loc-kakao { color:#E0A400; }  /* 카카오 옐로우(가독 위해 살짝 진하게) */
-.h-page .loc-naver { color:#03C75A; }  /* 네이버 그린 */
-.h-page .loc-tmap  { color:#2D6CDF; }  /* T맵 블루 */
+/* 지도 버튼 색 제거 — 모두 기본색으로 통일 */
+.h-page .loc-kakao,
+.h-page .loc-naver,
+.h-page .loc-tmap { color:var(--ink2); }
 
 /* ── 오시는 길: 상세 안내 버튼 + 모달 ── */
 .h-page .loc-detail { color:var(--ink); }
@@ -125,6 +126,8 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
   animation:gbFlow linear infinite;
 }
 @keyframes gbFlow { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+.gb-track-single { animation:gbCross 15s linear infinite; will-change:transform; }
+@keyframes gbCross { from { transform:translateX(100%); } to { transform:translateX(-100%); } }
 .gb-line {
   flex:0 0 auto; margin-right:1rem;
   display:flex; flex-direction:column; gap:.4rem;
@@ -238,7 +241,7 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 /* 1단계 — 제목 */
 .h-page .sec-title        { font-size:1.9rem; }
 .h-page .dday-num         { font-size:2.1rem; }
-.h-page .greeting-person-name { font-size:1.6rem; }
+.h-page .greeting-person-name { font-size:1.95rem; }
 
 /* 2단계 — 본문 */
 .h-page .greeting-message { font-size:1.08rem; line-height:2.4; }
@@ -381,7 +384,9 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
   background:#000 url("https://raw.githubusercontent.com/hoseong911/270117/main/images/0.jpg") center/cover no-repeat;
 }
 #whiteWash {
-  position:fixed; inset:0; background:#fff;
+  position:fixed; top:0; bottom:0;
+  width:min(100vw,480px); left:50%; transform:translateX(-50%);
+  background:#fff;
   opacity:0; pointer-events:none; z-index:10000;
   transition:opacity .5s ease;
 }

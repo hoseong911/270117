@@ -571,6 +571,7 @@ const RENDERERS = {
   lovestory: renderLovestory,
   gallery:   renderGallery,
   album:     renderAlbum,
+  photos:    renderPhotos,
   dday:      renderDday,
   schedule:  renderSchedule,
   location:  renderLocation,
@@ -1125,6 +1126,8 @@ function initRsvp() {
     document.getElementById('rsvpCountField').style.display = '';
     document.getElementById('rsvpAttYes').classList.add('selected');
     document.getElementById('rsvpAttNo').classList.remove('selected');
+    document.getElementById('rsvpSideGroom')?.classList.add('selected');
+    document.getElementById('rsvpSideBride')?.classList.remove('selected');
     document.getElementById('rsvpSubmit').textContent = '참석 의사 전달하기';
   };
 
@@ -1137,11 +1140,15 @@ function initRsvp() {
 
   document.querySelectorAll('.rsvp-radio-opt').forEach(label => {
     label.addEventListener('click', () => {
-      document.querySelectorAll('.rsvp-radio-opt').forEach(l => l.classList.remove('selected'));
+      const row = label.closest('.rsvp-radio-row');
+      row.querySelectorAll('.rsvp-radio-opt').forEach(l => l.classList.remove('selected'));
       label.classList.add('selected');
-      const attending = label.querySelector('input').value === '참석';
-      document.getElementById('rsvpCountField').style.display = attending ? '' : 'none';
-      document.getElementById('rsvpSubmit').textContent = attending ? '참석 의사 전달하기' : '불참 의사 전달하기';
+      const input = label.querySelector('input');
+      if (input.name === 'attendance') {
+        const attending = input.value === '참석';
+        document.getElementById('rsvpCountField').style.display = attending ? '' : 'none';
+        document.getElementById('rsvpSubmit').textContent = attending ? '참석 의사 전달하기' : '불참 의사 전달하기';
+      }
     });
   });
 
@@ -1157,12 +1164,13 @@ function initRsvp() {
     const name = document.getElementById('rsvpName').value.trim();
     if (!name) { showToast('이름을 입력해주세요'); return; }
     const attendance = getAttendance();
+    const side = document.querySelector('input[name="side"]:checked')?.value || '';
     const count = attendance === '참석' ? rsvpCount : 0;
     const btn = document.getElementById('rsvpSubmit');
     btn.disabled = true; btn.textContent = '전송 중...';
     try {
       await db.collection('rsvp').add({
-        name, attendance, count,
+        name, side, attendance, count,
         createdAt: new Date().toISOString(),
       });
       closeModal();
@@ -1184,6 +1192,16 @@ function maybeStartGbTicker() {
   if (!list || list._track) return;
   const items = [...list.querySelectorAll('.gb-line')];
   if (items.length < 1) return;
+  // 방명록이 하나뿐이면 복제 없이 한 장만 좌우로 지나가게(딱 하나만)
+  if (items.length < 2) {
+    const single = document.createElement('div');
+    single.className = 'gb-track gb-track-single';
+    single.appendChild(items[0].cloneNode(true));
+    list.innerHTML = '';
+    list.appendChild(single);
+    list._track = single;
+    return;
+  }
   const track = document.createElement('div');
   track.className = 'gb-track';
   const buildSet = () => items.forEach(it => {
@@ -1382,13 +1400,12 @@ function buildPages(config, sections) {
     let html = '';
     if (accEnabled) html += renderAccounts(config);
     if (rsvpEnabled || gbEnabled) html += renderRsvpGuestbook(config, rsvpEnabled, gbEnabled);
-    if (phEnabled) html += renderPhotos(config);
     if (html) out.push(wrapPage('accounts', html));
   };
 
   for (const s of enabled) {
     if (s.id === 'dday') continue;   // 맨 마지막 마무리 페이지로 별도 배치
-    if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook' || s.id === 'photos') { emitCombo(); continue; }
+    if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook') { emitCombo(); continue; }
     const html = RENDERERS[s.id]?.(config);
     if (html) out.push(wrapPage(s.id, html));
   }

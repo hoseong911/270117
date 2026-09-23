@@ -1679,7 +1679,7 @@ async function loadRsvpList(append = false) {
       const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleString('ko-KR') : '';
       el.innerHTML = `
         <div class="data-item-body">
-          <div class="data-item-name">${esc(data.name)}</div>
+          <div class="data-item-name">${esc(data.name)}${data.side ? ` <span style="font-size:.72rem;color:var(--ink2)">(${esc(data.side)})</span>` : ''}</div>
           <div class="data-item-meta">
             ${esc(data.attendance)} · ${data.count}명 · 식사: ${esc(data.meal)}
             ${data.memo ? ` · "${esc(data.memo)}"` : ''}
