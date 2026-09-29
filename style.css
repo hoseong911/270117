@@ -391,15 +391,15 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .cal-empty { visibility:hidden; }
 .cal-mark {
   position:relative;
-  display:flex; align-items:center; justify-content:center;
-  width:26px; height:26px;
-  color:#fff; font-weight:700; font-size:.64rem;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:30px; height:30px;
 }
 .cal-mark::before {
-  content:'\2665'; position:absolute; left:50%; top:50%;
-  transform:translate(-50%,-52%); z-index:-1;
-  font-size:1.85rem; line-height:1; color:#f487a9;
+  content:''; position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%); width:30px; height:30px; z-index:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f487a9' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
+.cal-d { position:relative; z-index:1; color:#fff; font-weight:700; font-size:.62rem; }
 .dday-count {
   font-size:clamp(2.8rem,13vw,4.2rem);
   font-weight:700; color:var(--rose); line-height:1;
@@ -455,6 +455,11 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   width:100%; padding:1rem 1.2rem; background:var(--bg2); border:none; cursor:pointer;
   display:flex; align-items:center; justify-content:space-between; gap:.4rem;
 }
+/* 신랑 측 = 은은한 블루그레이, 신부 측 = 은은한 로즈 */
+.account-group[data-group="신랑 측"] { border-color:rgba(95,127,144,.28); background:rgba(95,127,144,.05); }
+.account-group[data-group="신랑 측"] .account-group-head { background:rgba(95,127,144,.1); }
+.account-group[data-group="신부 측"] { border-color:rgba(206,120,140,.3); background:rgba(206,120,140,.05); }
+.account-group[data-group="신부 측"] .account-group-head { background:rgba(206,120,140,.1); }
 .account-group-title { font-size:.95rem; color:var(--ink); }
 .account-chevron { display:flex; align-items:center; color:var(--ink2); transition:transform .25s ease; }
 .account-group.open .account-chevron { transform:rotate(180deg); }
@@ -617,7 +622,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .gb-empty { padding:2rem; font-size:.82rem; color:var(--ink2); text-align:center; }
 
 /* ── 하객 사진 ── */
-.ph-hint { font-size:1.05rem; color:var(--ink2); line-height:1.95; margin-bottom:1.4rem; word-break:keep-all; }
+.ph-hint { font-size:.9rem; color:var(--ink2); line-height:1.8; margin:0 auto 1.4rem; max-width:22em; word-break:keep-all; }
 .ph-open-btn {
   display:block; width:100%; padding:.9rem;
   background:none; border:1.5px solid var(--rose);

@@ -131,10 +131,10 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 @keyframes gbCross { from { transform:translateX(100%); } to { transform:translateX(-100%); } }
 .gb-line {
   flex:0 0 auto; margin-right:1rem;
-  display:flex; flex-direction:column; gap:.3rem;
-  width:208px; height:104px; box-sizing:border-box;
+  display:flex; flex-direction:column; gap:.35rem;
+  width:224px; height:138px; box-sizing:border-box;
   white-space:normal; text-align:left; overflow:hidden;
-  padding:.7rem .9rem;
+  padding:.85rem 1rem;
   background:transparent; border:none;
   font-family:var(--font-serif); color:var(--ink);
 }
@@ -142,7 +142,7 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 .gb-line .gb-tx {
   font-size:.86rem; line-height:1.5; text-align:left;
   word-break:keep-all;
-  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
 }
 .gb-hlist .gb-empty { text-align:center; }
 .gb-hhint { font-size:.66rem; color:var(--ink2); margin-top:.2rem; opacity:.8; }
@@ -248,7 +248,7 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 .h-page .greeting-message { font-size:1.08rem; line-height:2.4; }
 .h-page .schedule-text    { font-size:1rem; }
 .h-page .location-venue   { font-size:1.08rem; }
-.h-page .location-addr    { font-size:.9rem; }
+.h-page .location-addr    { font-size:.78rem; white-space:nowrap; }
 .h-page .account-holder-name { font-size:1.15rem; }
 .h-page .account-who      { font-size:.95rem; }
 .h-page .gb-msg           { font-size:1.02rem; }

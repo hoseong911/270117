@@ -336,7 +336,7 @@ function renderCalendar(dateISO) {
   let cells = '';
   for (let i = 0; i < firstDow; i++) cells += `<span class="cal-cell cal-empty"></span>`;
   for (let d = 1; d <= total; d++) {
-    if (d === day) cells += `<span class="cal-cell cal-wed"><span class="cal-mark">${d}</span></span>`;
+    if (d === day) cells += `<span class="cal-cell cal-wed"><span class="cal-mark"><span class="cal-d">${d}</span></span></span>`;
     else cells += `<span class="cal-cell">${d}</span>`;
   }
   return `

@@ -47,13 +47,17 @@ body {
 
 /* ── 섹션 여백 일정하게(메뉴 간 간격 균일) ── */
 .h-page .sec { padding:3.4rem 1.4rem; }
-/* 오늘의 주인공·갤러리·오시는 길 각각 한 화면 가득 */
+/* 오늘의 주인공·갤러리·오시는 길·마음전달·찰나 각각 한 화면 가득(페이지 분리) */
 .h-page[data-page="gallery"],
 .h-page[data-page="album"],
-.h-page[data-page="location"] { min-height:100svh; display:flex; align-items:center; }
+.h-page[data-page="location"],
+.h-page[data-page="accounts"],
+.h-page[data-page="photos"] { min-height:100svh; display:flex; align-items:center; }
 .h-page[data-page="gallery"] .h-page-inner,
 .h-page[data-page="album"] .h-page-inner,
-.h-page[data-page="location"] .h-page-inner { width:100%; }
+.h-page[data-page="location"] .h-page-inner,
+.h-page[data-page="accounts"] .h-page-inner,
+.h-page[data-page="photos"] .h-page-inner { width:100%; }
 .h-page[data-page="accounts"] .sec { padding-top:1.1rem; padding-bottom:1.1rem; }
 /* 오시는 길 → 마음전달 사이만 살짝 더 띄우기 */
 .h-page[data-page="accounts"] .sec:first-child { padding-top:1.8rem; }
@@ -97,7 +101,13 @@ body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 }
 
 /* ── 페이지 경계 그라데이션(은은하게 이어지게) ── */
-/* 하단 페이드: 인트로 → 다음 섹션으로 (표지→인트로 경계는 제거) */
+/* 상단 페이드: 표지(메인) → 인트로가 자연스럽게 이어지게 위쪽에 배경색 그라데이션 */
+.h-page[data-page="intro"]::before {
+  content:''; position:absolute; left:0; right:0; top:0; height:16svh;
+  background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 8%, rgba(247,249,251,0) 100%);
+  pointer-events:none; z-index:3;
+}
+/* 하단 페이드: 인트로 → 다음 섹션으로 */
 .h-page[data-page="intro"]::after {
   content:''; position:absolute; left:0; right:0; bottom:0; height:7svh;
   background:linear-gradient(to top, var(--bg) 0%, var(--bg) 12%, rgba(247,249,251,0) 100%);
