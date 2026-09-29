@@ -129,32 +129,20 @@ const GALLERY_THUMBS = 9; // 3×3
 // ─── RENDERERS ────────────────────────────────────────
 
 function renderHeader(c) {
-  const hs = c.headerStyle || {};
+  // 표지는 사진(images/1.jpg)만 표시한다. (헤더 텍스트 위지윅 편집기 폐지)
   const photo = c.header?.photo;
-  const customEls = hs.custom || [];
-  const hasDrag = customEls.length > 0;
-
-  const inner = customEls.map(cu =>
-    `<div class="fadein"${buildStyle(cu)}>${esc(cu.text || '')}</div>`
-  ).join('');
-
   const hint = `<div class="h-next-hint" aria-hidden="true">&gt;</div>`;
 
   if (photo) {
-    const overlayStyle = hasDrag ? ' style="position:absolute;inset:0;padding:0;"' : '';
     return `
-<section id="sec-header" class="has-photo${hasDrag?' drag-mode':''}">
-  <div class="header-photo" style="background-image:url('${esc(photo)}')">
-    <div class="header-photo-overlay"${overlayStyle}>${inner}
-    </div>
-  </div>
+<section id="sec-header" class="has-photo">
+  <div class="header-photo" style="background-image:url('${esc(photo)}')"></div>
   ${hint}
 </section>`;
   }
 
   return `
-<section id="sec-header"${hasDrag?' class="drag-mode"':''}>
-  ${inner}
+<section id="sec-header">
   ${hint}
 </section>`;
 }
@@ -580,20 +568,6 @@ const RENDERERS = {
 // ─── UTILITIES ────────────────────────────────────────
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function buildStyle(s) {
-  if (!s) return '';
-  const p = [];
-  if (s.fontSize)                              p.push(`font-size:${s.fontSize}`);
-  if (s.color)                                 p.push(`color:${s.color}`);
-  if (s.fontFamily)                            p.push(`font-family:${s.fontFamily}`);
-  if (s.textAlign && s.textAlign !== 'center') p.push(`text-align:${s.textAlign}`);
-  if (s.x != null && s.y != null) {
-    p.push(`position:absolute;left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%);white-space:nowrap;max-width:92%;margin:0`);
-  } else if (s.marginTop && s.marginTop !== '0') {
-    p.push(`margin-top:${s.marginTop}`);
-  }
-  return p.length ? ` style="${p.join(';')}"` : '';
 }
 function showToast(msg, ms = 2400) {
   const t = document.getElementById('toast');
