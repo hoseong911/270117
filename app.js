@@ -358,9 +358,8 @@ function renderDday(c) {
     <div class="sec-divider"></div>
     <div class="dday-wrapper">
       ${renderCalendar(w.dateISO)}
-      <div class="dday-count" id="ddayCount">···</div>
-      <div class="dday-tag">DAYS TO GO</div>
       <div class="dday-clock">
+        <div class="dday-unit"><span class="dday-num" id="ddayD">··</span><span class="dday-unit-lbl">DAYS</span></div>
         <div class="dday-unit"><span class="dday-num" id="ddayH">··</span><span class="dday-unit-lbl">HOURS</span></div>
         <div class="dday-unit"><span class="dday-num" id="ddayM">··</span><span class="dday-unit-lbl">MIN</span></div>
         <div class="dday-unit"><span class="dday-num" id="ddayS">··</span><span class="dday-unit-lbl">SEC</span></div>
@@ -510,7 +509,7 @@ function rowHtml(role, name, acc, digits, hasPhone) {
       <div class="mt-row">
         <div class="mt-info">
           <span class="mt-name">${label}</span>
-          ${acc && acctText ? `<button type="button" class="mt-acct mt-copy" data-copy="${esc(acctCopy)}" aria-label="${esc(role)} 계좌번호 복사"><span class="mt-acct-text">${acctText}</span><span class="mt-acct-badge">복사</span></button>` : ''}
+          ${acc && acctText ? `<button type="button" class="mt-acct mt-copy" data-copy="${esc(acctCopy)}" aria-label="${esc(role)} 계좌번호 복사"><span class="mt-acct-text">${acctText}</span></button>` : ''}
         </div>
         <span class="mt-actions">
           ${hasPhone ? `<a class="mt-btn" href="tel:${digits}" aria-label="${esc(role)} 전화">${SVG_PHONE}</a>
@@ -738,13 +737,13 @@ function initDday(c) {
   const target = new Date(`${dateISO}T${String(hour).padStart(2,'0')}:00:00+09:00`).getTime();
   function update() {
     const diff = target - Date.now();
-    const el   = document.getElementById('ddayCount');
+    const dEl  = document.getElementById('ddayD');
     const hEl  = document.getElementById('ddayH');
     const mEl  = document.getElementById('ddayM');
     const sEl  = document.getElementById('ddayS');
-    if (!el) return;
+    if (!dEl) return;
     if (diff <= 0) {
-      el.textContent = 'D+' + Math.abs(Math.floor(diff / 86400000));
+      dEl.textContent = '0';
       [hEl,mEl,sEl].forEach(e => e && (e.textContent='00'));
       return;
     }
@@ -752,7 +751,7 @@ function initDday(c) {
     const h = Math.floor((diff % 86400000) / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    el.textContent = 'D-' + d;
+    dEl.textContent = String(d);
     if (hEl) hEl.textContent = String(h).padStart(2,'0');
     if (mEl) mEl.textContent = String(m).padStart(2,'0');
     if (sEl) sEl.textContent = String(s).padStart(2,'0');
@@ -1006,9 +1005,8 @@ function initAccounts() {
     btn.addEventListener('click', () => {
       navigator.clipboard.writeText(btn.dataset.copy || '').then(() => {
         btn.classList.add('copied');
-        showToast('계좌번호가 복사되었습니다');
-        setTimeout(() => btn.classList.remove('copied'), 1500);
-      }).catch(() => showToast('클립보드 복사에 실패했습니다'));
+        setTimeout(() => btn.classList.remove('copied'), 900);
+      }).catch(() => {});
     });
   });
 }

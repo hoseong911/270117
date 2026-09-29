@@ -92,11 +92,12 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 .gallery-more:hover { color:var(--rose); }
 
 /* ── 오시는 길: 지도 앱 버튼(프레임 없이, 브랜드색으로 구분) ── */
-.h-page .location-btns { gap:1.6rem; margin-top:.2rem; }
+.h-page .location-btns { gap:.9rem; margin-top:.2rem; flex-wrap:nowrap; }
 .h-page .location-btn {
-  padding:.45rem .3rem; min-height:auto;
+  padding:.45rem .1rem; min-height:auto; flex:0 0 auto;
   border:none; border-radius:0; background:none;
-  font-weight:700; font-size:.92rem; letter-spacing:.01em;
+  font-weight:700; font-size:.82rem; letter-spacing:0;
+  white-space:nowrap;
 }
 .h-page .location-btn:hover { border:none; background:none; opacity:.75; }
 /* 지도 버튼 색 제거 — 모두 기본색으로 통일 */
@@ -130,16 +131,16 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 @keyframes gbCross { from { transform:translateX(100%); } to { transform:translateX(-100%); } }
 .gb-line {
   flex:0 0 auto; margin-right:1rem;
-  display:flex; flex-direction:column; gap:.4rem;
-  width:230px; height:130px; box-sizing:border-box;
+  display:flex; flex-direction:column; gap:.3rem;
+  width:208px; height:104px; box-sizing:border-box;
   white-space:normal; text-align:left; overflow:hidden;
-  padding:1rem 1.1rem;
+  padding:.7rem .9rem;
   background:transparent; border:none;
   font-family:var(--font-serif); color:var(--ink);
 }
-.gb-line .gb-nm { color:var(--rose); font-weight:600; font-size:.92rem; text-align:left; }
+.gb-line .gb-nm { color:var(--rose); font-weight:600; font-size:.82rem; text-align:left; }
 .gb-line .gb-tx {
-  font-size:1.02rem; line-height:1.5; text-align:left;
+  font-size:.86rem; line-height:1.5; text-align:left;
   word-break:keep-all;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
 }
@@ -256,7 +257,7 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 .h-page .gb-open-btn,
 .h-page .rsvp-submit,
 .h-page .gb-submit        { font-size:1rem; }
-.h-page .location-btn     { font-size:.85rem; }
+.h-page .location-btn     { font-size:.8rem; }
 .h-page .greeting-parents-line { font-size:.9rem; }
 
 /* 3단계 — 보조·캡션 */
