@@ -7,12 +7,12 @@
    문서 자체가 스크롤되지 않으면 모바일·카카오톡 인앱 브라우저가 스크롤 시 툴바를
    숨겼다 표시했다 하는 동작(전체화면 됐다 풀렸다 하는 깜빡임)을 멈춘다. */
 html {
-  height:var(--vh, 100%);
+  height:100%;
   overflow:hidden;
   scroll-behavior:smooth;
 }
 body {
-  height:var(--vh, 100%);
+  height:100%;
   min-height:0;
   overflow:hidden;
   overflow-x:hidden;
@@ -50,21 +50,24 @@ body {
 /* 오늘의 주인공·갤러리·오시는 길 각각 한 화면 가득 */
 .h-page[data-page="gallery"],
 .h-page[data-page="album"],
-.h-page[data-page="location"] { min-height:var(--vh, 100svh); display:flex; align-items:center; }
+.h-page[data-page="location"] { min-height:100svh; display:flex; align-items:center; }
 .h-page[data-page="gallery"] .h-page-inner,
 .h-page[data-page="album"] .h-page-inner,
 .h-page[data-page="location"] .h-page-inner { width:100%; }
-.h-page[data-page="accounts"] .sec { padding-top:3.4rem; padding-bottom:3.4rem; }
+.h-page[data-page="accounts"] .sec { padding-top:1.8rem; padding-bottom:1.8rem; }
 /* 오시는 길 → 마음전달 사이만 살짝 더 띄우기 */
-.h-page[data-page="accounts"] .sec:first-child { padding-top:5rem; }
+.h-page[data-page="accounts"] .sec:first-child { padding-top:2.8rem; }
+/* 마음전달·방명록 한 화면에: 제목 아래 여백·요소 간격 축소 */
+.h-page[data-page="accounts"] .sec-divider { margin-bottom:1.4rem; }
+.h-page[data-page="accounts"] .rsvp-gb-btns { margin-bottom:0; }
 
 /* ── 표지/인트로/인삿말은 한 화면 가득(풀블리드 비주얼 유지) ── */
 .h-page--header { overflow:hidden; }
 .h-page--header .h-page-inner { display:block; }
 .h-page--header #sec-header,
-.h-page--header #sec-header.has-photo { min-height:var(--vh, 100svh); }
-.h-page .h-intro { min-height:var(--vh, 100svh); }
-.h-greeting.has-film { min-height:var(--vh, 100svh); }
+.h-page--header #sec-header.has-photo { min-height:100svh; }
+.h-page .h-intro { min-height:100svh; }
+.h-greeting.has-film { min-height:100svh; }
 /* 인트로 필름: 위치(윗변)는 유지하고 아래쪽으로만 크게 */
 .h-intro .film-strip { bottom:calc(10svh - 2.6rem); }
 .h-intro .film-frame { width:118px; padding:11px 7px; }

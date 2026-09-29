@@ -670,22 +670,6 @@ async function applyGithubImages(config) {
   }
 }
 
-// ─── 실측 뷰포트 높이(--vh) ────────────────────────────
-// 카카오톡 인앱 브라우저와 일반 모바일 브라우저는 상·하단 툴바 때문에
-// 실제로 보이는 영역 높이가 다르다. visualViewport로 '지금 보이는 높이'를
-// 측정해 --vh 에 넣고, 풀스크린 섹션이 그 값을 쓰게 해 두 환경을 통일한다.
-function initViewportHeight() {
-  const vv = window.visualViewport;
-  const set = () => {
-    const h = (vv && vv.height) ? vv.height : window.innerHeight;
-    document.documentElement.style.setProperty('--vh', h + 'px');
-  };
-  set();
-  window.addEventListener('resize', set);
-  if (vv) vv.addEventListener('resize', set);
-  window.addEventListener('orientationchange', () => setTimeout(set, 250));
-}
-
 // ─── 세로(연속 스크롤) ─────────────────────────────────
 function initVScroll() {
   const hasCover = document.body.classList.contains('has-cover');
@@ -1383,7 +1367,6 @@ async function init() {
   deck.innerHTML = buildPages(config, sections);
 
   initNav(sections);
-  initViewportHeight();
   initVScroll();
   initFadeIn();
   initDday(config);
