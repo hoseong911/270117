@@ -16,7 +16,7 @@
   --shadow:  0 2px 24px rgba(95,127,144,.09);
   --radius:  12px;
   --max:     480px;
-  --font-ui:     'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-ui:     'Gowun Batang', 'Noto Serif KR', serif;
   --font-serif:  'Gowun Batang', 'Noto Serif KR', serif;
   --font-script: 'Dancing Script', cursive;
 }
@@ -376,6 +376,28 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 
 /* ── D-DAY ── */
 .dday-wrapper { text-align:center; }
+.dday-cal {
+  max-width:290px; margin:0 auto 2.4rem;
+  padding:1.4rem 1.2rem; background:var(--bg2);
+  border-radius:var(--radius); border:1px solid var(--border);
+}
+.cal-title {
+  font-family:var(--font-serif); font-size:1.05rem; color:var(--ink);
+  letter-spacing:.06em; margin-bottom:1rem;
+}
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+.cal-cell {
+  display:flex; align-items:center; justify-content:center;
+  height:30px; font-size:.78rem; color:var(--ink);
+}
+.cal-head .cal-wk { height:24px; font-size:.66rem; color:var(--ink2); }
+.cal-empty { visibility:hidden; }
+.cal-mark {
+  display:flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:50%;
+  background:var(--rose); color:#fff; font-weight:600;
+  box-shadow:0 2px 8px rgba(95,127,144,.28);
+}
 .dday-count {
   font-size:clamp(3.5rem,16vw,5.5rem);
   font-weight:700; color:var(--rose); line-height:1;
@@ -442,8 +464,25 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   padding:.85rem 0; border-top:1px solid var(--border);
 }
 .mt-row:first-child { border-top:none; }
+.mt-info { display:flex; flex-direction:column; align-items:flex-start; gap:.3rem; min-width:0; }
 .mt-name { font-size:.9rem; color:var(--ink2); word-break:keep-all; line-height:1.35; }
 .mt-name b { font-weight:600; color:var(--ink); font-size:1.02rem; margin-left:.15rem; }
+.mt-acct {
+  display:inline-flex; align-items:center; gap:.5rem;
+  background:none; border:none; padding:0; cursor:pointer;
+  font-family:inherit; text-align:left; max-width:100%;
+}
+.mt-acct-text {
+  font-size:.84rem; color:var(--rose2); letter-spacing:.01em;
+  word-break:break-all; line-height:1.3;
+}
+.mt-acct-badge {
+  flex-shrink:0; font-size:.58rem; color:var(--gold);
+  border:1px solid var(--gold2); border-radius:20px; padding:.12rem .5rem;
+  transition:color .2s, border-color .2s, background .2s;
+}
+.mt-acct:active .mt-acct-text, .mt-acct.copied .mt-acct-text { color:var(--rose); }
+.mt-acct.copied .mt-acct-badge { color:#fff; background:var(--rose2); border-color:var(--rose2); }
 .mt-actions { display:flex; align-items:center; gap:.45rem; flex-shrink:0; }
 .mt-btn {
   width:32px; height:34px; border:none; background:none;

@@ -9,9 +9,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 레이아웃: 'h'=가로 슬라이드(index.html), 'v'=세로 연속 스크롤(index-v.html)
-const LAYOUT = document.documentElement.dataset.layout || 'h';
-const IS_V = LAYOUT === 'v';
+// 레이아웃: 세로 연속 스크롤 단일(가로 슬라이드 모드 폐기)
+const IS_V = true;
 
 // ─── DEFAULT CONFIG ───────────────────────────────────
 const DEFAULT = {
@@ -327,6 +326,27 @@ function renderAlbum(c) {
 </section>`;
 }
 
+function renderCalendar(dateISO) {
+  const m = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateISO || '2027-01-17');
+  if (!m) return '';
+  const year = +m[1], month = +m[2], day = +m[3];
+  const firstDow = new Date(year, month - 1, 1).getDay();   // 0=일
+  const total = new Date(year, month, 0).getDate();
+  const wk = ['일','월','화','수','목','금','토'];
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += `<span class="cal-cell cal-empty"></span>`;
+  for (let d = 1; d <= total; d++) {
+    if (d === day) cells += `<span class="cal-cell cal-wed"><span class="cal-mark">${d}</span></span>`;
+    else cells += `<span class="cal-cell">${d}</span>`;
+  }
+  return `
+      <div class="dday-cal">
+        <div class="cal-title">${year}. ${String(month).padStart(2,'0')}</div>
+        <div class="cal-grid cal-head">${wk.map(w => `<span class="cal-cell cal-wk">${w}</span>`).join('')}</div>
+        <div class="cal-grid">${cells}</div>
+      </div>`;
+}
+
 function renderDday(c) {
   const w = c.wedding;
   const closing = w.closing || '';
@@ -337,6 +357,7 @@ function renderDday(c) {
     <div class="sec-title">D-DAY</div>
     <div class="sec-divider"></div>
     <div class="dday-wrapper">
+      ${renderCalendar(w.dateISO)}
       <div class="dday-count" id="ddayCount">···</div>
       <div class="dday-tag">DAYS TO GO</div>
       <div class="dday-clock">
@@ -480,15 +501,18 @@ function renderAccounts(c) {
 </section>`;
 }
 
-// 마음 전달 한 줄: 이름 + [계좌][전화][문자]
+// 마음 전달 한 줄: 이름 + (은행 계좌번호 → 누르면 복사) + [전화][문자]
 function rowHtml(role, name, acc, digits, hasPhone) {
   const label = name ? `${esc(role)} <b>${esc(name)}</b>` : esc(role);
-  const copy = acc ? `${acc.bank || ''} ${acc.number || ''} ${acc.name || ''}`.trim() : '';
+  const acctText = acc ? `${esc(acc.bank || '')} ${esc(acc.number || '')}`.trim() : '';
+  const acctCopy = acc ? (acc.number || '') : '';
   return `
       <div class="mt-row">
-        <span class="mt-name">${label}</span>
+        <div class="mt-info">
+          <span class="mt-name">${label}</span>
+          ${acc && acctText ? `<button type="button" class="mt-acct mt-copy" data-copy="${esc(acctCopy)}" aria-label="${esc(role)} 계좌번호 복사"><span class="mt-acct-text">${acctText}</span><span class="mt-acct-badge">복사</span></button>` : ''}
+        </div>
         <span class="mt-actions">
-          ${acc ? `<button type="button" class="mt-btn mt-copy" data-copy="${esc(copy)}" aria-label="${esc(role)} 계좌 복사">${SVG_ACCOUNT}</button>` : ''}
           ${hasPhone ? `<a class="mt-btn" href="tel:${digits}" aria-label="${esc(role)} 전화">${SVG_PHONE}</a>
           <a class="mt-btn" href="sms:${digits}" aria-label="${esc(role)} 문자">${SVG_SMS}</a>` : ''}
         </span>
@@ -646,98 +670,20 @@ async function applyGithubImages(config) {
   }
 }
 
-// ─── HORIZONTAL DECK ──────────────────────────────────
-function initHDeck() {
-  const deck    = document.getElementById('hDeck');
-  const pages   = [...deck.querySelectorAll('.h-page')];
-  const hasCover = document.body.classList.contains('has-cover');
-  const navItems = () => document.querySelectorAll('.nav-item');
-
-  let cur = 0;
-  const pageW = () => deck.clientWidth || window.innerWidth;
-
-  function goto(i) {
-    i = Math.max(0, Math.min(pages.length - 1, i));
-    deck.scrollTo({ left: i * pageW(), behavior: 'smooth' });
-  }
-  function gotoPage(pageId) {
-    const idx = pages.findIndex(p => p.dataset.page === pageId);
-    if (idx >= 0) goto(idx);
-  }
-  window.__hGoto = gotoPage;
-
-  function setActive(i) {
-    cur = i;
-    const activePage = pages[i]?.dataset.page;
-    const onHeader = activePage === 'header';
-    if (hasCover) {
-      document.body.classList.toggle('nav-opaque', !onHeader);
-      document.body.classList.toggle('h-cover-active', onHeader);
-    }
-    // 첫 화면에서만 넘김 힌트 표시
-    document.body.classList.toggle('h-past-first', i !== 0);
-    // 상단 메뉴 active 표시
-    navItems().forEach(b => {
-      const t = b.dataset.target;
-      b.classList.toggle('active', t === activePage || NAV_TARGET[t] === activePage);
-    });
-  }
-
-  // 책장 넘기듯: 스크롤 중에만 3D 회전, 정지(스냅)되면 완전히 원상복귀
-  function applyFlip() {
-    const w = pageW();
-    const sl = deck.scrollLeft;
-    for (let i = 0; i < pages.length; i++) {
-      const d = (i * w - sl) / w;                 // 현재 페이지 기준 0
-      const p = pages[i];
-      if (Math.abs(d) <= 0.04) {                  // 거의 정렬됨 → 변형 제거(정렬 어긋남 방지)
-        p.style.transform = 'none';
-        p.style.zIndex = '2';
-        continue;
-      }
-      const c = Math.max(-1, Math.min(1, d));
-      p.style.transform = `rotateY(${c * -22}deg)`;
-      p.style.zIndex = '1';
-    }
-  }
-
-  let raf = null;
-  deck.addEventListener('scroll', () => {
-    if (!raf) {
-      raf = requestAnimationFrame(() => {
-        raf = null;
-        applyFlip();
-        const i = Math.round(deck.scrollLeft / pageW());
-        if (i !== cur) setActive(i);
-      });
-    }
-    // 스크롤이 멈춘 뒤 한 번 더 정렬 확정
-    clearTimeout(deck._settleT);
-    deck._settleT = setTimeout(applyFlip, 160);
-  }, { passive: true });
-
-  // 메인(표지)에서 아무 곳이나 탭/클릭하면 다음 페이지로
-  const headerIdx = pages.findIndex(p => p.dataset.page === 'header');
-  if (headerIdx >= 0) {
-    pages[headerIdx].addEventListener('click', (e) => {
-      if (e.target.closest('#menuBtn, #mainNav, #bgmBtn, a, button')) return;
-      goto(headerIdx + 1);
-    });
-  }
-
-  document.addEventListener('keydown', e => {
-    if (document.querySelector('.wedding-modal.show, #galleryModal.show')) return;
-    if (e.key === 'ArrowRight') { goto(cur + 1); }
-    if (e.key === 'ArrowLeft')  { goto(cur - 1); }
-  });
-
-  window.addEventListener('resize', () => {
-    deck.scrollTo({ left: cur * pageW() });
-    applyFlip();
-  });
-
-  setActive(0);
-  applyFlip();
+// ─── 실측 뷰포트 높이(--vh) ────────────────────────────
+// 카카오톡 인앱 브라우저와 일반 모바일 브라우저는 상·하단 툴바 때문에
+// 실제로 보이는 영역 높이가 다르다. visualViewport로 '지금 보이는 높이'를
+// 측정해 --vh 에 넣고, 풀스크린 섹션이 그 값을 쓰게 해 두 환경을 통일한다.
+function initViewportHeight() {
+  const vv = window.visualViewport;
+  const set = () => {
+    const h = (vv && vv.height) ? vv.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vh', h + 'px');
+  };
+  set();
+  window.addEventListener('resize', set);
+  if (vv) vv.addEventListener('resize', set);
+  window.addEventListener('orientationchange', () => setTimeout(set, 250));
 }
 
 // ─── 세로(연속 스크롤) ─────────────────────────────────
@@ -785,12 +731,8 @@ function initNav(sections) {
   inner.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.target;
-      if (IS_V) {
-        const el = document.querySelector(`.h-page[data-page="${target}"]`) || document.getElementById('sec-' + target);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        window.__hGoto?.(target);
-      }
+      const el = document.querySelector(`.h-page[data-page="${target}"]`) || document.getElementById('sec-' + target);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       menuBtn.classList.remove('open');
       drawer.classList.remove('open');
     });
@@ -1441,7 +1383,8 @@ async function init() {
   deck.innerHTML = buildPages(config, sections);
 
   initNav(sections);
-  if (IS_V) initVScroll(); else initHDeck();
+  initViewportHeight();
+  initVScroll();
   initFadeIn();
   initDday(config);
   initMapEmbed(config);
