@@ -623,6 +623,12 @@ function deepMerge(target, source) {
 //   001.jpg,002.jpg… → 필름 사진
 const GH_IMG_BASE = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/';
 
+// 이미지 캐시버스터: 같은 파일명(0/1/2.jpg 등)으로 사진을 교체해도 브라우저·CDN 캐시에
+// 막히지 않고 즉시 반영되도록 버전을 붙인다. 사진을 새로 교체·커밋할 때 이 값을 1 올린다.
+// (style-h.css의 0.jpg, admin.html의 IMG_VER 도 같은 값으로 맞춰줄 것)
+const IMG_VER = '1';
+const ghImg = name => GH_IMG_BASE + name + '?v=' + IMG_VER;
+
 function imgExists(url) {
   return new Promise(res => {
     const im = new Image();
@@ -640,7 +646,7 @@ async function probeSeries(pad) {
     const idxs = [];
     for (let i = start; i < start + BATCH; i++) idxs.push(i);
     const res = await Promise.all(idxs.map(async i => {
-      const url = GH_IMG_BASE + String(i).padStart(pad, '0') + '.jpg';
+      const url = ghImg(String(i).padStart(pad, '0') + '.jpg');
       return { i, url, ok: await imgExists(url) };
     }));
     const found = res.filter(r => r.ok);
@@ -654,13 +660,13 @@ async function probeSeries(pad) {
 async function applyGithubImages(config) {
   try {
     const [coverOk, wedding, film, introOk] = await Promise.race([
-      Promise.all([ imgExists(GH_IMG_BASE + '1.jpg'), probeSeries(2), probeSeries(3), imgExists(GH_IMG_BASE + '2.jpg') ]),
+      Promise.all([ imgExists(ghImg('1.jpg')), probeSeries(2), probeSeries(3), imgExists(ghImg('2.jpg')) ]),
       new Promise(r => setTimeout(() => r([false, [], [], false]), 7000)),
     ]);
-    if (coverOk)        config.header  = { ...(config.header || {}), photo: GH_IMG_BASE + '1.jpg' };
+    if (coverOk)        config.header  = { ...(config.header || {}), photo: ghImg('1.jpg') };
     if (wedding.length) config.gallery = { images: wedding };
     if (film.length)    config.film    = { images: film };
-    if (introOk)        config.intro   = { ...(config.intro || {}), photo: GH_IMG_BASE + '2.jpg' };
+    if (introOk)        config.intro   = { ...(config.intro || {}), photo: ghImg('2.jpg') };
   } catch (e) {
     console.warn('github 이미지 로딩 실패:', e);
   }

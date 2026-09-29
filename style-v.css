@@ -3,24 +3,31 @@
    style.css + style-h.css 위에 얹어 '가로 슬라이드'를 '세로 스크롤'로 전환
    ======================================================== */
 
+/* 세로 스크롤을 '문서(document)'가 아니라 '덱 컨테이너(#hDeck)' 내부에서만 처리한다.
+   문서 자체가 스크롤되지 않으면 모바일·카카오톡 인앱 브라우저가 스크롤 시 툴바를
+   숨겼다 표시했다 하는 동작(전체화면 됐다 풀렸다 하는 깜빡임)을 멈춘다. */
 html {
+  height:100%;
+  overflow:hidden;
   scroll-behavior:smooth;
-  scroll-snap-type:y mandatory;   /* 각 섹션에 확실히(부드럽게) 붙기 */
 }
 body {
-  overflow:visible;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
   overflow-x:hidden;
-  height:auto;
 }
 
-/* ── 덱: 가로 스크롤/스냅/3D 제거 → 세로 스택 ── */
+/* ── 덱: 가로 스크롤/스냅/3D 제거 → 세로 스택(컨테이너 내부 스크롤) ── */
 #hDeck {
   display:block;
-  height:auto;
-  overflow:visible;
-  scroll-snap-type:none;
+  height:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-behavior:smooth;
+  scroll-snap-type:y mandatory;   /* 각 섹션에 확실히(부드럽게) 붙기 */
   perspective:none;
-  -webkit-overflow-scrolling:auto;
+  -webkit-overflow-scrolling:touch;
 }
 
 /* ── 각 페이지: 자연 높이 + 부드러운 세로 스냅 ── */

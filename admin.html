@@ -690,14 +690,7 @@
         <div class="hd-wys-ctrl">
           <div class="form-section">
             <div class="form-section-title">커버 사진</div>
-            <div class="photo-row">
-              <input class="form-input" id="hdp-photo" placeholder="URL 또는 파일 업로드">
-              <input type="file" id="file-hdp-photo" accept="image/*" style="display:none">
-              <label class="upload-btn" for="file-hdp-photo">파일</label>
-              <span class="upload-status" id="st-hdp-photo"></span>
-            </div>
-            <button class="add-btn" id="hdpRemovePhotoBtn" style="margin-top:.5rem">사진 없이 기본 배경 사용</button>
-            <p style="font-size:.72rem;color:var(--ink2);margin-top:.5rem;line-height:1.6">위 커버 사진이 메인 헤더 배경으로 표시됩니다.</p>
+            <p style="font-size:.72rem;color:var(--ink2);margin-top:.2rem;line-height:1.6">메인(표지) 배경은 저장소의 <strong>images/1.jpg</strong> 파일로 고정됩니다. 사진을 바꾸려면 <strong>1.jpg</strong> 파일을 교체해 주세요. (로딩=0.jpg · 인트로=2.jpg)<br>아래 미리보기 배경도 현재 1.jpg 로 표시되며, 그 위에서 텍스트 위치를 잡을 수 있습니다.</p>
           </div>
           <div class="form-section">
             <div class="form-section-title">텍스트 요소</div>
@@ -947,6 +940,9 @@ document.getElementById('adminTabs').addEventListener('click', e => {
 });
 
 // ── CONFIG LOAD ────────────────────────────────────────
+// 메인(표지) 배경은 저장소의 1.jpg 파일 고정. ?v= 캐시버스터는 app.js 의 IMG_VER 과 동일하게 유지.
+const IMG_VER = '1';
+const COVER_IMG = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/1.jpg?v=' + IMG_VER;
 let currentConfig = null;
 const DEFAULT_SECTIONS = [
   { id: 'header',    label: '메인',     enabled: true,  order: 0 },
@@ -977,7 +973,7 @@ function fillForms() {
   const hd = c.header || {};
   val('headerTitle',   hd.title);   val('headerTag',    hd.tag);
   val('headerFooter',  hd.footer);  val('headerOgDesc', hd.ogDesc);
-  val('headerOgImage', hd.ogImage); val('headerPhoto', hd.photo);
+  val('headerOgImage', hd.ogImage);
   // 기본 정보
   const g = c.groom || {}; const b = c.bride || {}; const w = c.wedding || {};
   val('groomName', g.name); val('brideName', b.name);
@@ -1096,8 +1092,6 @@ function bindUpload(inputId, storagePath) {
 }
 
 function bindAllUploads() {
-  bindUpload('hdp-photo',               'covers');
-  bindUpload('headerPhoto',             'covers');
   bindUpload('headerOgImage',           'og');
   bindUpload('coupleGroomPhoto',        'couple');
   bindUpload('coupleBridePhoto',        'couple');
@@ -1269,8 +1263,6 @@ function loadHdState() {
     const n = parseInt((c.id || '').replace('hdc_', '')) || 0;
     return Math.max(m, n);
   }, 0);
-  const photoInput = document.getElementById('hdp-photo');
-  if (photoInput) photoInput.value = currentConfig?.header?.photo || '';
 }
 
 // ── 자동 저장 ──────────────────────────────────────────
@@ -1284,13 +1276,12 @@ function scheduleHdpSave() {
 async function doHdpSave() {
   const st = document.getElementById('hdpAutoStatus');
   if (st) st.textContent = '저장 중...';
-  const newPhoto = document.getElementById('hdp-photo')?.value || '';
+  // 표지 사진은 1.jpg 파일 고정이라 저장하지 않고, 헤더 텍스트 위치(headerStyle)만 저장한다.
   const headerStyle = { custom: hdCustom.map(c => ({ ...c })) };
-  const data = { header: { ...(currentConfig.header || {}), photo: newPhoto }, headerStyle };
+  const data = { headerStyle };
   try {
     await setDoc(doc(db, 'wedding_config', 'main'), data, { merge: true });
     Object.assign(currentConfig, data);
-    val('headerPhoto', newPhoto);
     if (st) { st.textContent = '저장됨 ✓'; st.style.color = 'var(--rose)'; setTimeout(() => { if (st) st.textContent = ''; }, 3000); }
   } catch(e) {
     console.error(e);
@@ -1299,11 +1290,11 @@ async function doHdpSave() {
 }
 
 function renderHdCanvas() {
-  const photo = document.getElementById('hdp-photo')?.value || '';
+  // 표지 배경은 항상 1.jpg 고정(편집기 미리보기 = 실제 헤더). 텍스트 위치만 편집.
   const bg = document.getElementById('hdCanvasBg');
   const overlay = document.getElementById('hdCanvasOverlay');
-  if (bg) bg.style.backgroundImage = photo ? `url('${photo.replace(/'/g,"\\'")}')` : '';
-  if (overlay) overlay.style.display = photo ? 'block' : 'none';
+  if (bg) bg.style.backgroundImage = `url('${COVER_IMG}')`;
+  if (overlay) overlay.style.display = 'block';
 
   const canvas = document.getElementById('hdCanvas');
   if (!canvas) return;
@@ -1560,9 +1551,6 @@ function hdDistribute(axis) {
 }
 document.getElementById('hd-dist-h')?.addEventListener('click', () => hdDistribute('x'));
 document.getElementById('hd-dist-v')?.addEventListener('click', () => hdDistribute('y'));
-document.getElementById('hdp-photo')?.addEventListener('input', () => { renderHdCanvas(); scheduleHdpSave(); });
-document.getElementById('hdpRemovePhotoBtn')?.addEventListener('click', () => { document.getElementById('hdp-photo').value = ''; renderHdCanvas(); scheduleHdpSave(); });
-document.getElementById('file-hdp-photo')?.addEventListener('change', () => setTimeout(() => { renderHdCanvas(); scheduleHdpSave(); }, 500));
 
 // ── META SAVE (기본 설정) ─────────────────────────────
 document.getElementById('saveMetaBtn').addEventListener('click', async () => {
