@@ -272,17 +272,14 @@ function renderGallery(c) {
   const gp = g.groom || {};
   const bp = g.bride || {};
   const w  = c.wedding || {};
-  const showParents = gp.fatherName || gp.motherName || bp.fatherName || bp.motherName;
   const couple = `
     <div class="stars-grid">
       <div class="greeting-family">
         <div class="greeting-family-role">신랑</div>
-        ${showParents ? `<p class="greeting-parents-line">${gp.fatherName ? esc(gp.fatherName) + ' · ' : ''}${esc(gp.motherName || '')}${esc(gp.relation || '')}</p>` : ''}
         <div class="greeting-person-name">${esc(c.groom.name)}</div>
       </div>
       <div class="greeting-family">
         <div class="greeting-family-role">신부</div>
-        ${showParents ? `<p class="greeting-parents-line">${bp.fatherName ? esc(bp.fatherName) + ' · ' : ''}${esc(bp.motherName || '')}${esc(bp.relation || '')}</p>` : ''}
         <div class="greeting-person-name">${esc(c.bride.name)}</div>
       </div>
     </div>`;
@@ -353,7 +350,7 @@ function renderDday(c) {
   return `
 <section id="sec-dday" class="fadein h-finale">
   <div class="sec">
-    <div class="sec-label">Countdown</div>
+    <div class="sec-label">Save our Date</div>
     <div class="sec-title">D-DAY</div>
     <div class="sec-divider"></div>
     <div class="dday-wrapper">
@@ -1288,7 +1285,6 @@ function wrapPage(id, html) {
 function buildPages(config, sections) {
   const enabled = sections.filter(s => s.enabled).sort((a,b) => a.order - b.order);
   const has = id => enabled.some(s => s.id === id);
-  const ddayEnabled = has('dday');
   const accEnabled  = has('accounts');
   const rsvpEnabled = has('rsvp');
   const gbEnabled   = has('guestbook');
@@ -1307,15 +1303,11 @@ function buildPages(config, sections) {
   };
 
   for (const s of enabled) {
-    if (s.id === 'dday') continue;   // 맨 마지막 마무리 페이지로 별도 배치
     if (s.id === 'accounts' || s.id === 'rsvp' || s.id === 'guestbook') { emitCombo(); continue; }
     const html = RENDERERS[s.id]?.(config);
     if (html) out.push(wrapPage(s.id, html));
   }
   emitCombo();   // 세 섹션 중 하나만 켜진 경우 등 안전 처리
-
-  // D-DAY = 마지막 마무리(카운트다운 + 마무리 멘트)
-  if (ddayEnabled) out.push(wrapPage('dday', renderDday(config)));
 
   return out.join('');
 }
