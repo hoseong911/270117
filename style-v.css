@@ -58,6 +58,8 @@ body {
 .h-page[data-page="location"] .h-page-inner,
 .h-page[data-page="accounts"] .h-page-inner,
 .h-page[data-page="photos"] .h-page-inner { width:100%; }
+/* 마음전달: 아코디언을 펼칠 때 헤더가 위로 딸려 올라가지 않도록 상단 정렬(아래로 펼쳐지게) */
+.h-page[data-page="accounts"] { align-items:flex-start; }
 
 /* ── 오늘의 주인공: 커플 사진(images/3.jpg)을 페이지 배경으로 + 이름 상단 배치 ── */
 /* 하단 기준(center bottom)이라 앉아있는 커플이 항상 보이고, 넓은 흰 여백은 상단에 남는다 */

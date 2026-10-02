@@ -464,8 +464,8 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .account-group-title { font-size:.95rem; color:var(--ink); }
 .account-chevron { display:flex; align-items:center; color:var(--ink2); transition:transform .25s ease; }
 .account-group.open .account-chevron { transform:rotate(180deg); }
-.account-body { display:none; padding:.1rem 1.2rem .7rem; }
-.account-group.open .account-body { display:block; }
+.account-body { max-height:0; overflow:hidden; padding:0 1.2rem; transition:max-height .32s ease, padding .28s ease; }
+.account-group.open .account-body { max-height:520px; padding:.1rem 1.2rem .7rem; }
 /* 한 사람 = 한 줄: 이름 + [계좌][전화][문자] */
 .mt-row {
   display:flex; align-items:center; justify-content:space-between; gap:.6rem;
