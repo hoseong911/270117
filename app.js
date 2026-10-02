@@ -976,7 +976,7 @@ function initTransportDetail(config) {
     { label: '자차 이용',   text: dir.car },
     { label: '지하철 이용', text: dir.subway },
     { label: '버스 이용',   text: dir.bus },
-    { label: '타지 이용',   text: dir.outer },
+    { label: '타지에서 오시는 경우', text: dir.outer },
   ].filter(x => x.text && x.text.trim());
   body.innerHTML = cats.map(x => `
     <div class="transport-cat">
@@ -1252,6 +1252,7 @@ function initPhotos() {
   submit?.addEventListener('click', async () => {
     if (!files.length) { showToast('사진을 선택해주세요'); return; }
     const name = (nameInput?.value || '').trim();
+    if (!name) { showToast('선물 전달을 위해 이름을 꼭 남겨주세요'); nameInput?.focus(); return; }
     submit.disabled = true; submit.textContent = '올리는 중...';
     try {
       const storage = firebase.storage();

@@ -3,17 +3,18 @@
    ======================== */
 
 :root {
-  --bg:      #f6f7f8;
-  --bg2:     #eceff1;
-  --bg3:     #e0e5e9;
-  --ink:     #2f3a42;
-  --ink2:    #6b7681;
-  --rose:    #86a3b4;
-  --rose2:   #5f7f90;
+  --bg:      #fffbfc;
+  --bg2:     #fff5f7;
+  --bg3:     #ffebef;
+  --ink:     #45373d;
+  --ink2:    #94808a;
+  --rose:    #ffafc0;
+  --rose2:   #dd617c;
   --gold:    #c2b298;
   --gold2:   #ddd2be;
-  --border:  rgba(134,163,180,.22);
-  --shadow:  0 2px 24px rgba(95,127,144,.09);
+  --border:  rgba(221,97,124,.22);
+  --shadow:  0 2px 24px rgba(221,97,124,.10);
+  --rose-tint: rgba(255,175,192,.17);
   --radius:  12px;
   --max:     480px;
   --font-ui:     'Gowun Batang', 'Noto Serif KR', serif;

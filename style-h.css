@@ -109,7 +109,12 @@ body.h-past-first .h-next-hint { opacity:0 !important; animation:none; }
 .h-page .loc-detail { color:var(--ink); }
 .transport-cat { margin-bottom:1.4rem; text-align:left; }
 .transport-cat:last-child { margin-bottom:0; }
-.transport-cat-title { font-size:1.12rem; font-weight:700; color:var(--rose); margin-bottom:.45rem; }
+/* 세부 제목(자차/지하철/버스/타지): 연한 벚꽃 틴트 헤더 띠 (캡슐·라인 아님, 풀폭) */
+.transport-cat-title {
+  font-size:1.08rem; font-weight:700; color:var(--rose2);
+  background:var(--rose-tint); border-radius:8px;
+  padding:.55rem .8rem; margin-bottom:.75rem; letter-spacing:.01em;
+}
 .location-detail-inner {
   font-size:.9rem; color:var(--ink2); line-height:2;
   word-break:keep-all;
