@@ -362,6 +362,7 @@ function renderDday(c) {
         <div class="dday-unit"><span class="dday-num" id="ddayS">··</span><span class="dday-unit-lbl">SEC</span></div>
       </div>
       <div class="dday-wedding-date">${esc(w.date)}　${esc(w.time)}</div>
+      <button type="button" class="dday-cal-save" id="ddaySaveBtn">캘린더에 일정 추가</button>
     </div>
     ${closing ? `<p class="dday-closing">${esc(closing).replace(/\n/g,'<br>')}</p>` : ''}
   </div>
@@ -757,6 +758,66 @@ function initDday(c) {
   setInterval(update, 1000);
 }
 
+// D-DAY '캘린더에 일정 추가' — 예식 일정을 .ics(아이캘린더)로 만들어 내려받게 한다.
+// 탭하면 아이폰/안드로이드가 "캘린더에 추가" 화면을 띄운다. (별도 라이브러리·외부 서비스 없음)
+function initDdayCalendar(c) {
+  const btn = document.getElementById('ddaySaveBtn');
+  if (!btn) return;
+  const w = c.wedding || {};
+  const dateISO = w.dateISO || '2027-01-17';
+
+  // 시작 시각 파싱: "12:20 PM" / "오후 2시" / "14:00" 등 지원
+  function parseTime(str) {
+    str = String(str || '');
+    const isPM = /PM|오후/i.test(str), isAM = /AM|오전/i.test(str);
+    const m = str.match(/(\d{1,2})\s*[:시]\s*(\d{1,2})?/);
+    let h = m ? parseInt(m[1], 10) : 14;
+    let mi = m && m[2] ? parseInt(m[2], 10) : 0;
+    if (isPM && h < 12) h += 12;
+    if (isAM && h === 12) h = 0;
+    return { h, mi };
+  }
+  function icsEsc(s) { return String(s || '').replace(/[\\;,]/g, '\\$&').replace(/\n/g, '\\n'); }
+
+  const pad = n => String(n).padStart(2, '0');
+  const [Y, Mo, D] = dateISO.split('-').map(n => parseInt(n, 10));
+  const t = parseTime(w.time);
+  const start = `${Y}${pad(Mo)}${pad(D)}T${pad(t.h)}${pad(t.mi)}00`;
+  const endH = Math.min(23, t.h + 2);   // 2시간짜리 일정
+  const end = `${Y}${pad(Mo)}${pad(D)}T${pad(endH)}${pad(t.mi)}00`;
+
+  const title = `${(c.groom?.name) || '신랑'} ♥ ${(c.bride?.name) || '신부'} 결혼식`;
+  const loc = [w.venue, w.venueDetail].filter(Boolean).join(' ')
+            + (w.venueAddr ? ` (${w.venueAddr})` : '');
+
+  const ics = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//270117//wedding//KO', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    'UID:' + start + '-270117@wedding',
+    'DTSTAMP:' + start,
+    'DTSTART:' + start,
+    'DTEND:' + end,
+    'SUMMARY:' + icsEsc(title),
+    'LOCATION:' + icsEsc(loc),
+    'DESCRIPTION:' + icsEsc(`${w.date || ''} ${w.time || ''}`.trim()),
+    'END:VEVENT', 'END:VCALENDAR',
+  ].join('\r\n');
+
+  btn.addEventListener('click', () => {
+    try {
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = '270117_wedding.ics'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
+    } catch (e) {
+      // 일부 인앱 브라우저(blob 제한) 폴백
+      window.location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+    }
+  });
+}
+
 function initMapEmbed(config) {
   const slot = document.getElementById('mapEmbedSlot');
   if (!slot) return;
@@ -930,6 +991,7 @@ function initBgm() {
   if (!audio || !btn) return;
 
   audio.loop = true;
+  audio.volume = 0.6;   // 배경음악 소리 크기 60%
   const sync = () => btn.classList.toggle('playing', !audio.paused);
   ['play', 'pause', 'ended'].forEach(ev => audio.addEventListener(ev, sync));
 
@@ -1360,6 +1422,7 @@ async function init() {
   initVScroll();
   initFadeIn();
   initDday(config);
+  initDdayCalendar(config);
   initMapEmbed(config);
   initTransportDetail(config);
   initGallery(config);

@@ -410,6 +410,15 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 .dday-num { font-size:1.8rem; font-weight:300; display:block; color:var(--ink); }
 .dday-unit-lbl { font-size:.58rem; color:var(--ink2); }
 .dday-wedding-date { margin-top:1.3rem; font-size:.75rem; color:var(--ink2); line-height:2; white-space:nowrap; }
+/* 캘린더 저장(.ics) — 알약 버튼이 아닌 밑줄 텍스트형 */
+.dday-cal-save {
+  display:inline-block; margin-top:1.1rem;
+  padding:.28rem .2rem; border:none; background:none;
+  font-family:var(--font-serif); font-size:.92rem; color:var(--ink2);
+  letter-spacing:.02em; border-bottom:1px solid var(--gold2);
+  transition:color .2s, border-color .2s;
+}
+.dday-cal-save:hover { color:var(--rose); border-color:var(--rose); }
 
 /* ── SCHEDULE ── */
 .schedule-list { display:flex; flex-direction:column; gap:.9rem; }
