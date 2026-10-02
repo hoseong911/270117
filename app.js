@@ -921,18 +921,34 @@ function initGallery(c) {
     if (e.key === 'Escape')     close();
   });
 
-  // 모달 좌우 스와이프
-  let sx = 0, sy = 0;
-  img.addEventListener('touchstart', e => {
-    sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY;
-  }, { passive: true });
-  img.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
+  // 모달 좌우 드래그/스와이프 (마우스+터치 통합, 손가락을 따라 끌리고 놓으면 화살표와 동일한 슬라이드)
+  let sx = 0, sy = 0, dragging = false;
+  img.addEventListener('dragstart', e => e.preventDefault());   // 이미지 기본 끌기(고스트) 방지
+  img.addEventListener('pointerdown', e => {
+    dragging = true; sx = e.clientX; sy = e.clientY;
+    img.style.transition = 'none';
+    img.setPointerCapture?.(e.pointerId);
+  });
+  img.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - sx;
+    img.style.transform = `translateX(${dx}px)`;
+    img.style.opacity   = String(Math.max(.4, 1 - Math.abs(dx) / 320));
+  });
+  const endDrag = e => {
+    if (!dragging) return;
+    dragging = false;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0) open(current + 1, 1); else open(current - 1, -1);
+      if (dx < 0) open(current + 1, 1); else open(current - 1, -1);   // 화살표와 동일 슬라이드
+    } else {
+      img.style.transition = 'transform .3s ease, opacity .3s ease';   // 임계값 미만 → 제자리 복귀
+      img.style.transform  = 'translateX(0)';
+      img.style.opacity    = '1';
     }
-  }, { passive: true });
+  };
+  img.addEventListener('pointerup', endDrag);
+  img.addEventListener('pointercancel', endDrag);
 }
 
 function initBgm() {
