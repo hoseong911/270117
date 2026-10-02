@@ -15,12 +15,12 @@ const IS_V = true;
 // ─── DEFAULT CONFIG ───────────────────────────────────
 const DEFAULT = {
   header: {
-    tag:    'Wedding Invitation',
-    title:  '우리의 결혼식',
-    ogDesc: '저희의 결혼식에 초대합니다.',
+    tag:    '',
+    title:  '호성❤️유진, 결혼합니다!',
+    ogDesc: '호성❤️유진, 결혼합니다!',
     ogImage: '',
-    footer: '2027. 01. 17',
-    photo:  '',
+    footer: '2027. 01. 17. HOSEONG❤️YUJIN',
+    photo:  '',   // 표지 사진은 GitHub images/1.jpg 로 자동 적용
   },
   headerStyle: {
     tag:   { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
@@ -29,25 +29,32 @@ const DEFAULT = {
     date:  { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
     venue: { fontSize: '', color: '', fontFamily: '', textAlign: 'center' },
   },
-  groom: { name: '신랑', engName: 'GROOM', phone: '' },
-  bride: { name: '신부', engName: 'BRIDE', phone: '' },
+  groom: { name: '김호성', engName: 'HOSEONG', phone: '010-2178-6146' },
+  bride: { name: '전유진', engName: 'YUJIN', phone: '010-9632-4779' },
   wedding: {
-    date: '2027. 01. 17 (일)',
+    date: '2027. 01. 17. SUN',
     dateISO: '2027-01-17',
-    time: '오후 2시',
-    venue: '예식장',
-    venueAddr: '주소를 입력해주세요',
-    venueDetail: '',
-    mapEmbedUrl: '',
-    kakaoLink: '', naverLink: '', tmapLink: '',
+    time: '12:20 PM',
+    venue: '부산 아시아드시티웨딩홀',
+    venueAddr: '부산광역시 연제구 월드컵대로 344 아시아드주경기장 1층',
+    venueDetail: '고흐홀',
+    mapEmbedUrl: '<!-- * 카카오맵 - 지도퍼가기 -->\n<!-- 1. 지도 노드 -->\n<div id="daumRoughmapContainer1782649166544" class="root_daum_roughmap root_daum_roughmap_landing"></div>\n\n<!--\n\t2. 설치 스크립트\n\t* 지도 퍼가기 서비스를 2개 이상 넣을 경우, 설치 스크립트는 하나만 삽입합니다.\n-->\n<script charset="UTF-8" class="daum_roughmap_loader_script" src="https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js"></script>\n\n<!-- 3. 실행 스크립트 -->\n<script charset="UTF-8">\n\tnew daum.roughmap.Lander({\n\t\t"timestamp" : "1782649166544",\n\t\t"key" : "pwup2k42gdu",\n\t\t"mapWidth" : "640",\n\t\t"mapHeight" : "360"\n\t}).render();\n</script>',
+    kakaoLink: 'https://place.map.kakao.com/14723705',
+    naverLink: 'https://naver.me/xzx8NrVJ',
+    tmapLink: 'https://tmap.life/0cdffb1c',
     closing: '',
-    directions: { car: '', subway: '', bus: '', outer: '' },
+    directions: {
+      car: "내비게이션에 **'부산아시아드주경기장'** 입력\n제2주차장이 홀과 근접한 주차장입니다",
+      subway: '3호선 **종합운동장역** 9번 출구에서 도보 10분\n(웨딩홀 측 셔틀버스 운행 예정)',
+      bus: '**10, 210** (아시아드주경기장 하차)\n**54, 57, 83-1, 131** (사직실내수영장 하차)',
+      outer: '**비행기** 김해경전철 공항역 > 대저역(3호선 환승) > 종합운동장역\n**KTX** 1호선 부산역 > 연산역(3호선 환승) > 종합운동장역\n**시외버스(노포)** 1호선 노포역 > 연산역(3호선 환승) > 종합운동장역\n**시외버스(사상)** 2호선 사상역 > 덕천역(3호선 환승) > 종합운동장역',
+    },
   },
   greeting: {
-    title: '결혼합니다',
-    message: '서로가 마주보며 다져온 사랑을\n이제 함께 걸어갈 큰 사랑으로 키우고자 합니다.\n저희 두 사람이 사랑의 결실을 맺는 자리에\n오셔서 축복해 주시면 감사하겠습니다.',
-    groom: { fatherName: '', motherName: '', relation: '의 아들' },
-    bride: { fatherName: '', motherName: '', relation: '의 딸' },
+    title: '호성❤️유진, 결혼합니다!',
+    message: '11번의 해가 바뀌는 동안\n서로의 곁을 지켜온 두 사람이\n지금처럼 서로를 아끼고 사랑하며\n평생을 함께 걸어가려 합니다.\n그 시작의 자리에 함께 해주시면 감사하겠습니다.',
+    groom: { fatherName: '', motherName: '추성애', relation: '의 아들', fatherPhone: '', motherPhone: '010-2025-6146' },
+    bride: { fatherName: '전우근', motherName: '주명숙', relation: '의 딸', fatherPhone: '010-2690-6791', motherPhone: '010-2836-6791' },
   },
   gallery: { images: [] },
   film:    { images: [] },
@@ -58,11 +65,15 @@ const DEFAULT = {
     shuttle: '셔틀버스 정보를 입력해주세요.',
   },
   accounts: [
-    { group: '신랑 측', who: '신랑', name: '예금주', bank: '은행', number: '계좌번호' },
-    { group: '신랑 측', who: '신랑 아버지', name: '예금주', bank: '은행', number: '계좌번호' },
-    { group: '신부 측', who: '신부', name: '예금주', bank: '은행', number: '계좌번호' },
-    { group: '신부 측', who: '신부 아버지', name: '예금주', bank: '은행', number: '계좌번호' },
+    { group: '신랑 측', who: '신랑',   name: '김호성', bank: '카카오뱅크', number: '3333105728955' },
+    { group: '신부 측', who: '신부',   name: '전유진', bank: '카카오뱅크', number: '3333212521614' },
+    { group: '신랑 측', who: '어머니', name: '추성애', bank: '부산은행',   number: '085120128784' },
+    { group: '신부 측', who: '아버지', name: '전우근', bank: '경남은행',   number: '576210218537' },
+    { group: '신부 측', who: '어머니', name: '주명숙', bank: '부산은행',   number: '1122154155308' },
   ],
+  photos: {
+    desc: '저희의 스냅 작가님이 되어주세요 📸\n\n[이런 순간들을 담아주세요!]\n1. 행복한 신랑 & 신부 사진\n2. 신랑 & 신부 행진\n3. 가족 & 친구들과 함께한 순간\n4. 여러분들의 사진\n\n가장 멋진 컷을 남겨주신 분께\n🎁 감사의 선물을 드리겠습니다! 🎁\n\n당일날, 아래 공유 버튼을 통해 올려주세요!\n많은 참여 부탁드려요! 💖',
+  },
   rsvp: { enabled: true, deadline: '2026년 12월 31일' },
   flowers: {
     enabled: true,
@@ -83,18 +94,18 @@ const DEFAULT = {
   sections: [
     { id: 'header',    enabled: true,  order: 0 },
     { id: 'intro',     enabled: true,  order: 0.5 },
-    { id: 'greeting',  enabled: true,  order: 1 },
-    { id: 'couple',    enabled: false, order: 2 },
-    { id: 'parents',   enabled: false, order: 3 },
+    { id: 'greeting',  enabled: false, order: 1 },
+    { id: 'gallery',   enabled: true,  order: 2 },
+    { id: 'couple',    enabled: false, order: 3 },
     { id: 'lovestory', enabled: false, order: 4 },
-    { id: 'gallery',   enabled: true,  order: 5 },
+    { id: 'parents',   enabled: false, order: 5 },
     { id: 'album',     enabled: true,  order: 5.5 },
-    { id: 'dday',      enabled: true,  order: 6 },
-    { id: 'schedule',  enabled: true,  order: 7 },
-    { id: 'location',  enabled: true,  order: 8 },
+    { id: 'dday',      enabled: true,  order: 5.7 },
+    { id: 'location',  enabled: true,  order: 6 },
+    { id: 'schedule',  enabled: false, order: 7 },
     { id: 'accounts',  enabled: true,  order: 9 },
     { id: 'rsvp',      enabled: true,  order: 10 },
-    { id: 'flowers',   enabled: true,  order: 11 },
+    { id: 'flowers',   enabled: false, order: 11 },
     { id: 'guestbook', enabled: true,  order: 12 },
     { id: 'photos',    enabled: true,  order: 13 },
   ],
@@ -1316,16 +1327,10 @@ function buildPages(config, sections) {
 
 // ─── MAIN ─────────────────────────────────────────────
 async function init() {
-  let config = JSON.parse(JSON.stringify(DEFAULT));
-  try {
-    const snap = await Promise.race([
-      db.collection('wedding_config').doc('main').get(),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 8000)),
-    ]);
-    if (snap.exists) config = deepMerge(config, snap.data());
-  } catch(e) {
-    console.warn('Config load failed, using defaults:', e.message);
-  }
+  // 청첩장 내용(이름·날짜·장소·인사말·계좌 등)은 코드(DEFAULT)에 하드코딩한다.
+  // Firestore는 손님이 올리는 RSVP·방명록·사진(찰나의 순간)에만 사용 → 설정 로드 실패로
+  // 기본값이 뜨거나 어드민 저장으로 내용이 덮어써지는 사고를 원천 차단.
+  const config = JSON.parse(JSON.stringify(DEFAULT));
 
   // 깃허브 images 폴더의 사진(번호 규칙)이 있으면 우선 사용
   await applyGithubImages(config);
