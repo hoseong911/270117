@@ -63,7 +63,7 @@ body {
 /* 하단 기준(center bottom)이라 앉아있는 커플이 항상 보이고, 넓은 흰 여백은 상단에 남는다 */
 .h-page[data-page="gallery"] {
   align-items:flex-start;   /* 내용을 흰 여백(상단)으로 올림 */
-  background:#fff url("https://raw.githubusercontent.com/hoseong911/270117/main/images/3.jpg?v=2") center bottom / cover no-repeat;
+  background:#fff url("https://raw.githubusercontent.com/hoseong911/270117/main/images/3.jpg?v=3") center bottom / cover no-repeat;
 }
 .h-page[data-page="gallery"] .sec { padding-top:3.2rem; }
 /* 사진 속 위치에 맞춰 신부=왼쪽 · 신랑=오른쪽 (HTML은 신랑이 먼저라 row-reverse로 뒤집음) */

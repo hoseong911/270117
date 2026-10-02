@@ -383,7 +383,7 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
 /* ?v= 는 캐시버스터: 0.jpg 를 새 사진으로 교체하면 app.js 의 IMG_VER 과 함께 이 숫자도 올릴 것 */
 .loading-deco, .loading-text { display:none; }
 #loadingScreen {
-  background:#000 url("https://raw.githubusercontent.com/hoseong911/270117/main/images/0.jpg?v=2") center/cover no-repeat;
+  background:#000 url("https://raw.githubusercontent.com/hoseong911/270117/main/images/0.jpg?v=3") center/cover no-repeat;
 }
 #whiteWash {
   position:fixed; top:0; bottom:0;
