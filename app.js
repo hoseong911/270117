@@ -623,7 +623,7 @@ const GH_IMG_BASE = 'https://raw.githubusercontent.com/hoseong911/270117/main/im
 // 이미지 캐시버스터: 같은 파일명(0/1/2.jpg 등)으로 사진을 교체해도 브라우저·CDN 캐시에
 // 막히지 않고 즉시 반영되도록 버전을 붙인다. 사진을 새로 교체·커밋할 때 이 값을 1 올린다.
 // (style-h.css의 0.jpg, admin.html의 IMG_VER 도 같은 값으로 맞춰줄 것)
-const IMG_VER = '1';
+const IMG_VER = '2';
 const ghImg = name => GH_IMG_BASE + name + '?v=' + IMG_VER;
 
 function imgExists(url) {
