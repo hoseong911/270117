@@ -348,7 +348,6 @@
     <button class="tab-btn active" data-panel="panelMeta">기본 설정</button>
     <button class="tab-btn" data-panel="panelGreeting">오늘의 주인공</button>
     <button class="tab-btn" data-panel="panelDday">D-DAY</button>
-    <button class="tab-btn" data-panel="panelSchedule">예식안내</button>
     <button class="tab-btn" data-panel="panelLocation">오시는길</button>
     <button class="tab-btn" data-panel="panelAccounts">마음전달</button>
     <button class="tab-btn" data-panel="panelRsvp">참석여부</button>
@@ -522,31 +521,6 @@
       </div>
     </div>
 
-    <!-- 예식 안내 -->
-    <div class="panel" id="panelSchedule">
-      <div class="form-section">
-        <div class="form-section-title">예식 당일 안내</div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">식사 안내</label>
-            <textarea class="form-textarea" id="scheduleMeal" rows="2" placeholder="예식 후 식사를 함께 합니다."></textarea>
-          </div>
-          <div class="form-row">
-            <label class="form-label">주차 안내</label>
-            <textarea class="form-textarea" id="scheduleParking" rows="2" placeholder="주차 정보를 입력해주세요."></textarea>
-          </div>
-          <div class="form-row">
-            <label class="form-label">셔틀버스 안내</label>
-            <textarea class="form-textarea" id="scheduleShuttle" rows="2" placeholder="셔틀버스 정보를 입력해주세요."></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="save-row">
-        <span class="save-msg" id="scheduleMsg"></span>
-        <button class="save-btn" id="saveScheduleBtn">저장</button>
-      </div>
-    </div>
-
     <!-- 오시는길 -->
     <div class="panel" id="panelLocation">
       <div class="form-section">
@@ -686,6 +660,16 @@
     <!-- 찰나의 순간(하객이 올린 사진 모음) -->
     <div class="panel" id="panelPhotos">
       <div class="form-section">
+        <div class="form-section-title">찰나의 순간 공개 (당일 오픈)</div>
+        <div class="form-row">
+          <label class="form-label" style="display:flex;align-items:center;gap:.55rem;cursor:pointer">
+            <input type="checkbox" id="photosOpen" style="width:20px;height:20px;cursor:pointer">
+            지금 오픈하기 (체크 해제 시 사이트에 "결혼식 당일에 만나요!" 표시)
+          </label>
+        </div>
+        <div class="save-row"><span class="save-msg" id="photosOpenMsg"></span></div>
+      </div>
+      <div class="form-section">
         <div class="form-section-title">안내 문구</div>
         <div class="form-row">
           <label class="form-label">'찰나의 순간' 섹션에 표시될 문구 (줄바꿈 가능)</label>
@@ -759,6 +743,7 @@ onAuthStateChanged(auth, async user => {
     document.getElementById('loginView').style.display  = 'none';
     document.getElementById('adminView').style.display  = 'block';
     await loadConfig();
+    loadRuntimeFlag();
     loadRsvpList();
     loadGbList();
     updatePendingBadge();
@@ -787,18 +772,15 @@ const IMG_VER = '4';
 const COVER_IMG = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/1.jpg?v=' + IMG_VER;
 let currentConfig = null;
 const DEFAULT_SECTIONS = [
-  { id: 'header',    label: '메인',     enabled: true,  order: 0 },
-  { id: 'greeting',  label: '초대장',   enabled: true,  order: 1 },
-  { id: 'gallery',   label: '오늘의 주인공', enabled: true, order: 5 },
-  { id: 'album',     label: '갤러리',   enabled: true,  order: 5.5 },
-  { id: 'dday',      label: 'D-DAY',    enabled: true,  order: 6 },
-  { id: 'schedule',  label: '예식안내', enabled: true,  order: 7 },
-  { id: 'location',  label: '오시는길', enabled: true,  order: 8 },
-  { id: 'accounts',  label: '마음전달', enabled: true,  order: 9 },
-  { id: 'rsvp',      label: '참석여부', enabled: true,  order: 10 },
-  { id: 'flowers',   label: '화환',     enabled: true,  order: 11 },
-  { id: 'guestbook', label: '방명록',   enabled: true,  order: 12 },
-  { id: 'photos',    label: '하객 사진', enabled: true,  order: 13 },
+  { id: 'header',    label: '메인',          enabled: true, order: 0 },
+  { id: 'gallery',   label: '오늘의 주인공', enabled: true, order: 2 },
+  { id: 'album',     label: '갤러리',        enabled: true, order: 5.5 },
+  { id: 'dday',      label: 'D-DAY',         enabled: true, order: 5.7 },
+  { id: 'location',  label: '오시는 길',     enabled: true, order: 6 },
+  { id: 'accounts',  label: '마음전달',      enabled: true, order: 9 },
+  { id: 'rsvp',      label: '참석여부',      enabled: true, order: 10 },
+  { id: 'guestbook', label: '방명록',        enabled: true, order: 12 },
+  { id: 'photos',    label: '찰나의 순간',   enabled: true, order: 13 },
 ];
 
 async function loadConfig() {
@@ -808,6 +790,29 @@ async function loadConfig() {
   } catch(e) { currentConfig = {}; }
   fillForms();
 }
+
+// 찰나의 순간 '당일 오픈' 토글 — 작은 런타임 플래그(wedding_config/runtime)만 읽고/쓴다.
+// (청첩장 내용은 코드에 하드코딩돼 있고, 사이트는 이 플래그만 추가로 읽어 오픈/닫힘을 결정)
+async function loadRuntimeFlag() {
+  const el = document.getElementById('photosOpen');
+  if (!el) return;
+  try {
+    const snap = await getDoc(doc(db,'wedding_config','runtime'));
+    el.checked = snap.exists() && snap.data().photosOpen === true;
+  } catch(e) {}
+}
+document.getElementById('photosOpen')?.addEventListener('change', async e => {
+  const open = e.target.checked;
+  const msg = document.getElementById('photosOpenMsg');
+  try {
+    await setDoc(doc(db,'wedding_config','runtime'), { photosOpen: open }, { merge: true });
+    if (msg) { msg.textContent = open ? '오픈되었습니다 (사이트에 사진 올리기 노출)' : '닫혔습니다 ("결혼식 당일에 만나요!" 표시)'; setTimeout(() => { if (msg) msg.textContent = ''; }, 4000); }
+    toast(open ? '찰나의 순간 오픈' : '찰나의 순간 닫힘');
+  } catch(err) {
+    toast('저장에 실패했습니다');
+    e.target.checked = !open;
+  }
+});
 
 function fillForms() {
   const c = currentConfig;
@@ -840,8 +845,7 @@ function fillForms() {
   val('brideRelation', gr.bride?.relation);
   val('brideFatherPhone', gr.bride?.fatherPhone); val('brideMotherPhone', gr.bride?.motherPhone);
   // 예식 안내
-  const s = c.schedule || {}; const f = c.flowers || {};
-  val('scheduleMeal', s.meal); val('scheduleParking', s.parking); val('scheduleShuttle', s.shuttle);
+  const f = c.flowers || {};
   val('flowersText', f.text); val('flowersUrl', f.url);
   val('rsvpDeadline', c.rsvp?.deadline);
   val('photosDesc', c.photos?.desc);
@@ -853,7 +857,7 @@ function fillForms() {
     { group:'신부 측', who:'신부 아버지',name:'예금주', bank:'은행', number:'계좌번호' },
   ]);
   // 섹션 (사용하지 않는 섹션은 목록에서 제외)
-  const HIDDEN = ['couple','parents','lovestory','greeting','flowers'];
+  const HIDDEN = ['couple','parents','lovestory','greeting','flowers','schedule'];
   const saved = (c.sections || DEFAULT_SECTIONS).slice();
   // 저장본에 없는 기본 섹션(신규 추가분 등)은 뒤에 채워 넣는다
   DEFAULT_SECTIONS.forEach(d => {
@@ -1136,13 +1140,6 @@ document.getElementById('saveGreetBtn').addEventListener('click', async () => {
   await savePartial(data, 'greetMsg', '저장되었습니다');
 });
 
-// ── SCHEDULE SAVE ─────────────────────────────────────
-document.getElementById('saveScheduleBtn').addEventListener('click', async () => {
-  await savePartial(
-    { schedule: { meal: v('scheduleMeal'), parking: v('scheduleParking'), shuttle: v('scheduleShuttle') } },
-    'scheduleMsg', '예식 안내가 저장되었습니다'
-  );
-});
 
 // ── FLOWERS SAVE ──────────────────────────────────────
 document.getElementById('saveFlowersBtn').addEventListener('click', async () => {

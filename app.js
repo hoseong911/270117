@@ -102,7 +102,6 @@ const DEFAULT = {
     { id: 'album',     enabled: true,  order: 5.5 },
     { id: 'dday',      enabled: true,  order: 5.7 },
     { id: 'location',  enabled: true,  order: 6 },
-    { id: 'schedule',  enabled: false, order: 7 },
     { id: 'accounts',  enabled: true,  order: 9 },
     { id: 'rsvp',      enabled: true,  order: 10 },
     { id: 'flowers',   enabled: false, order: 11 },
@@ -121,7 +120,6 @@ const SECTION_NAV = {
   gallery:   '오늘의 주인공',
   album:     '갤러리',
   dday:      'D-DAY',
-  schedule:  '예식안내',
   location:  '오시는길',
   accounts:  '마음전달',
   rsvp:      '참석여부',
@@ -567,15 +565,19 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
 
 // 찰나의 순간: 하객이 사진을 올려 신랑신부에게 모아주는 섹션(공개 전시 없음)
 function renderPhotos(c) {
+  const open = c.photos?.open === true;   // 당일 오픈 토글(어드민)
   const desc = (c.photos?.desc || '신랑과 신부와 함께한 순간을 남겨주세요.');
+  const inner = open
+    ? `<p class="ph-hint">${esc(desc).replace(/\n/g,'<br>')}</p>
+    <button class="ph-open-btn" id="phOpenBtn">사진 올리기</button>`
+    : `<p class="ph-closed">결혼식 당일에 만나요!</p>`;
   return `
 <section id="sec-photos" class="fadein">
   <div class="sec">
     <div class="sec-label">Moment</div>
     <div class="sec-title">찰나의 순간</div>
     <div class="sec-divider"></div>
-    <p class="ph-hint">${esc(desc).replace(/\n/g,'<br>')}</p>
-    <button class="ph-open-btn" id="phOpenBtn">사진 올리기</button>
+    ${inner}
   </div>
 </section>`;
 }
@@ -591,7 +593,6 @@ const RENDERERS = {
   album:     renderAlbum,
   photos:    renderPhotos,
   dday:      renderDday,
-  schedule:  renderSchedule,
   location:  renderLocation,
   accounts:  renderAccounts,
 };
@@ -1350,6 +1351,19 @@ async function init() {
 
   // 깃허브 images 폴더의 사진(번호 규칙)이 있으면 우선 사용
   await applyGithubImages(config);
+
+  // 찰나의 순간 '당일 오픈' 토글 — 이 작은 런타임 플래그만 Firestore에서 읽는다.
+  // (실패/없음이면 닫힘 → "결혼식 당일에 만나요!" 표시)
+  config.photos = config.photos || {};
+  try {
+    const snap = await Promise.race([
+      db.collection('wedding_config').doc('runtime').get(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000)),
+    ]);
+    config.photos.open = snap.exists && snap.data().photosOpen === true;
+  } catch (e) {
+    config.photos.open = false;
+  }
 
   const h = config.header || {};
   if (h.title) {

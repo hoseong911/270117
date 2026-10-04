@@ -624,6 +624,7 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
 
 /* ── 하객 사진 ── */
 .ph-hint { font-size:.9rem; color:var(--ink2); line-height:1.8; margin:0 auto 1.4rem; max-width:22em; word-break:keep-all; }
+.ph-closed { font-family:var(--font-serif); font-size:1.15rem; color:var(--ink); line-height:1.8; margin:1.2rem auto .4rem; letter-spacing:.01em; }
 .ph-open-btn {
   display:block; width:100%; padding:.9rem;
   background:none; border:1.5px solid var(--rose);
