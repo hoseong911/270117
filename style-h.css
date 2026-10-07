@@ -338,7 +338,8 @@ body.has-cover.nav-opaque #menuBtn span { background:rgba(28,37,53,.38) !importa
   display:flex;
   width:max-content;
   will-change:transform;
-  animation:filmScrollA 52s linear infinite;
+  /* 한 바퀴 도는 시간. 키울수록 느려진다 (52s 였는데 너무 빨라서 2배로) */
+  animation:filmScrollA 105s linear infinite;
 }
 .film-rtl .film-track { animation-name:filmScrollB; }
 .film-strip:hover .film-track { animation-play-state:paused; }

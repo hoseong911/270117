@@ -563,17 +563,16 @@ function renderRsvpGuestbook(c, withRsvp, withGuestbook) {
 function renderPhotos(c) {
   const open = c.photos?.open === true;   // 당일 오픈 토글(어드민)
   const desc = (c.photos?.desc || '신랑과 신부와 함께한 순간을 남겨주세요.');
-  const inner = open
-    ? `<p class="ph-hint">${esc(desc).replace(/\n/g,'<br>')}</p>
-    <button class="ph-open-btn" id="phOpenBtn">사진 올리기</button>`
-    : `<p class="ph-closed">결혼식 당일에 만나요!</p>`;
+  // 비공개여도 안내 문구는 그대로 두고 버튼만 잠근다.
+  // (예전엔 설명까지 통째로 감춰서 섹션이 비어 보였다)
   return `
 <section id="sec-photos" class="fadein">
   <div class="sec">
     <div class="sec-label">Moment</div>
     <div class="sec-title">찰나의 순간</div>
     <div class="sec-divider"></div>
-    ${inner}
+    <p class="ph-hint">${esc(desc).replace(/\n/g,'<br>')}</p>
+    <button class="ph-open-btn" id="phOpenBtn"${open ? '' : ' disabled'}>${open ? '사진 올리기' : '결혼식 당일에 만나요!'}</button>
   </div>
 </section>`;
 }
@@ -1315,9 +1314,10 @@ function compressImage(file, maxSide = 1600, quality = 0.82) {
 }
 
 function initPhotos() {
-  if (!document.getElementById('phOpenBtn')) return;
-  const modal    = document.getElementById('phModal');
   const openBtn  = document.getElementById('phOpenBtn');
+  // 비공개(버튼 잠김)면 버튼만 남겨두고 업로드 동작은 아예 연결하지 않는다
+  if (!openBtn || openBtn.disabled) return;
+  const modal    = document.getElementById('phModal');
   const closeBtn = document.getElementById('phModalClose');
   const fileInput = document.getElementById('phFile');
   const nameInput = document.getElementById('phName');

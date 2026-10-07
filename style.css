@@ -632,6 +632,13 @@ body.has-cover.nav-opaque #menuBtn span { background:var(--ink); }
   font-size:.85rem; transition:all .2s; margin-bottom:1.4rem;
 }
 .ph-open-btn:hover { background:var(--rose); color:#fff; }
+/* 비공개(당일 오픈 전) — 눌리지 않는 안내 상태 */
+.ph-open-btn:disabled {
+  border-color:var(--border); color:var(--ink2);
+  background:none; cursor:default;
+  font-family:var(--font-serif); font-size:1rem; letter-spacing:.01em;
+}
+.ph-open-btn:disabled:hover { background:none; color:var(--ink2); }
 .ph-grid {
   display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;
 }
