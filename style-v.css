@@ -123,3 +123,65 @@ body.nav-opaque .h-next-hint { opacity:0 !important; animation:none; }
 }
 
 /* 인트로 사진을 그대로 보여주기 위해 상·하단 경계 그라데이션 제거 (새 이미지 사용) */
+
+/* ════════════════════════════════════════════════════════
+   PC(큰 화면) — 휴대폰 비율 액자 안에 가둔다
+
+   PC는 창 세로가 길어서, 폭만 480px 로 묶고 높이를 화면에 맡기면
+   액자가 세로로 길쭉해진다(예: 480×1240). 표지·오늘의 주인공 배경은
+   9:16 세로 사진이라 background-size:cover 가 모자란 폭을 메우려고
+   사진을 확대하고, 그만큼 좌우가 잘려나간다. 글씨가 잘린 이유.
+
+   그래서 PC 에서는 액자 자체를 사진과 같은 9:16 로 고정하고 화면
+   가운데 띄운다. 폭·높이를 같이 줄이므로 비율은 어떤 창 크기에서도
+   유지된다.
+
+   모바일은 이 블록에 걸리지 않는다 — 세로 모드는 가로 600px 미만,
+   가로 모드는 세로 600px 미만이라 두 조건을 동시에 넘지 못한다.
+   ════════════════════════════════════════════════════════ */
+@media (min-width:600px) and (min-height:600px) {
+  :root {
+    /* 9:16 (1.jpg·3.jpg 가 1125×2000 = 정확히 9:16) */
+    --app-w: min(480px, calc(100svh * 0.5625));
+    --app-h: min(calc(480px / 0.5625), 100svh);
+  }
+
+  /* 액자를 화면 정가운데로 */
+  html { display:flex; align-items:center; justify-content:center; }
+  body {
+    width:var(--app-w);
+    max-width:var(--app-w);
+    height:var(--app-h);
+    border-radius:20px;
+    box-shadow:0 12px 64px rgba(0,0,0,.3);
+    /* transform 을 주면 body 가 position:fixed 자식들의 기준 상자가 된다.
+       덕분에 메뉴·배경음악 버튼·로딩화면·모달이 화면 구석이 아니라
+       액자 안에 붙는다(개별로 좌표를 계산해 줄 필요가 없다). */
+    transform:translateZ(0);
+  }
+
+  /* 화면 높이(100svh)를 기준으로 잡아둔 높이를 전부 액자 높이로 바꾼다.
+     그대로 두면 섹션이 액자보다 길어져 스냅이 어긋난다. */
+  .h-page[data-page="gallery"],
+  .h-page[data-page="album"],
+  .h-page[data-page="location"],
+  .h-page[data-page="accounts"],
+  .h-page[data-page="photos"],
+  .h-page--header #sec-header,
+  .h-page--header #sec-header.has-photo,
+  .h-page .h-intro,
+  .h-greeting.has-film { min-height:var(--app-h); }
+  .header-photo { height:var(--app-h); }
+  .h-intro .film-strip { bottom:calc(var(--app-h) * .1 - 2.6rem); }
+
+  /* 액자 폭에 맞춰 고정요소 폭 정리 (원래 값은 min(100vw,480px) 라
+     액자가 그보다 좁아지면 삐져나온다) */
+  #loadingScreen, #whiteWash,
+  #galleryModal, .wedding-modal { width:100%; left:0; transform:none; }
+  body.has-cover #mainNav { width:100%; left:0; transform:none; }
+
+  /* 화면 높이 기준 최대높이들도 액자 기준으로 */
+  #menuDrawer.open   { max-height:calc(var(--app-h) * .7); }
+  #galleryImg        { max-height:calc(var(--app-h) * .8); }
+  .wedding-modal-box { max-height:calc(var(--app-h) * .9); }
+}
