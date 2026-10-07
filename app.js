@@ -635,7 +635,7 @@ const IMG_DIRS = [
 // 막히지 않고 즉시 반영되도록 버전을 붙인다. 사진을 새로 교체·커밋할 때 이 값을 1 올린다.
 // (style-h.css의 0.jpg, style-v.css의 3.jpg, index.html의 preload,
 //  admin.html의 IMG_VER 도 같은 값으로 맞춰줄 것)
-const IMG_VER = '5';
+const IMG_VER = '6';
 const ghImg = (name, tier = 0) => IMG_DIRS[tier] + name + '?v=' + IMG_VER;
 
 // ─── 사진 폴백: 1순위가 깨지면 다음 경로로 자동 재시도 ───
