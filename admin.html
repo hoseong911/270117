@@ -398,7 +398,7 @@
     <!-- 오늘의 주인공 -->
     <div class="panel" id="panelGreeting">
       <div class="form-section" style="background:#f5f7fa;border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem">
-        <div style="font-size:.8rem;color:var(--ink2);line-height:1.7">대표 사진은 깃허브 <b>images</b> 폴더의 번호 파일(<b>01.jpg, 02.jpg …</b>)로 관리됩니다. 새 사진은 그 폴더에 순서대로 올려주세요.</div>
+        <div style="font-size:.8rem;color:var(--ink2);line-height:1.7">대표 사진은 깃허브 <b>images</b> 폴더의 번호 파일(<b>w1.jpg, w2.jpg …</b>)로 관리됩니다. 새 사진은 그 폴더에 순서대로 올려주세요.</div>
       </div>
       <div class="form-section">
         <div class="form-section-title">신랑 · 신부</div>
@@ -768,7 +768,7 @@ document.getElementById('adminTabs').addEventListener('click', e => {
 
 // ── CONFIG LOAD ────────────────────────────────────────
 // 메인(표지) 배경은 저장소의 1.jpg 파일 고정. ?v= 캐시버스터는 app.js 의 IMG_VER 과 동일하게 유지.
-const IMG_VER = '6';
+const IMG_VER = '7';
 const COVER_IMG = 'images/1.jpg?v=' + IMG_VER;
 let currentConfig = null;
 const DEFAULT_SECTIONS = [

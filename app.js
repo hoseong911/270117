@@ -313,7 +313,7 @@ function renderAlbum(c) {
     // 첫 줄(3장)은 화면에 바로 보이므로 lazy 를 걸지 않는다 — 늦게 뜨는 느낌의 원인
     ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" decoding="async"${i < 3 ? ' fetchpriority="high"' : ' loading="lazy"'}></div>`).join('')
     : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
-  const moreBtn = images.length
+  const moreBtn = images.length > shown.length
     ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
     : '';
   return `
@@ -620,7 +620,7 @@ function deepMerge(target, source) {
 //   0.jpg            → 준비중(로딩) 사진
 //   1.jpg            → 메인(표지) 사진
 //   2.jpg            → 인트로 사진
-//   01.jpg,02.jpg…   → 웨딩(오늘의 주인공 썸네일) 사진
+//   w1.jpg,w2.jpg…   → 갤러리 사진
 //   001.jpg,002.jpg… → 필름 사진
 // 사진은 사이트와 같은 곳(GitHub Pages)에서 받는다. 예전엔 raw.githubusercontent 를 썼는데,
 // 도메인이 달라 접속마다 DNS+TLS 를 새로 맺어야 하고 캐시도 5분뿐이라 재방문에도 다시 받았다.
@@ -635,14 +635,14 @@ const IMG_DIRS = [
 // 막히지 않고 즉시 반영되도록 버전을 붙인다. 사진을 새로 교체·커밋할 때 이 값을 1 올린다.
 // (style-h.css의 0.jpg, style-v.css의 3.jpg, index.html의 preload,
 //  admin.html의 IMG_VER 도 같은 값으로 맞춰줄 것)
-const IMG_VER = '6';
+const IMG_VER = '7';
 const ghImg = (name, tier = 0) => IMG_DIRS[tier] + name + '?v=' + IMG_VER;
 
 // ─── 사진 폴백: 1순위가 깨지면 다음 경로로 자동 재시도 ───
-// images/숫자.jpg 형태(우리 사진)만 폴백 대상으로 잡는다.
+// images/숫자.jpg, images/w숫자.jpg 형태(우리 사진)만 폴백 대상으로 잡는다.
 // 하객이 올린 사진(Firebase Storage)까지 걸리면 엉뚱한 404를 3번 때리게 된다.
 function imgNameOf(url) {
-  const m = String(url || '').match(/(?:^|\/)images\/(\d+\.jpg)(?:\?|$)/i);
+  const m = String(url || '').match(/(?:^|\/)images\/(w?\d+\.jpg)(?:\?|$)/i);
   return m ? m[1] : null;
 }
 function retryImg(el) {
@@ -679,15 +679,16 @@ function imgExists(name) {
   return fetch(ghImg(name), { method: 'HEAD' }).then(r => r.ok).catch(() => false);
 }
 
-// pad 자리수(2=웨딩,3=필름)로 1번부터 순서대로 탐색. 한 묶음(10장)이 전부 없으면 종료.
-async function probeSeries(pad) {
+// nameOf(i)로 파일명을 만들며 1번부터 순서대로 탐색. 한 묶음(10장)이 전부 없으면 종료.
+// 갤러리(w1.jpg,w2.jpg…)는 번호에 0을 채우지 않고, 필름(001.jpg…)은 3자리로 채운다.
+async function probeSeries(nameOf) {
   const out = [];
   const BATCH = 10;
   for (let start = 1; start <= 90; start += BATCH) {
     const idxs = [];
     for (let i = start; i < start + BATCH; i++) idxs.push(i);
     const res = await Promise.all(idxs.map(async i => {
-      const name = String(i).padStart(pad, '0') + '.jpg';
+      const name = nameOf(i);
       return { i, name, ok: await imgExists(name) };
     }));
     const found = res.filter(r => r.ok);
@@ -697,34 +698,39 @@ async function probeSeries(pad) {
   return out;
 }
 
+const SERIES_NAME_OF = {
+  gallery: i => `w${i}.jpg`,
+  film:    i => String(i).padStart(3, '0') + '.jpg',
+};
+
 // 탐색 결과를 저장해두고 다음 방문에는 기다리지 않고 바로 쓴다.
 // (사진을 추가해도 탐색은 매번 돌기 때문에 다음 방문에 반영된다)
-const seriesKey = pad => `img_series_${IMG_VER}_${pad}`;
-async function seriesNames(pad, ms) {
+const seriesKey = key => `img_series_${IMG_VER}_${key}`;
+async function seriesNames(key, ms) {
   let cached = null;
-  try { cached = JSON.parse(localStorage.getItem(seriesKey(pad)) || 'null'); } catch (e) {}
-  const probe = probeSeries(pad).then(names => {
-    if (names.length) { try { localStorage.setItem(seriesKey(pad), JSON.stringify(names)); } catch (e) {} }
+  try { cached = JSON.parse(localStorage.getItem(seriesKey(key)) || 'null'); } catch (e) {}
+  const probe = probeSeries(SERIES_NAME_OF[key]).then(names => {
+    if (names.length) { try { localStorage.setItem(seriesKey(key), JSON.stringify(names)); } catch (e) {} }
     return names;
   });
   if (Array.isArray(cached) && cached.length) return cached;   // 캐시가 있으면 기다리지 않는다
   return Promise.race([probe, new Promise(r => setTimeout(() => r([]), ms))]);
 }
 
-// 메인·인트로·오늘의 주인공만 먼저 확정한다(필름은 렌더 후 initFilmLater 가 채운다).
+// 메인·인트로·갤러리만 먼저 확정한다(필름은 렌더 후 initFilmLater 가 채운다).
 // 핵심 원칙: 확인이 늦거나 실패해도 경로는 "무조건" 넣는다. 사진이 통째로 사라지는 것보다
 // 주소를 넣어두고 폴백 체인으로 다시 받게 하는 편이 낫다.
 async function applyGithubImages(config) {
   config.header = { ...(config.header || {}), photo: ghImg('1.jpg') };
   config.intro  = { ...(config.intro  || {}), photo: ghImg('2.jpg') };
   try {
-    const wedding = await seriesNames(2, 3000);
-    if (wedding.length) config.gallery = { images: wedding.map(n => ghImg(n)) };
+    const gallery = await seriesNames('gallery', 3000);
+    if (gallery.length) config.gallery = { images: gallery.map(n => ghImg(n)) };
   } catch (e) {
     console.warn('사진 목록 확인 실패:', e);
   }
   // 탐색이 늦어도 최소 한 장은 걸어둔다(폴백 체인이 살려낸다)
-  if (!config.gallery?.images?.length) config.gallery = { images: [ghImg('01.jpg')] };
+  if (!config.gallery?.images?.length) config.gallery = { images: [ghImg('w1.jpg')] };
 }
 
 // 필름(001.jpg~)은 인트로·인사말 하단 스트립 장식이라 첫 화면에 필요 없다.
@@ -732,7 +738,7 @@ async function applyGithubImages(config) {
 async function initFilmLater() {
   const strips = document.querySelectorAll('.film-strip');
   if (!strips.length) return;
-  const names = await seriesNames(3, 8000);
+  const names = await seriesNames('film', 8000);
   if (!names.length) {
     strips.forEach(s => s.remove());
     document.querySelectorAll('.has-film').forEach(s => s.classList.remove('has-film'));
@@ -979,7 +985,18 @@ function initGallery(c) {
     const cell = e.target.closest('.gallery-cell');
     if (cell) open(+cell.dataset.idx);
   });
-  document.getElementById('galleryMore')?.addEventListener('click', () => open(0));
+  // 더보기: 바로 전체화면을 띄우지 않고, 숨겨뒀던 나머지 사진을 썸네일로 펼쳐 보여준다.
+  document.getElementById('galleryMore')?.addEventListener('click', e => {
+    const btn  = e.currentTarget;
+    const grid = document.getElementById('galleryGrid');
+    const rest = images.slice(GALLERY_THUMBS)
+      .map((url, i) => {
+        const idx = GALLERY_THUMBS + i;
+        return `<div class="gallery-cell" data-idx="${idx}"><img src="${esc(url)}" alt="사진 ${idx + 1}" decoding="async" loading="lazy"></div>`;
+      }).join('');
+    grid.insertAdjacentHTML('beforeend', rest);
+    btn.remove();
+  });
   document.getElementById('modalClose')?.addEventListener('click', close);
   document.getElementById('modalPrev')?.addEventListener('click', () => open(current - 1, -1));
   document.getElementById('modalNext')?.addEventListener('click', () => open(current + 1, 1));
