@@ -156,37 +156,32 @@ function renderHeader(c) {
 }
 
 // 필름 흐름(옛날 사진) — 좌→우 / 우→좌 방향 스트립
-function filmStrip(images, dir) {
-  if (!images.length) return '';
-  const frames = images
-    .map(u => `<div class="film-frame"><img src="${esc(u)}" alt="" loading="lazy"></div>`)
-    .join('');
-  // 무한 루프를 위해 프레임을 두 벌 이어붙임
-  return `<div class="film-strip film-${dir}" aria-hidden="true"><div class="film-track">${frames}${frames}</div></div>`;
+// 빈 껍데기만 그리고, 프레임은 렌더가 끝난 뒤 initFilmLater() 가 채운다.
+// (필름 사진까지 기다리느라 메인·인트로가 늦게 뜨던 문제를 끊기 위해 분리)
+function filmStrip(dir) {
+  return `<div class="film-strip film-${dir}" aria-hidden="true"><div class="film-track"></div></div>`;
 }
 
 // 인트로: 메인 다음 화면(사진 + 필름 흐름)
 function renderIntro(c) {
-  const film = c.film?.images || [];
   const photo = c.intro?.photo || c.header?.photo || '';
   return `
-<section id="sec-intro" class="fadein h-intro${film.length ? ' has-film' : ''}">
+<section id="sec-intro" class="fadein h-intro has-film">
   <div class="intro-photo"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}></div>
-  ${filmStrip(film, 'ltr')}
+  ${filmStrip('ltr')}
 </section>`;
 }
 
 function renderGreeting(c) {
   const g  = c.greeting;
-  const film = c.film?.images || [];
   return `
-<section id="sec-greeting" class="fadein h-greeting${film.length ? ' has-film' : ''}">
+<section id="sec-greeting" class="fadein h-greeting has-film">
   <div class="sec">
     <div class="sec-title">${esc(g.title || '결혼합니다')}</div>
     <div class="sec-divider"></div>
     <p class="greeting-message">${esc(g.message || '').replace(/\n/g,'<br>')}</p>
   </div>
-  ${filmStrip(film, 'ltr')}
+  ${filmStrip('ltr')}
 </section>`;
 }
 
@@ -315,7 +310,8 @@ function renderAlbum(c) {
   const images = c.gallery?.images || [];
   const shown = images.slice(0, GALLERY_THUMBS);
   const content = images.length
-    ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" loading="lazy"></div>`).join('')
+    // 첫 줄(3장)은 화면에 바로 보이므로 lazy 를 걸지 않는다 — 늦게 뜨는 느낌의 원인
+    ? shown.map((url,i) => `<div class="gallery-cell" data-idx="${i}"><img src="${esc(url)}" alt="사진 ${i+1}" decoding="async"${i < 3 ? ' fetchpriority="high"' : ' loading="lazy"'}></div>`).join('')
     : `<div class="gallery-empty">사진을 준비 중입니다</div>`;
   const moreBtn = images.length
     ? `<button class="gallery-more" id="galleryMore">+ 더보기</button>`
@@ -627,21 +623,61 @@ function deepMerge(target, source) {
 //   2.jpg            → 인트로 사진
 //   01.jpg,02.jpg…   → 웨딩(오늘의 주인공 썸네일) 사진
 //   001.jpg,002.jpg… → 필름 사진
-const GH_IMG_BASE = 'https://raw.githubusercontent.com/hoseong911/270117/main/images/';
+// 사진은 사이트와 같은 곳(GitHub Pages)에서 받는다. 예전엔 raw.githubusercontent 를 썼는데,
+// 도메인이 달라 접속마다 DNS+TLS 를 새로 맺어야 하고 캐시도 5분뿐이라 재방문에도 다시 받았다.
+// 1순위가 막히면 jsDelivr → raw 순으로 자동 재시도한다(retryImg / ensureBg).
+const IMG_DIRS = [
+  'images/',
+  'https://cdn.jsdelivr.net/gh/hoseong911/270117@main/images/',
+  'https://raw.githubusercontent.com/hoseong911/270117/main/images/',
+];
 
 // 이미지 캐시버스터: 같은 파일명(0/1/2.jpg 등)으로 사진을 교체해도 브라우저·CDN 캐시에
 // 막히지 않고 즉시 반영되도록 버전을 붙인다. 사진을 새로 교체·커밋할 때 이 값을 1 올린다.
-// (style-h.css의 0.jpg, admin.html의 IMG_VER 도 같은 값으로 맞춰줄 것)
-const IMG_VER = '4';
-const ghImg = name => GH_IMG_BASE + name + '?v=' + IMG_VER;
+// (style-h.css의 0.jpg, style-v.css의 3.jpg, index.html의 preload,
+//  admin.html의 IMG_VER 도 같은 값으로 맞춰줄 것)
+const IMG_VER = '5';
+const ghImg = (name, tier = 0) => IMG_DIRS[tier] + name + '?v=' + IMG_VER;
 
-function imgExists(url) {
-  return new Promise(res => {
+// ─── 사진 폴백: 1순위가 깨지면 다음 경로로 자동 재시도 ───
+// images/숫자.jpg 형태(우리 사진)만 폴백 대상으로 잡는다.
+// 하객이 올린 사진(Firebase Storage)까지 걸리면 엉뚱한 404를 3번 때리게 된다.
+function imgNameOf(url) {
+  const m = String(url || '').match(/(?:^|\/)images\/(\d+\.jpg)(?:\?|$)/i);
+  return m ? m[1] : null;
+}
+function retryImg(el) {
+  const name = el.dataset.imgName || imgNameOf(el.getAttribute('src'));
+  const tier = (+(el.dataset.imgTier || 0)) + 1;
+  if (!name || tier >= IMG_DIRS.length) return;   // 경로를 다 써버리면 포기
+  el.dataset.imgName = name;
+  el.dataset.imgTier = tier;
+  el.src = ghImg(name, tier);
+}
+// img 의 error 는 버블링하지 않으므로 캡처 단계에서 받는다.
+document.addEventListener('error', e => {
+  if (e.target instanceof HTMLImageElement) retryImg(e.target);
+}, true);
+
+// 배경사진(메인·인트로·로딩화면)은 onerror 가 없어서 직접 순서대로 시도한다.
+// 뜨는 경로를 찾으면 그걸로 갈아끼운다 → 한 경로가 죽어도 결국 사진은 뜬다.
+function ensureBg(el, name) {
+  if (!el) return;
+  let tier = 0;
+  (function tryNext() {
+    if (tier >= IMG_DIRS.length) return;
+    const url = ghImg(name, tier++);
     const im = new Image();
-    im.onload  = () => res(true);
-    im.onerror = () => res(false);
+    im.onload  = () => { el.style.backgroundImage = `url('${url}')`; };
+    im.onerror = tryNext;
     im.src = url;
-  });
+  })();
+}
+
+// 존재 확인은 HEAD 로 한다. 예전엔 new Image() 로 확인했는데 그건 "확인"이 아니라
+// 사진을 끝까지 내려받는 동작이라, 첫 화면이 뜨기 전에 사진 전체(약 100MB)를 받고 있었다.
+function imgExists(name) {
+  return fetch(ghImg(name), { method: 'HEAD' }).then(r => r.ok).catch(() => false);
 }
 
 // pad 자리수(2=웨딩,3=필름)로 1번부터 순서대로 탐색. 한 묶음(10장)이 전부 없으면 종료.
@@ -652,30 +688,64 @@ async function probeSeries(pad) {
     const idxs = [];
     for (let i = start; i < start + BATCH; i++) idxs.push(i);
     const res = await Promise.all(idxs.map(async i => {
-      const url = ghImg(String(i).padStart(pad, '0') + '.jpg');
-      return { i, url, ok: await imgExists(url) };
+      const name = String(i).padStart(pad, '0') + '.jpg';
+      return { i, name, ok: await imgExists(name) };
     }));
     const found = res.filter(r => r.ok);
-    found.forEach(r => out.push(r.url));
+    found.forEach(r => out.push(r.name));
     if (found.length === 0) break;   // 빈 묶음이면 더 없다고 보고 종료
   }
   return out;
 }
 
-// 깃허브 이미지가 있으면 config 를 덮어씀(없으면 기존 파이어스토어 값 유지)
+// 탐색 결과를 저장해두고 다음 방문에는 기다리지 않고 바로 쓴다.
+// (사진을 추가해도 탐색은 매번 돌기 때문에 다음 방문에 반영된다)
+const seriesKey = pad => `img_series_${IMG_VER}_${pad}`;
+async function seriesNames(pad, ms) {
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(seriesKey(pad)) || 'null'); } catch (e) {}
+  const probe = probeSeries(pad).then(names => {
+    if (names.length) { try { localStorage.setItem(seriesKey(pad), JSON.stringify(names)); } catch (e) {} }
+    return names;
+  });
+  if (Array.isArray(cached) && cached.length) return cached;   // 캐시가 있으면 기다리지 않는다
+  return Promise.race([probe, new Promise(r => setTimeout(() => r([]), ms))]);
+}
+
+// 메인·인트로·오늘의 주인공만 먼저 확정한다(필름은 렌더 후 initFilmLater 가 채운다).
+// 핵심 원칙: 확인이 늦거나 실패해도 경로는 "무조건" 넣는다. 사진이 통째로 사라지는 것보다
+// 주소를 넣어두고 폴백 체인으로 다시 받게 하는 편이 낫다.
 async function applyGithubImages(config) {
+  config.header = { ...(config.header || {}), photo: ghImg('1.jpg') };
+  config.intro  = { ...(config.intro  || {}), photo: ghImg('2.jpg') };
   try {
-    const [coverOk, wedding, film, introOk] = await Promise.race([
-      Promise.all([ imgExists(ghImg('1.jpg')), probeSeries(2), probeSeries(3), imgExists(ghImg('2.jpg')) ]),
-      new Promise(r => setTimeout(() => r([false, [], [], false]), 7000)),
-    ]);
-    if (coverOk)        config.header  = { ...(config.header || {}), photo: ghImg('1.jpg') };
-    if (wedding.length) config.gallery = { images: wedding };
-    if (film.length)    config.film    = { images: film };
-    if (introOk)        config.intro   = { ...(config.intro || {}), photo: ghImg('2.jpg') };
+    const wedding = await seriesNames(2, 3000);
+    if (wedding.length) config.gallery = { images: wedding.map(n => ghImg(n)) };
   } catch (e) {
-    console.warn('github 이미지 로딩 실패:', e);
+    console.warn('사진 목록 확인 실패:', e);
   }
+  // 탐색이 늦어도 최소 한 장은 걸어둔다(폴백 체인이 살려낸다)
+  if (!config.gallery?.images?.length) config.gallery = { images: [ghImg('01.jpg')] };
+}
+
+// 필름(001.jpg~)은 인트로·인사말 하단 스트립 장식이라 첫 화면에 필요 없다.
+// 렌더를 막지 않고 끝난 뒤 조용히 채워 넣는다.
+async function initFilmLater() {
+  const strips = document.querySelectorAll('.film-strip');
+  if (!strips.length) return;
+  const names = await seriesNames(3, 8000);
+  if (!names.length) {
+    strips.forEach(s => s.remove());
+    document.querySelectorAll('.has-film').forEach(s => s.classList.remove('has-film'));
+    return;
+  }
+  const frames = names
+    .map(n => `<div class="film-frame"><img src="${ghImg(n)}" alt="" loading="lazy" decoding="async"></div>`)
+    .join('');
+  strips.forEach(s => {
+    const track = s.querySelector('.film-track');
+    if (track) track.innerHTML = frames + frames;   // 무한 루프용 두 벌
+  });
 }
 
 // ─── 세로(연속 스크롤) ─────────────────────────────────
@@ -1349,21 +1419,23 @@ async function init() {
   // 기본값이 뜨거나 어드민 저장으로 내용이 덮어써지는 사고를 원천 차단.
   const config = JSON.parse(JSON.stringify(DEFAULT));
 
-  // 깃허브 images 폴더의 사진(번호 규칙)이 있으면 우선 사용
-  await applyGithubImages(config);
+  // 로딩화면(0.jpg)은 CSS로 이미 깔려 있지만, 그 경로가 막혔을 때를 대비해 바로 보강한다.
+  ensureBg(document.getElementById('loadingScreen'), '0.jpg');
 
   // 찰나의 순간 '당일 오픈' 토글 — 이 작은 런타임 플래그만 Firestore에서 읽는다.
   // (실패/없음이면 닫힘 → "결혼식 당일에 만나요!" 표시)
+  // 사진 확인과 '동시에' 돌린다. 예전엔 순서대로 기다려서 두 지연이 더해졌다.
+  const photosOpenP = Promise.race([
+    db.collection('wedding_config').doc('runtime').get()
+      .then(snap => snap.exists && snap.data().photosOpen === true),
+    new Promise(r => setTimeout(() => r(false), 3000)),
+  ]).catch(() => false);
+
+  // images 폴더의 사진(번호 규칙)을 적용
+  await applyGithubImages(config);
+
   config.photos = config.photos || {};
-  try {
-    const snap = await Promise.race([
-      db.collection('wedding_config').doc('runtime').get(),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000)),
-    ]);
-    config.photos.open = snap.exists && snap.data().photosOpen === true;
-  } catch (e) {
-    config.photos.open = false;
-  }
+  config.photos.open = await photosOpenP;
 
   const h = config.header || {};
   if (h.title) {
@@ -1392,6 +1464,12 @@ async function init() {
 
   const deck = document.getElementById('hDeck');
   deck.innerHTML = buildPages(config, sections);
+
+  // 메인·인트로·로딩화면 배경은 경로가 막혀도 다음 경로로 다시 받아 끝내 띄운다.
+  ensureBg(document.querySelector('.header-photo'), '1.jpg');
+  ensureBg(document.querySelector('.intro-photo'),  '2.jpg');
+
+  initFilmLater();   // 필름 사진은 렌더를 막지 않고 뒤따라 채운다
 
   initNav(sections);
   initVScroll();
