@@ -2,6 +2,11 @@
    270117 웨딩 청첩장
    ======================== */
 
+/* 스크롤바는 어디서도 보이지 않게 한다(스크롤 자체는 그대로 된다).
+   둥근 카드·모달 안의 스크롤바가 모서리 밖으로 튀어나와 보이던 문제 때문이다. */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
 :root {
   --bg:      #fffbfc;
   --bg2:     #fff5f7;

@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Dancing+Script:wght@400;500;700&family=Gowun+Batang&family=Noto+Serif+KR:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Great+Vibes&family=Alex+Brush&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Pinyon+Script&family=Sacramento&family=Cinzel+Decorative&family=Allura&family=Nanum+Brush+Script&family=Parisienne&family=Tangerine:wght@400;700&family=Satisfy&family=Petit+Formal+Script&family=Cinzel:wght@400;700&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Black+Han+Sans&family=Sunflower:wght@300;500;700&family=Song+Myung&family=Hahmlet:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    /* 스크롤바는 어디서도 보이지 않게 한다(스크롤 자체는 그대로 된다). style.css와 같은 규칙. */
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
     :root {
       --bg: #f7f9fb; --white: #fff; --border: #d0dae8;
       --ink: #1c2535; --ink2: #5a6a7e;
