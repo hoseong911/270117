@@ -17,7 +17,7 @@ const DEFAULT = {
   header: {
     tag:    '',
     title:  '호성❤️유진, 결혼합니다!',
-    ogDesc: '호성❤️유진, 결혼합니다!',
+    ogDesc: '2027. 01. 17. (일) 12:20 PM 부산 아시아드시티웨딩홀',
     ogImage: '',
     footer: '2027. 01. 17. HOSEONG❤️YUJIN',
     photo:  '',   // 표지 사진은 GitHub images/1.jpg 로 자동 적용
