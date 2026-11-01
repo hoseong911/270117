@@ -26,7 +26,8 @@
   <link rel="preload" as="image" href="images/3.jpg?v=7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Dancing+Script:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Great+Vibes&family=Alex+Brush&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Pinyon+Script&family=Sacramento&family=Cinzel+Decorative&family=Allura&family=Nanum+Brush+Script&family=Parisienne&family=Tangerine:wght@400;700&family=Satisfy&family=Petit+Formal+Script&family=Cinzel:wght@400;700&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Noto+Serif+KR:wght@300;400&family=Black+Han+Sans&family=Sunflower:wght@300;500;700&family=Song+Myung&family=Hahmlet:wght@400;700&display=swap" rel="stylesheet">
+  <!-- 실제 사용 폰트 3종만 로드(--font-ui/serif=Gowun Batang·Noto Serif KR, --font-script=Dancing Script). 나머지는 폐지된 헤더 폰트선택기 잔재라 제거 -->
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@300;400&family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- defer: 사진·화면을 먼저 그리게 한다. defer 스크립트는 문서 순서대로 실행되므로
        app.js(맨 아래, 역시 defer)는 항상 이 셋 다음에 실행된다 -->
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
