@@ -1,3 +1,6 @@
 .firebase/
 firebase-debug.log
 .env
+
+# 압축 전 원본 사진 보관함(사이트 미사용). 레포 비대·Pages 게시 방지용으로 추적 제외
+images/_original/
